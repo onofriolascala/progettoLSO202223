@@ -5,7 +5,7 @@
 #ifndef PROGETTOLSO202223_SOCKETUTIL_H
 #define PROGETTOLSO202223_SOCKETUTIL_H
 
-int createAndBindServerSocket(struct sockaddr_in* server_addr, int len);
+int initializeSocket(struct sockaddr_in* server_addr, int len);
 
 
 
