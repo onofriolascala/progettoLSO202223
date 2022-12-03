@@ -1,3 +1,8 @@
+/*
+ * Main del Server. Responsabile di inizializzare il processo server e di gestire l'inizializzazione dei socket
+ * e dei thread adibiti alla gestione delle comunicazioni con i singoli client.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,7 +24,7 @@ int main(){
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     len=sizeof(ip_addr);
 
-    sd1=initializeSocket(&server_addr, len);
+    sd1 = initializeSocket(&server_addr, len);
 
     while(){
         // Loop di accettazione
