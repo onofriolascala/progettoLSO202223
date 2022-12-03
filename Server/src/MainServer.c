@@ -12,11 +12,11 @@ int main(){
     int sd1, sd2;
     char buf[100];
 
-    struct sockaddr_in ip_addr;
+    struct sockaddr_in server_addr;
 
-    ip_addr.sin_family = AF_INET;
-    ip_addr.sin_port = htons(5200);
-    ip_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(5200);
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     len=sizeof(ip_addr);
 
     sd1=initializeSocket(&server_addr, len);

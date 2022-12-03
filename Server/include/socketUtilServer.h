@@ -5,7 +5,8 @@
 #ifndef PROGETTOLSO202223_SOCKETUTIL_H
 #define PROGETTOLSO202223_SOCKETUTIL_H
 
-int initializeSocket(struct sockaddr_in* server_addr, int len);
+int socketInit(struct sockaddr_in* server_addr, int len);
+void acceptLoop(int sd1);
 
 
 
