@@ -1,10 +1,10 @@
 //
-// Funzioni per la gestione dei socket
+// Funzioni per la gestione dei socket da parte dell'applicazione lato server.
 //
 
 #define MAXCONNECTIONS 5
 
-
+// Funzione adibita all'inizializzazione della socket primaria d'ascolto.
 int socketInit(struct sockaddr_in* server_addr,int len){
     int sd1;
     // Apertura del socket lato server.
@@ -27,6 +27,7 @@ int socketInit(struct sockaddr_in* server_addr,int len){
     return sd1;
 }
 
+// Funzione contenente il while infinito con annesso ascolto passivo.
 void acceptLoop(int sd1) {
     return NULL;
 }
