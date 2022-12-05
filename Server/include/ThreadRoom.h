@@ -4,6 +4,7 @@
 
 #ifndef PROGETTOLSO202223_THREADROOM_H
 #define PROGETTOLSO202223_THREADROOM_H
+#include <pthread.h>
 
 /* Funzione principale. Una volta inizializzata, comunica direttamente con tutti gli utenti connessi e gestisce la
  * logica di gioco.*/

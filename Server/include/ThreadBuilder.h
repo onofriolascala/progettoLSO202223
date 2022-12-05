@@ -4,6 +4,7 @@
 
 #ifndef PROGETTOLSO202223_THREADBUILDER_H
 #define PROGETTOLSO202223_THREADBUILDER_H
+#include <pthread.h>
 
 /* Funzione principale. Si occupa della creazione dei thread associati stanze e della loro indicizzazione.
  * Rimane in ascolto attivo di segnalazioni di chiusura di una stanza. */
