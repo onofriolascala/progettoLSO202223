@@ -29,5 +29,16 @@ int socketInit(struct sockaddr_in* server_addr,int len){
 
 // Funzione contenente il while infinito con annesso ascolto passivo.
 void acceptLoop(int sd1) {
+    int sd2;
+    while(1){
+        // Loop di Accettazione
+        if((sd2 = accept(sd1, NULL, NULL)) < 0) {
+            perror(":ACCEPT ERROR");
+            //close(sd1);
+        }
+        else {
+            createNewService(sd2);
+        }
+    }
     return NULL;
 }
