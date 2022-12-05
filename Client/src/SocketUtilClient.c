@@ -24,15 +24,16 @@ int socketInit(struct sockaddr_in* addr, socklen_t* len, char ip[], int port){
     *len = sizeof(*addr);
     inet_aton(ip, &(*addr).sin_addr);
 
-    if((sd1 = socket(PF_INET, SOCK_STREAM,0)) < 0){
+    if((sd1 = socket(AF_INET, SOCK_STREAM,0)) < 0){
         perror(":SOCKET ERROR");
-        //return -1;
+        exit(1);
     }
-
     if(connect(sd1, (struct sockaddr*)addr, *len) < 0) {
         perror(":CONNECT ERROR");
-        //return -1;
+        printf("DEBUG: socketInit successful.\n");
+        exit(1);
     }
+
     printf("DEBUG: socketInit successful.\n");
     return sd1;
 }
