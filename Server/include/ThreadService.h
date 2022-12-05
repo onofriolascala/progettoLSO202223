@@ -5,6 +5,8 @@
 #ifndef THREADSERVICE_H
 #define THREADSERVICE_H
 
+#define MAXCOMMBUFFER 1024
+
 /* Funzione principale. Una volta richiesto e ricevuto un login da parte dell'utente, procede a gestire le sue
  * richieste e a comunicare al client di renderizzare quanto serve. */
 // !!RICHIESTO UN PARSER ED UN DIZIONARIO DELLE COMUNICAZIONI!!
