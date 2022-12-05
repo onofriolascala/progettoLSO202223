@@ -2,8 +2,8 @@
 // Created by onofrio on 05/12/22.
 //
 
-#ifndef PROGETTOLSO202223_COMMUTIL_H
-#define PROGETTOLSO202223_COMMUTIL_H
+#ifndef PROGETTOLSO202223_COMMUTILCLIENT_H
+#define PROGETTOLSO202223_COMMUTILCLIENT_H
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -14,4 +14,4 @@
 int sendToServer(int sock, char msg[], int msgLenght);
 int receiveFromServer(int sock, char msg[],int msgLenght);
 
-#endif //PROGETTOLSO202223_COMMUTIL_H
+#endif //PROGETTOLSO202223_COMMUTILCLIENT_H
