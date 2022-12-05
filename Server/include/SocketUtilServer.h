@@ -2,8 +2,17 @@
 // Funzioni per la gestione dei socket da parte dell'applicazione lato server.
 //
 
-#ifndef PROGETTOLSO202223_SOCKETUTIL_H
-#define PROGETTOLSO202223_SOCKETUTIL_H
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <errno.h>
+
+#include "../include/ThreadService.h"
+
+#ifndef SOCKETUTILSERVER_H
+#define SOCKETUTILSERVER_H
 
 /* Funzione adibita all'inizializzazione del socket primaria d'ascolto. Crea il socket, gli associa l'indirizzo
  * del server e la mette in ascolto di connessioni in entrata. */
@@ -14,4 +23,4 @@ void acceptLoop(int sd1);
 
 
 
-#endif //PROGETTOLSO202223_SOCKETUTIL_H
+#endif /* SOCKETUTILSERVER_H */

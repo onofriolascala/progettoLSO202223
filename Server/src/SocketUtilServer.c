@@ -2,6 +2,8 @@
 // Funzioni per la gestione dei socket da parte dell'applicazione lato server.
 //
 
+#include "../include/SocketUtilServer.h"
+
 #define MAXCONNECTIONS 5
 
 // Funzione adibita all'inizializzazione della socket primaria d'ascolto.
@@ -13,7 +15,7 @@ int socketInit(struct sockaddr_in* server_addr,int len){
         //exit(1);
     }
     // Binding dell'indirizzo al socket.
-    if(bind(sd1, (struct sockaddr*)&ip_addr, sizeof(ip_addr)) < 0){
+    if(bind(sd1, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
         perror(":BIND ERROR");
         close(sd1);
         //exit(1);
@@ -40,5 +42,4 @@ void acceptLoop(int sd1) {
             createNewService(sd2);
         }
     }
-    return NULL;
 }
