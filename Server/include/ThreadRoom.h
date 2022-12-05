@@ -10,6 +10,6 @@
 void* thrRoom(void* arg);
 
 // Creazione del thread. Richiama <foo_name> dal thread costruttore.
-pthread_t createNewRoom(<type> <name>);
+pthread_t createNewRoom();
 
 #endif //PROGETTOLSO202223_THREADROOM_H
