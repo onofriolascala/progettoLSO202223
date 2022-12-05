@@ -7,9 +7,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <pthread.h>
 #include <sys/types.h>
-#include <netinet/in.h>
 #include <errno.h>
+#include <netinet/in.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -19,17 +20,12 @@
 //#include "../include/ThreadRoom.h"
 
 int main(){
-    int sd1, sd2, len;
+    int sd1, sd2;
     //struct room_node room_head;
-
     struct sockaddr_in server_addr;
+    socklen_t len;
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(5200);
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    len = sizeof(server_addr);
-
-    sd1 = socketInit(&server_addr, len);
+    sd1 = socketInit(&server_addr, &len);
     acceptLoop(sd1);
 
     close(sd1);

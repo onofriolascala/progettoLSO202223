@@ -5,4 +5,4 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS -pthread)
 
 add_executable(Server.out ./Server/src/MainServer.c ./Server/src/SocketUtilServer.c ./Server/src/ThreadService.c)
-add_executable(Client.out ./Client/src/MainClient.c)
+add_executable(Client.out ./Client/src/MainClient.c ./Client/src/SocketUtilClient.c)

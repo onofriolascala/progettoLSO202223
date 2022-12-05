@@ -2,9 +2,9 @@
 // Created by Mattia on 02/12/2022.
 //
 
-#ifndef PROGETTOLSO202223_SOCKETUTILCLIENT_H
-#define PROGETTOLSO202223_SOCKETUTILCLIENT_H
+#ifndef SOCKETUTILCLIENT_H
+#define SOCKETUTILCLIENT_H
 
-int socketInit(struct sockaddr_in* server_addr, int len);
+int socketInit(struct sockaddr_in* server_addr, socklen_t* len, char ip[], int port);
 
-#endif //PROGETTOLSO202223_SOCKETUTILCLIENT_H
+#endif /* SOCKETUTILCLIENT_H */
