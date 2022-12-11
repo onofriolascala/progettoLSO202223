@@ -5,6 +5,9 @@
 #ifndef THREADSERVICE_H
 #define THREADSERVICE_H
 
+#include <pthread.h>
+
+
 #define MAXCOMMBUFFER 1024
 
 /* Funzione principale. Una volta richiesto e ricevuto un login da parte dell'utente, procede a gestire le sue

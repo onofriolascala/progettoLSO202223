@@ -16,6 +16,7 @@
 
 #include "../include/ThreadPrompt.h"
 
+
 void* thrRender(void* arg) {
     void* out;
 

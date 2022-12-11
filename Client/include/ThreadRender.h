@@ -4,6 +4,7 @@
 
 #ifndef PROGETTOLSO202223_THREADRENDER_H
 #define PROGETTOLSO202223_THREADRENDER_H
+#include <pthread.h>
 
 void* thrRender(void* arg);
 pthread_t createRender(<type> <name>);
