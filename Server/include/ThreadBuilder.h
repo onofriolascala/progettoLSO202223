@@ -10,6 +10,6 @@
 void* thrBuilder(void* arg);
 
 // Creazione del thread una tantum dal main-thread. Richiama pthread_create.
-pthread_t createBuilder(<type> <name>);
+pthread_t createBuilder();
 
 #endif //PROGETTOLSO202223_THREADBUILDER_H

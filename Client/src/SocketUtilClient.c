@@ -19,21 +19,21 @@
 int socketInit(struct sockaddr_in* addr, socklen_t* len, char ip[], int port){
     int sd1;
 
-    (*addr).sin_family = AF_INET;
-    (*addr).sin_port = htons(port);
-    *len = sizeof(*addr);
-    inet_aton(ip, &(*addr).sin_addr);
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    len = sizeof(addr);
+    inet_aton("localhost", &addr.sin_addr);
 
-    if((sd1 = socket(AF_INET, SOCK_STREAM,0)) < 0){
+    if((sd1 = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         perror(":SOCKET ERROR");
         exit(1);
     }
-    if(connect(sd1, (struct sockaddr*)addr, *len) < 0) {
+    if(connect(sd1, (struct sockaddr*)&addr, len) < 0) {
         perror(":CONNECT ERROR");
-        printf("DEBUG: socketInit successful.\n");
         exit(1);
     }
 
-    printf("DEBUG: socketInit successful.\n");
+    printf("DEBUG: socketInit completed.\n");
+    fflush(stdout);
     return sd1;
 }

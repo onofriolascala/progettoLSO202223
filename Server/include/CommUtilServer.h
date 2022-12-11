@@ -2,17 +2,12 @@
 // Created by osboxes on 12/5/22.
 //
 
-
-
 #ifndef COMMUTILSERVER_H
 #define COMMUTILSERVER_H
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <unistd.h>
+int writeToServer(int sock, char msg[], int msgLenght);
+int readFromServer_old(int sock, char msg[],int msgLenght);
 
-int sendToServer(int sock, char msg[], int msgLenght);
-int receiveFromServer(int sock, char msg[],int msgLenght);
+int readFromClient(int sd, char incoming[],int max_len);
 
 #endif /* COMMUTILSERVER_H */

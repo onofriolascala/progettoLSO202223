@@ -30,11 +30,13 @@ int main() {
 
 
     // Inizializzazione connessione
-    strcpy(server_ip, "localhost");
+    strcpy(server_ip, "127.0.0.1");
     server_port = 5200;
     sd1 = socketInit(&server_addr, &len, server_ip, server_port);
 
     // Main loop di ascolto
+
+    write(sd1, "14:tentativo", 13);
 
     sleep(20);
     close(sd1);

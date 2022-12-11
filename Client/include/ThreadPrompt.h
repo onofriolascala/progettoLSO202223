@@ -6,6 +6,6 @@
 #define PROGETTOLSO202223_THREADPROMPT_H
 
 void* thrPrompt(void* arg);
-pthread_t createPrompt(<type> <name>);
+pthread_t createPrompt();
 
 #endif //PROGETTOLSO202223_THREADPROMPT_H

@@ -15,8 +15,4 @@ void* thrService(void* arg);
 // Creazione del thread. Richiama pthread_create.
 pthread_t createNewService(int sd2);
 
-// Comunicazioni tramite stringa tra thread e client associato.
-void sendToClient(char input[], char output[]);
-void receiveFromClient(char input[], char output[]);
-
 #endif /* THREADSERVICE_H */
