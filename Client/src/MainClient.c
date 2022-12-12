@@ -23,6 +23,7 @@ int main() {
     struct sockaddr_in server_addr;
     socklen_t len;
     char server_ip[MAXCOMMBUFFER];
+    char tempbuffer[MAXCOMMBUFFER];
 
     // Inizializzazioni
     // createPrompt();
@@ -34,11 +35,19 @@ int main() {
     server_port = 5200;
     sd1 = socketInit(&server_addr, &len, server_ip, server_port);
 
-    // Main loop di ascolto
+    int count = 2;
+    while(count--) {
+        printf("Opzioni disponibili:\n"
+               "0 - Disconnessione\t\t10 - Login\t\t11 - Registrazione\n");
+        printf("Inserire un numero tra i precedenti: ");
+        fflush(stdout);
+        fgets(server_ip, MAXCOMMBUFFER, stdin);
+        server_ip[strcspn(server_ip, "\n")] = 0;
+        strcat(server_ip, ":test");
+        printf("%s\n", server_ip);
+        write(sd1, server_ip, strlen(server_ip)+1);
+    }
 
-    write(sd1, "14:tentativo", 13);
-
-    sleep(20);
     close(sd1);
     printf("Terminazione processo client.\n");
     return 0;

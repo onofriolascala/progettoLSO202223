@@ -44,7 +44,7 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
         close(sd1);
         //exit(1);
     }
-    printf("DEBUG: socketInit successful.\n");
+    printf("MAIN: SocketInit completed.\n");
     fflush(stdout);
     return sd1;
 }
@@ -62,7 +62,7 @@ void acceptLoop(int sd1) {
         else {
             createNewService(sd2);
         }
-        printf("sd2:%d sd1:%d DEBUG: accept loop successful.\n", sd2, sd1);
+        printf("MAIN: Accept loop restarting...\n");
         fflush(stdout);
     }
 }
