@@ -29,10 +29,16 @@ int main() {
     // createPrompt();
     // createRender();
 
-
+    printf("Inserire l'indirizzo ip: ");
+    fgets(server_ip, MAXCOMMBUFFER, stdin);
+    server_ip[strcspn(server_ip, "\n")] = 0;
+    /*printf("Inserire la porta: ");
+    fgets(tempbuffer, MAXCOMMBUFFER, stdin);
+    server_ip[strcspn(tempbuffer, "\n")] = 0;*/
     // Inizializzazione connessione
-    strcpy(server_ip, "127.0.0.1");
+    //strcpy(server_ip, "25.37.83.251");
     server_port = 5200;
+
     sd1 = socketInit(server_addr, len, server_ip, server_port);
 
     int count = 2;

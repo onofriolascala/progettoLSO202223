@@ -21,8 +21,8 @@ int socketInit(struct sockaddr_in addr, socklen_t len, char ip[], int port){
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
+    inet_aton(ip, &addr.sin_addr);
     len = sizeof(addr);
-    inet_aton("localhost", &addr.sin_addr);
 
     if((sd1 = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         perror(":SOCKET ERROR");

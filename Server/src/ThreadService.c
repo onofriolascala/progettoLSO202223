@@ -46,6 +46,7 @@ void* thrService(void* arg) {
 
     int count = 5;
     while(count--) {
+        memset(incoming, 0, sizeof(incoming));
         signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
         printf("\t\t SERVICE_SD%d: %d comunicazioni prima della chiusura.\n", sd, count);
         switch(signal_num)

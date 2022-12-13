@@ -32,17 +32,22 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
         perror(":SOCKET ERROR");
         //exit(1);
     }
+    // Setup delle impostazioni del socket
+    if(setsockopt(sd1, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
+        perror(":SOCKET OPTION ERROR");
+        exit(1);
+    }
     // Binding dell'indirizzo al socket.
     if(bind(sd1, (struct sockaddr*)server_addr, *len) < 0){
         perror(":BIND ERROR");
         close(sd1);
-        //exit(1);
+        exit(1);
     }
     // Messa in ascolto del socket.
     if(listen(sd1, MAXCONNECTIONS) < 0) {
         perror(":LISTEN ERROR");
         close(sd1);
-        //exit(1);
+        exit(1);
     }
     printf("MAIN: SocketInit completed.\n");
     fflush(stdout);
