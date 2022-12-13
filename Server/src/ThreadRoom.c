@@ -51,7 +51,7 @@ void* thrRoom(void* arg) {
 
     this_room=addNewRoom(room_list);                                //crea nuovo nodo room e aggiungilo alla lista
     sprintf(localsocket,"/tmp/thrRoom_socket_local_%d",this_room->id); //crea socket locale e aggiungilo al nodo
-    //crea socket
+    //crea socket a
     strcpy(this_room->localsocket,localsocket);
 
     return out;
