@@ -20,7 +20,6 @@
 
 struct service_arg {
     int sd;
-    char* string;
     int flag;
 };
 
@@ -29,34 +28,23 @@ void* thrService(void* arg) {
     /*printf("DEBUG: Thread started...\n");
     fflush(stdout);*/
 
-    struct service_arg temparg;
+    //struct player_node player;
     char incoming[MAXCOMMBUFFER];
     char outgoing[MAXCOMMBUFFER];
-    char tempstring[MAXCOMMBUFFER];
-    int signal_num, out_len, sd;
+    int out_len, sd;
+    int signal_num = 1;
 
     // Copia i valori della struttura originale.
-    temparg.sd = (*(struct service_arg*)arg).sd;
-    temparg.string = (*(struct service_arg*)arg).string;
+    sd = (*(struct service_arg*)arg).sd;
 
-
-
-
-    sd = temparg.sd;
-
-    strncpy(incoming, temparg.string, MAXCOMMBUFFER);
     // La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
     (*(struct service_arg*)arg).flag = 1;
-    printf("\t\tSERVICE_SD%d: initialized with string value \"%s\".\n", sd, incoming);
+    printf("\t\tSERVICE_SD%d: initialized with socket value of \"%d\".\n", sd, sd);
     fflush(stdout);
 
-    //strcpy(incoming, "");
-
-    int count = 5;
-    while(count--) {
+    while(signal_num > 0) {
         memset(incoming, 0, sizeof(incoming));
         signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
-        printf("\t\t SERVICE_SD%d: %d comunicazioni prima della chiusura.\n", sd, count);
         switch(signal_num)
         {
             case -1:
@@ -70,11 +58,11 @@ void* thrService(void* arg) {
                 break;
             case 10:
                 printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
-                writeToClient(sd, 51, "Login");
+                writeToClient(sd, 52, "Homepage");
                 break;
             case 11:
                 printf("\t\t\t<Registrazione> %d:%s\n", signal_num, incoming);
-                writeToClient(sd, 52, "Registrazione");
+                writeToClient(sd, 51, "Registrazione");
                 break;
             case 14:
                 printf("\t\t\t<DEBUG> %d:%s\n", signal_num, incoming);
@@ -94,7 +82,7 @@ void* thrService(void* arg) {
                 break;
             case 23:
                 printf("\t\t\t<Logout> %d:%s\n", signal_num, incoming);
-                writeToClient(sd, 50, "OK");
+                writeToClient(sd, 51, "Nuovo Login");
                 break;
             default:
                 printf("\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
@@ -118,11 +106,9 @@ pthread_t createNewService(int sd2) {
     fflush(stdout);*/
     int flag;
     pthread_t tid;
-    char buf[100] = "Argomento";
 
     struct service_arg args;
     args.sd = sd2;
-    args.string = buf;
     args.flag = 0;
 
     //printf("DEBUG: Creation of detatched thread...\n");
