@@ -17,6 +17,7 @@
 #include "../include/CommUtilServer.h"
 
 #define MAXSIGNALBUF 2
+#define MAXCOMMBUFFER 1024
 
 int writeToServer_old(int sock, char msg[], int msgLenght){
     int n;
@@ -40,9 +41,20 @@ int readFromServer_old(int sock, char msg[], int msgLenght){
     return n;
 }
 
-// Lettura dal server con annesso parser per spacchettamento del signal code. Restituisce il segnale inviato dal client
-int writeToClient(int sd, char incoming[],int max_len) {
-
+// Scrittura al client con anesso parser per l'impacchettamento dei segnali.
+int writeToClient(int sd, int signal_num, char outgoing[]) {
+    char finalmessage[MAXCOMMBUFFER];
+    int len;
+    if(sprintf(finalmessage, "%d:%s", signal_num, outgoing) < 0) {
+        perror(":COMPOSITION ERROR");
+        return -1;
+    }
+    len = strlen(finalmessage);
+    if(write(sd, finalmessage, len) < 0) {
+        perror(":WRITE ERROR");
+        return -1;
+    }
+    return 0;
 }
 
 // Lettura dal server con annesso parser per spacchettamento del signal code. Restituisce il segnale inviato dal client

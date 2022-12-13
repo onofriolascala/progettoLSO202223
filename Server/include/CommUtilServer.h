@@ -9,6 +9,6 @@ int writeToServer_old(int sock, char msg[], int msgLenght);
 int readFromServer_old(int sock, char msg[],int msgLenght);
 
 int readFromClient(int sd, char incoming[],int max_len);
-int writeToClient(int sd, char incoming[],int max_len);
+int writeToClient(int sd, int signal_num, char outgoing[]);
 
 #endif /* COMMUTILSERVER_H */

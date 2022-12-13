@@ -51,7 +51,7 @@ void* thrService(void* arg) {
 
     int count = 5;
     while(count--) {
-        //memset(incoming, 0, sizeof(incoming));
+        memset(incoming, 0, sizeof(incoming));
         signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
         printf("\t\t SERVICE_SD%d: %d comunicazioni prima della chiusura.\n", sd, count);
         switch(signal_num)
@@ -67,32 +67,42 @@ void* thrService(void* arg) {
                 break;
             case 10:
                 printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
+                writeToClient(sd, 51, "Login");
                 break;
             case 11:
                 printf("\t\t\t<Registrazione> %d:%s\n", signal_num, incoming);
+                writeToClient(sd, 52, "Registrazione");
                 break;
             case 14:
                 printf("\t\t\t<DEBUG> %d:%s\n", signal_num, incoming);
+                writeToClient(sd, 42, "Hai trovato il messaggio di DEBUG.");
                 break;
             case 20:
                 printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
+                writeToClient(sd, 54, "Messaggio contenente la stanza.");
                 break;
             case 21:
                 printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
+                writeToClient(sd, 54, "Messaggio contenente la stanza.");
                 break;
             case 22:
                 printf("\t\t\t<Lista stanze> %d:%s\n", signal_num, incoming);
+                writeToClient(sd, 53, "Lista delle stanze");
                 break;
             case 23:
                 printf("\t\t\t<Logout> %d:%s\n", signal_num, incoming);
+                writeToClient(sd, 50, "OK");
                 break;
             default:
                 printf("\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
+                writeToClient(sd, 98, "Comunicazione non riconosciuta.");
         }
         fflush(stdout);
+        if(signal_num == 0) {
+            break;
+        }
     }
 
-    sleep(2);
     close(sd);
     printf("\t\tSERVICE_SD%d: service thread has ended.\n", sd);
     fflush(stdout);
