@@ -16,7 +16,7 @@
 
 #include "../include/SocketUtilClient.h"
 
-int socketInit(struct sockaddr_in* addr, socklen_t* len, char ip[], int port){
+int socketInit(struct sockaddr_in addr, socklen_t len, char ip[], int port){
     int sd1;
 
     addr.sin_family = AF_INET;
