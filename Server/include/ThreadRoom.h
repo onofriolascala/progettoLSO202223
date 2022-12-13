@@ -7,15 +7,14 @@
 #include <pthread.h>
 
 #define MAXCOMMBUFFER 1024
-#define USERNAMELENGHT 20
+#define USERNAMELENGHT 32
 #define LOCALSOCKETADDRLENGHT 100
-#define SERVICEADDRLENGHT 100
 
 
 struct player_node{
     char username[USERNAMELENGHT];
     int player_socket;
-    char service_addr[SERVICEADDRLENGHT];
+    char service_addr[LOCALSOCKETADDRLENGHT];
     struct player_node* next;
 };
 
@@ -29,12 +28,13 @@ struct room_node{
 
 
 
+struct room_node* addNewRoom(struct room_node* room_list);
 
 /* Funzione principale. Una volta inizializzata, comunica direttamente con tutti gli utenti connessi e gestisce la
  * logica di gioco.*/
 void* thrRoom(void* arg);
 
 // Creazione del thread. Richiama <foo_name> dal thread costruttore.
-pthread_t createNewRoom();
+pthread_t createNewRoom(int sd, struct room_node** room_list);
 
 #endif //PROGETTOLSO202223_THREADROOM_H

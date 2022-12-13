@@ -115,8 +115,8 @@ pthread_t createNewService(int sd2) {
     if (pthread_create(&tid, NULL, thrService, &args)) {
         printf(":THREAD CREATION ERROR:\n");
         close(sd2);
-        pthread_cancel(pthread_self());
-        return 0;
+        //pthread_cancel(pthread_self());
+        return -1;
     }
 
     // Detatch necessario per far sì che le risorse di ciascun thread siano liberate senza un join.
