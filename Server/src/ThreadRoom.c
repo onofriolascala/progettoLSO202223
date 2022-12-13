@@ -44,12 +44,13 @@ struct room_node* addNewRoom(struct room_node* room_list, char localsocket[]){
 void* thrRoom(void* arg) {
     void* out;
     struct room_node* room_list;
+    char localsocket[LOCALSOCKETADDRLENGHT];
     room_list = (struct room_node*)arg;
 
     struct room_node* this_room;
 
-    this_room=addNewRoom(room_list);
-
+    this_room=addNewRoom(room_list, localsocket);
+    //crea socket locale
     //crea nuovo nodo room e aggiungilo alla lista
     //alloca lista giocatori
     return out;
