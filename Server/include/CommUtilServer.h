@@ -5,9 +5,10 @@
 #ifndef COMMUTILSERVER_H
 #define COMMUTILSERVER_H
 
-int writeToServer(int sock, char msg[], int msgLenght);
+int writeToServer_old(int sock, char msg[], int msgLenght);
 int readFromServer_old(int sock, char msg[],int msgLenght);
 
 int readFromClient(int sd, char incoming[],int max_len);
+int writeToClient(int sd, char incoming[],int max_len);
 
 #endif /* COMMUTILSERVER_H */

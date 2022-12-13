@@ -18,7 +18,7 @@
 
 #define MAXSIGNALBUF 2
 
-int writeToServer(int sock, char msg[], int msgLenght){
+int writeToServer_old(int sock, char msg[], int msgLenght){
     int n;
     if((n = write(sock, msg, msgLenght)) < msgLenght){
         if(n < 0){
@@ -38,6 +38,11 @@ int readFromServer_old(int sock, char msg[], int msgLenght){
         }
     }
     return n;
+}
+
+// Lettura dal server con annesso parser per spacchettamento del signal code. Restituisce il segnale inviato dal client
+int writeToClient(int sd, char incoming[],int max_len) {
+
 }
 
 // Lettura dal server con annesso parser per spacchettamento del signal code. Restituisce il segnale inviato dal client

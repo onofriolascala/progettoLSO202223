@@ -29,13 +29,18 @@ void* thrService(void* arg) {
     /*printf("DEBUG: Thread started...\n");
     fflush(stdout);*/
 
+    struct service_arg temparg;
     char incoming[MAXCOMMBUFFER];
     char outgoing[MAXCOMMBUFFER];
+    char tempstring[MAXCOMMBUFFER];
     int signal_num, out_len, sd;
 
     // Copia i valori della struttura originale.
-    struct service_arg temparg = *((struct service_arg*)arg);
+    temparg.sd = (*(struct service_arg*)arg).sd;
+    temparg.string = (*(struct service_arg*)arg).string;
+
     sd = temparg.sd;
+
     strncpy(incoming, temparg.string, MAXCOMMBUFFER);
     // La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
     (*(struct service_arg*)arg).flag = 1;
@@ -46,7 +51,7 @@ void* thrService(void* arg) {
 
     int count = 5;
     while(count--) {
-        memset(incoming, 0, sizeof(incoming));
+        //memset(incoming, 0, sizeof(incoming));
         signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
         printf("\t\t SERVICE_SD%d: %d comunicazioni prima della chiusura.\n", sd, count);
         switch(signal_num)
