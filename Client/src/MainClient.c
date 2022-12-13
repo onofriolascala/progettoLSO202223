@@ -36,7 +36,7 @@ int main() {
     fgets(tempbuffer, MAXCOMMBUFFER, stdin);
     server_ip[strcspn(tempbuffer, "\n")] = 0;*/
     // Inizializzazione connessione
-    //strcpy(server_ip, "25.37.83.251");
+    strcpy(server_ip, "25.72.233.6");
     server_port = 5200;
 
     sd1 = socketInit(server_addr, len, server_ip, server_port);
@@ -52,6 +52,11 @@ int main() {
         strcat(server_ip, ":test");
         printf("%s\n", server_ip);
         write(sd1, server_ip, strlen(server_ip)+1);
+
+        memset(server_ip,0,sizeof(server_ip));
+        read(sd1, server_ip, MAXCOMMBUFFER);
+        printf("Server:%s\n",server_ip);
+        fflush(stdout);
     }
 
     close(sd1);

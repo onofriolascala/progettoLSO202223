@@ -17,6 +17,24 @@
 #include "../include/ThreadRoom.h"
 
 #define MAXCOMMBUFFER 1024
+#define USERNAMELENGHT 20
+#define LOCALSOCKETADDRLENGHT 100
+#define SERVICEADDRLENGHT 100
+
+struct player_node{
+    char username[USERNAMELENGHT];
+    int player_socket;
+    char service_addr[SERVICEADDRLENGHT];
+    struct player_node* next;
+};
+
+struct room_node{
+    int id;
+    char localsocket[LOCALSOCKETADDRLENGHT];
+    struct player_node* player_list;
+    int player_num;
+    struct room_node* next;
+};
 
 // Funzione principale.
 void* thrRoom(void* arg) {
