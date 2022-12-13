@@ -39,6 +39,9 @@ void* thrService(void* arg) {
     temparg.sd = (*(struct service_arg*)arg).sd;
     temparg.string = (*(struct service_arg*)arg).string;
 
+
+
+
     sd = temparg.sd;
 
     strncpy(incoming, temparg.string, MAXCOMMBUFFER);
