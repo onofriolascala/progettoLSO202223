@@ -16,8 +16,7 @@ void* thrService(void* arg) {
     //struct player_node player;
     char incoming[MAXCOMMBUFFER];
     char outgoing[MAXCOMMBUFFER];
-    int out_len, sd;
-    int signal_num = 1;
+    int out_len, sd, signal_num;
 
     struct player_node* player;
 
@@ -30,8 +29,15 @@ void* thrService(void* arg) {
     printf("\t\tSERVICE_SD%d: initialized with socket value of \"%d\", and player value of \"%s\".\n", sd, sd, player->username);
     fflush(stdout);
 
+    if (player == NULL) {
+        signal_num = 1;
+    }
+    else {
+        signal_num = 52;
+    }
+
     while(signal_num > 0) {
-        while (signal_num > 0) {
+        while (signal_num > 0 || signal_num != 52) {
             printf("\t\t\tSERVICE_SD%d: primo while.\n", sd);
             memset(incoming, 0, sizeof(incoming));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
@@ -44,15 +50,22 @@ void* thrService(void* arg) {
                     break;
                 case 0:
                     printf("\t\t\t<Disconnesione> %d:%s\n", signal_num, incoming);
+                    writeToClient(sd, 50, "OK.");
                     break;
                 case 10:
                     printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
                     //signal_num = login(incoming, player, outgoing);
+                    player = createNewPlayerNode(sd, "Pippo");
+                    //initServiceSocket()
+                    strcpy(outgoing, player->username);
+                    strcat(outgoing, " - ");
+                    strcat(outgoing, player->service_addr);
                     signal_num = 52;
-                    writeToClient(sd, signal_num, "Homepage");
+                    writeToClient(sd, signal_num, outgoing);
                     break;
                 case 11:
                     printf("\t\t\t<Registrazione> %d:%s\n", signal_num, incoming);
+                    //signin()
                     writeToClient(sd, 51, "Registrazione");
                     break;
                 case 14:
@@ -80,9 +93,6 @@ void* thrService(void* arg) {
                     writeToClient(sd, 98, "Comunicazione non riconosciuta.");
             }
             fflush(stdout);
-            if (signal_num == 52) {
-                break;
-            }
         }
         while (signal_num > 0) {
             printf("\t\t\tSERVICE_SD%d: secondo while.\n", sd);
@@ -97,14 +107,16 @@ void* thrService(void* arg) {
                     break;
                 case 0:
                     printf("\t\t\t<Disconnesione> %d:%s\n", signal_num, incoming);
+                    //closeServiceSocket()
+                    writeToClient(sd, 50, "OK.");
                     break;
                 case 10:
                     printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Effettuare prima un logout prima di un nuovo login.");
+                    writeToClient(sd, 98, "Effettuare il logout prima di un nuovo login.");
                     break;
                 case 11:
                     printf("\t\t\t<Registrazione> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Effettuare prima un logout prima di un nuovo sign in.");
+                    writeToClient(sd, 98, "Effettuare il logout prima di un nuovo sign in.");
                     break;
                 case 14:
                     printf("\t\t\t<DEBUG> %d:%s\n", signal_num, incoming);
@@ -112,18 +124,27 @@ void* thrService(void* arg) {
                     break;
                 case 20:
                     printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
+                    //createNewRoom()
+                    //joinRoom()
                     writeToClient(sd, 54, "Messaggio contenente la stanza.");
                     break;
                 case 21:
                     printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
+                    //joinRoom()
+                    //waitRoom()
+                    //fetchRoom()
                     writeToClient(sd, 54, "Messaggio contenente la stanza.");
+                    //closeServiceSocket()
                     break;
                 case 22:
                     printf("\t\t\t<Lista stanze> %d:%s\n", signal_num, incoming);
+                    //getRoomList()
                     writeToClient(sd, 53, "Lista delle stanze");
                     break;
                 case 23:
                     printf("\t\t\t<Logout> %d:%s\n", signal_num, incoming);
+                    //closeServiceSocket()
+                    //destroyPlayerNode()
                     signal_num = 51;
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;

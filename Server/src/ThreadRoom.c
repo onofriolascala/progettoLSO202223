@@ -52,3 +52,15 @@ pthread_t createNewRoom(int sd, struct room_node** room_list) {
     fflush(stdout);
     return tid;
 }
+
+// Creazione del thread. Richiama <foo_name> dal thread costruttore.
+int joinRoom(int ID, struct room_node** room_list, struct player_node* player) {
+    int signal_num;
+
+    //signal_num =
+
+    /* Comunicazioni attese:
+     * 70-Stanza piena, 71-Stanza inesistente, 72-Utente già connesso, 54-Stanza
+     * */
+    return signal_num;
+}
