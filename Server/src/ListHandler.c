@@ -7,17 +7,17 @@
 
 
 struct player_node* createNewPlayerNode( int player_socket, char username[] ){
-    struct player_node* player_node;
-    if( (player_node = (struct player_node*)malloc(sizeof(struct player_node))) == NULL){
+    struct player_node* new;
+    if( (new = (struct player_node*)malloc(sizeof(struct player_node))) == NULL){
         //gestire errore malloc
     }
     else{
-        player_node->player_socket = player_socket;
-        strcpy( player_node->username, username);
-        sprintf( player_node->service_addr, "/tmp/LSO202223/thrService_socket_local_%d", player_socket);
-        player_node->next = NULL;
+        new->player_socket = player_socket;
+        strcpy( new->username, username);
+        sprintf( new->service_addr, "/tmp/LSO202223/thrService_socket_local_%d", player_socket);
+        new->next = NULL;
     }
-    return player_node;
+    return new;
 }
 
 struct player_node* removePlayerNode( struct player_node* player_list, int target_socket ){
