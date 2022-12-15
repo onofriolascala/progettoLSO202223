@@ -10,7 +10,8 @@ add_executable(Server.out Server/src/MainServer.c
         Server/src/ThreadService.c Server/include/ThreadService.h
         Server/src/ThreadRoom.c Server/include/ThreadRoom.h
         Server/src/LogicSigninLogin.c Server/include/LogicSigninLogin.h
-        Server/src/LogicRoom.c Server/include/LogicRoom.h Server/include/ListHandler.h Server/src/ListHandler.c)
+        Server/src/LogicRoom.c Server/include/LogicRoom.h
+        Server/src/ListHandler.c Server/include/ListHandler.h)
 add_executable(Client.out Client/src/MainClient.c
         Client/src/SocketUtilClient.c Client/include/SocketUtilClient.h
         Client/src/CommUtilClient.c Client/include/CommUtilClient.h

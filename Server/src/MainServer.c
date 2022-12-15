@@ -21,7 +21,7 @@
 #include "../include/Def.h"
 
 
-int main(){
+int main() {
     int sd1, sd2;
     //struct room_node room_head;
     struct sockaddr_in server_addr;

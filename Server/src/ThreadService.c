@@ -130,7 +130,7 @@ pthread_t createNewService(int sd2) {
 }
 
 //  in stato detached.
-pthread_t rebuildService(player_node* player) {
+pthread_t rebuildService(struct player_node* player) {
     /*printf("DEBUG: Input for createNewService sd:%d.\n",sd2);
     fflush(stdout);*/
     int flag;
