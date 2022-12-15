@@ -15,7 +15,6 @@
 #include <arpa/inet.h>
 
 #include "../include/SocketUtilClient.h"
-#include "../include/Def.h"
 
 
 int socketInit(struct sockaddr_in addr, socklen_t len, char ip[], int port){
