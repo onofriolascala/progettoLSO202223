@@ -16,7 +16,7 @@ void* thrService(void* arg) {
     //struct player_node player;
     char incoming[MAXCOMMBUFFER];
     char outgoing[MAXCOMMBUFFER];
-    int out_len, sd, signal_num;
+    int sd, service_sd, out_len, signal_num;
 
     struct player_node* player;
 
@@ -37,7 +37,7 @@ void* thrService(void* arg) {
     }
 
     while(signal_num > 0) {
-        while (signal_num > 0 || signal_num != 52) {
+        while (signal_num > 0 && signal_num != 52) {
             printf("\t\t\tSERVICE_SD%d: primo while.\n", sd);
             memset(incoming, 0, sizeof(incoming));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
@@ -56,7 +56,7 @@ void* thrService(void* arg) {
                     printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
                     //signal_num = login(incoming, player, outgoing);
                     player = createNewPlayerNode(sd, "Pippo");
-                    //initServiceSocket()
+                    service_sd = createServiceSocket(player->service_addr);
                     strcpy(outgoing, player->username);
                     strcat(outgoing, " - ");
                     strcat(outgoing, player->service_addr);
@@ -232,3 +232,11 @@ pthread_t rebuildService(struct player_node* player) {
     //fflush(stdout);
     return tid;
 }
+
+int createServiceSocket(char service_addr[]) {
+    int service_sd;
+
+    return service_sd;
+}
+
+int destroyServiceSocket(int service_sd);
