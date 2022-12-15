@@ -6,9 +6,7 @@
 #define PROGETTOLSO202223_THREADROOM_H
 #include <pthread.h>
 
-#define MAXCOMMBUFFER 1024
-#define USERNAMELENGHT 32
-#define LOCALSOCKETADDRLENGHT 100
+
 
 
 struct room_node* addNewRoom(struct room_node* room_list);
