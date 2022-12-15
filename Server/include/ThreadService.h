@@ -6,6 +6,7 @@
 #define THREADSERVICE_H
 
 #include <pthread.h>
+#include "../include/Def.h"
 
 
 /* Funzione principale. Una volta richiesto e ricevuto un login da parte dell'utente, procede a gestire le sue
@@ -16,6 +17,6 @@ void* thrService(void* arg);
 // Creazione del thread. Richiama pthread_create.
 pthread_t createNewService(int sd2);
 
-pthread_t rebuildService(struct player_node* player;
+pthread_t rebuildService(struct player_node* player);
 
 #endif /* THREADSERVICE_H */

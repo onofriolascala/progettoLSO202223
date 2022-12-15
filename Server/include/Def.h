@@ -31,7 +31,6 @@ struct room_node{
     struct room_node* next;
 };
 
-
 struct service_arg {
     int sd;
     int flag;

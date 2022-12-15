@@ -4,5 +4,6 @@
 
 #ifndef LOGICROOM_H
 #define LOGICROOM_H
+#include "../include/Def.h"
 
 #endif /* LOGICROOM_H */

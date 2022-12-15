@@ -6,6 +6,7 @@
 #define PROGETTOLSO202223_THREADROOM_H
 #include <pthread.h>
 
+#include "../include/Def.h"
 
 
 

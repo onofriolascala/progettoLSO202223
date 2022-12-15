@@ -130,6 +130,7 @@ pthread_t createNewService(int sd2) {
 }
 
 //  in stato detached.
+
 pthread_t rebuildService(struct player_node* player) {
     /*printf("DEBUG: Input for createNewService sd:%d.\n",sd2);
     fflush(stdout);*/
@@ -137,13 +138,13 @@ pthread_t rebuildService(struct player_node* player) {
     pthread_t tid;
 
     struct service_arg args;
-    args.sd = sd2;
+    //args.sd = sd2;
     args.flag = 0;
 
     //printf("DEBUG: Creation of detatched thread...\n");
     if (pthread_create(&tid, NULL, thrService, &args)) {
         printf(":THREAD CREATION ERROR:\n");
-        close(sd2);
+        //close(sd2);
         //pthread_cancel(pthread_self());
         return -1;
     }
@@ -156,7 +157,7 @@ pthread_t rebuildService(struct player_node* player) {
      * degli argomenti, che verrebbero persi con la chiusura del record dello stack di attivazione di createNewService. */
     while(args.flag == 0);
 
-    printf("MAIN: Service thread created with sd:%d.\n", sd2);
+    //printf("MAIN: Service thread created with sd:%d.\n", sd2);
     fflush(stdout);
     return tid;
 }

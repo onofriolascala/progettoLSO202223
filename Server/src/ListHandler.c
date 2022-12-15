@@ -7,14 +7,14 @@
 
 #include "../include/Def.h"
 
-
+/*
 void newHead(struct player_node* head){
     struct player_node temp;
     temp=*head;
     *head=malloc()
 }
 
-
+*/
 
 
 struct room_node* addNewRoom(struct room_node* room_list) {
