@@ -33,6 +33,7 @@ struct room_node{
 
 struct service_arg {
     int sd;
+    struct player_node* player;
     int flag;
 };
 
