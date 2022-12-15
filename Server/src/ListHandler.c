@@ -8,7 +8,7 @@
 
 struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     struct player_node* player_node;
-    if( (player_node = (struct player_node*)malloc(sizeof(player_node))) == NULL){
+    if( (player_node = (struct player_node*)malloc(sizeof(struct player_node))) == NULL){
         //gestire errore malloc
     }
     else{
@@ -39,9 +39,6 @@ int destroyPlayerNode( struct player_node* player_node ){
     }
     return distrutto;
 }
-
-
-
 
 struct room_node* createNewRoomNode( struct room_node* room_list ) {
     struct room_node* new;
