@@ -15,6 +15,7 @@
 
 #include "../include/ThreadService.h"
 #include "../include/CommUtilServer.h"
+#include "../include/ListHandler.h"
 
 #define MAXCOMMBUFFER 1024
 
@@ -102,6 +103,38 @@ void* thrService(void* arg) {
 
 // Creazione del thread in stato detached.
 pthread_t createNewService(int sd2) {
+    /*printf("DEBUG: Input for createNewService sd:%d.\n",sd2);
+    fflush(stdout);*/
+    int flag;
+    pthread_t tid;
+
+    struct service_arg args;
+    args.sd = sd2;
+    args.flag = 0;
+
+    //printf("DEBUG: Creation of detatched thread...\n");
+    if (pthread_create(&tid, NULL, thrService, &args)) {
+        printf(":THREAD CREATION ERROR:\n");
+        close(sd2);
+        //pthread_cancel(pthread_self());
+        return -1;
+    }
+
+    // Detatch necessario per far sì che le risorse di ciascun thread siano liberate senza un join.
+    pthread_detach(tid);
+
+    /* La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
+     * Senza di essa il main terminerebbe l'esecuzione della funzione prima che il service abbia copiato i valori
+     * degli argomenti, che verrebbero persi con la chiusura del record dello stack di attivazione di createNewService. */
+    while(args.flag == 0);
+
+    printf("MAIN: Service thread created with sd:%d.\n", sd2);
+    fflush(stdout);
+    return tid;
+}
+
+//  in stato detached.
+pthread_t rebuildService(player_node* player) {
     /*printf("DEBUG: Input for createNewService sd:%d.\n",sd2);
     fflush(stdout);*/
     int flag;

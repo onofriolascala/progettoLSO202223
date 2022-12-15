@@ -18,4 +18,6 @@ void* thrService(void* arg);
 // Creazione del thread. Richiama pthread_create.
 pthread_t createNewService(int sd2);
 
+pthread_t rebuildService(int sd2);
+
 #endif /* THREADSERVICE_H */
