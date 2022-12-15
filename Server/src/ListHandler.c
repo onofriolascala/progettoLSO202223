@@ -6,7 +6,7 @@
 #include "../include/ListHandler.h"
 
 
-struct player_node* createNewPlayerNode( int player_socket, char username[], char service_addr[]){
+struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     struct player_node* player_node;
     if( (player_node = (struct player_node*)malloc(sizeof(player_node))) == NULL){
         //gestire errore malloc
@@ -14,7 +14,7 @@ struct player_node* createNewPlayerNode( int player_socket, char username[], cha
     else{
         player_node->player_socket = player_socket;
         strcpy( player_node->username, username);
-        strcpy( player_node->service_addr, service_addr);
+        sprintf( player_node->service_addr, "/tmp/LSO202223/thrService_socket_local_%d", player_socket);
         player_node->next = NULL;
     }
     return player_node;
@@ -43,35 +43,22 @@ int destroyPlayerNode( struct player_node* player_node ){
 
 
 
-struct room_node* addNewRoom(struct room_node* room_list) {
+struct room_node* createNewRoomNode( struct room_node* room_list ) {
     struct room_node* new;
-    if(room_list == NULL){
-        new = (struct room_node*)malloc(sizeof(struct room_node));
-        if( new != NULL){
+    new = (struct room_node*)malloc(sizeof(struct room_node));
+    if( new != NULL){
+        if( room_list != NULL)
+            new->id = room_list->id+1;
+        else
             new->id = 1;
-            strcpy(new->localsocket, "");
-            new->player_list = NULL;
-            new->player_num = 0;
-            new->next = NULL;
-            room_list = new;
-        }
-        else;
-            //gestisci errore malloc
+        sprintf(new->localsocket,"/tmp/LSO202223/thrRoom_socket_local_%d", new->id);
+        new->player_list = NULL;
+        new->player_num = 0;
+        new->next = NULL;
     }
-    else{
-        new = (struct room_node*)malloc(sizeof(struct room_node));
-        if( new != NULL){
-            new->id = room_list->id + 1;
-            strcpy(new->localsocket, "");
-            new->player_list = NULL;
-            new->player_num = 0;
-            new->next = room_list;
-            room_list = new;
-        }
-        else;
-            //gestisci errore malloc
-    }
-    return room_list;
+    else;
+        //gestire errore malloc
+    return new;
 }
 
 

@@ -27,10 +27,8 @@ void* thrRoom(void* arg) {
     struct room_node* this_room;
 
     //Crea nuovo nodo room e aggiungilo alla lista
-    this_room = addNewRoom(room_list);
+    //this_room = addNewRoom(room_list);
     //Crea socket locale e aggiungilo al nodo
-    sprintf(localsocket,"/tmp/thrRoom_socket_local_%d",this_room->id);
-    //Crea socket a
     strcpy(this_room->localsocket,localsocket);
 
     return 0;
