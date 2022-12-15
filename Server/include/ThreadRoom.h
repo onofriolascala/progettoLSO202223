@@ -11,23 +11,6 @@
 #define LOCALSOCKETADDRLENGHT 100
 
 
-struct player_node{
-    char username[USERNAMELENGHT];
-    int player_socket;
-    char service_addr[LOCALSOCKETADDRLENGHT];
-    struct player_node* next;
-};
-
-struct room_node{
-    int id;
-    char localsocket[LOCALSOCKETADDRLENGHT];
-    struct player_node* player_list;
-    int player_num;
-    struct room_node* next;
-};
-
-
-
 struct room_node* addNewRoom(struct room_node* room_list);
 
 /* Funzione principale. Una volta inizializzata, comunica direttamente con tutti gli utenti connessi e gestisce la

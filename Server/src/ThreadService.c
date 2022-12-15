@@ -16,13 +16,9 @@
 #include "../include/ThreadService.h"
 #include "../include/CommUtilServer.h"
 #include "../include/ListHandler.h"
+#include "../include/Def.h"
 
-#define MAXCOMMBUFFER 1024
 
-struct service_arg {
-    int sd;
-    int flag;
-};
 
 // Funzione principale.
 void* thrService(void* arg) {

@@ -15,8 +15,9 @@
 #include <arpa/inet.h>
 
 #include "../include/SocketUtilServer.h"
+#include "../include/Def.h"
 
-#define MAXCONNECTIONS 5
+
 
 // Funzione adibita all'inizializzazione della socket primaria d'ascolto.
 int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {

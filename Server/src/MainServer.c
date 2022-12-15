@@ -18,6 +18,8 @@
 #include "../include/SocketUtilServer.h"
 #include "../include/ThreadService.h"
 //#include "../include/ThreadRoom.h"
+#include "../include/Def.h"
+
 
 int main(){
     int sd1, sd2;

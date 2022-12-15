@@ -15,4 +15,4 @@ add_executable(Client.out Client/src/MainClient.c
         Client/src/SocketUtilClient.c Client/include/SocketUtilClient.h
         Client/src/CommUtilClient.c Client/include/CommUtilClient.h
         Client/src/ThreadPrompt.c Client/include/ThreadPrompt.h
-        Client/src/ThreadRender.c Client/include/ThreadRender.h)
+        Client/src/ThreadRender.c Client/include/ThreadRender.h Server/include/Def.h)

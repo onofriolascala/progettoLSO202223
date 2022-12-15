@@ -15,9 +15,9 @@
 #include <arpa/inet.h>
 
 #include "../include/CommUtilServer.h"
+#include "../include/Def.h"
 
-#define MAXSIGNALBUF 2
-#define MAXCOMMBUFFER 1024
+
 
 int writeToServer_old(int sock, char msg[], int msgLenght){
     int n;
