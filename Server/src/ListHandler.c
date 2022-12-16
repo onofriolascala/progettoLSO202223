@@ -34,6 +34,21 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
     return player_list;
 }
 
+struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int target_id ){
+    struct room_node* tmp;
+    if( room_list != NULL){
+        if( room_list->id == target_id ){
+            tmp = room_list;
+            room_list = room_list->next;
+            free(tmp);
+        }
+        else{
+            room_list->next = removeAndDestroyRoomNode( room_list->next, target_id);
+        }
+    }
+    return room_list;
+}
+
 int destroyPlayerNode( struct player_node* player ) {
     int distrutto = -1;
     if( player != NULL ){
@@ -60,6 +75,24 @@ struct room_node* createNewRoomNode( struct room_node* room_list ) {
     else;
         //gestire errore malloc
     return new;
+}
+
+void addRoomToRoomList ( struct room_node** room_list, struct room_node* new_room ){
+    if( room_list != NULL){
+        if( new_room != NULL ){
+            new_room->next = *room_list;
+            *room_list = new_room;
+        }
+    }
+}
+
+struct room_node* createAndAddNewRoom( struct room_node** room_list){
+    struct room_node* new_room;
+
+    new_room=createNewRoomNode(*room_list);
+    addRoomToRoomList(room_list, new_room);
+
+    return new_room;
 }
 
 struct room_node* getRoom( struct room_node* room_list, int target_id ){
