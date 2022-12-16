@@ -6,6 +6,9 @@
 #include "../include/ListHandler.h"
 
 
+
+// Cosa da fare: bisogna gestire gli errori della malloc
+
 struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     struct player_node* new;
     if( (new = (struct player_node*)malloc(sizeof(struct player_node))) == NULL){
@@ -58,4 +61,29 @@ struct room_node* createNewRoomNode( struct room_node* room_list ) {
     return new;
 }
 
+struct room_node* getRoom( struct room_node* room_list, int target_id ){
+    struct room_node* target;
+    if( room_list != NULL){
+        if( room_list->id == target_id)
+            target = room_list;
+        else
+            target = getRoom( room_list->next, target_id);
+    }
+    else
+        target = NULL;
+    return target;
+}
+
+struct player_node* getPlayer( struct player_node* player_list, int target_socket ){
+    struct player_node* target;
+    if( player_list != NULL){
+        if( player_list->player_socket == target_socket)
+            target = player_list;
+        else
+            target = getPlayer( player_list->next, target_socket);
+    }
+    else
+        target = NULL;
+    return target;
+}
 
