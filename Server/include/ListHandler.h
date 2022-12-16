@@ -19,4 +19,8 @@ int destroyPlayerNode( struct player_node* player_node );
 
 struct room_node* createNewRoomNode( struct room_node* room_list );
 
+struct room_node* getRoom( struct room_node* room_list, int target_id );
+
+struct player_node* getPlayer( struct player_node* player_list, int target_socket );
+
 #endif //PROGETTOLSO202223_LISTHANDLER_H
