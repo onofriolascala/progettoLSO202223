@@ -16,6 +16,7 @@
 
 #include "../include/ThreadRoom.h"
 #include "../include/ListHandler.h"
+#include "../include/SocketUtilServer.h"
 #include "../include/Def.h"
 
 
@@ -24,32 +25,50 @@ void* thrRoom(void* arg) {
     printf("DEBUG: Creazione stanza.\n");
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER];
     int ID, localsocket, room_sd, out_len, signal_num;
-    struct room_node* room_list;
+    struct room_node** room_list;
     struct room_node* this_room;
+    struct room_node* currenthead;
+
+    struct sockaddr_un localsocket_addr;
+    socklen_t localsocket_len;
+
+    struct room_arg temp;
+    temp = *(struct room_arg*)arg;
+    //printf("DEBUG:1.\n");
 
     // Copia i valori della struttura originale.
-    room_list = *(*(struct room_arg*)arg).room_list;
-    this_room = createNewRoomNode(room_list);
+    //printf("DEBUG:1,5\n");
+    room_list = temp.room_list;
+    if (room_list == NULL) {
+        currenthead = NULL;
+        //printf("DEBUG:2.1\n");
+    }
+    else {
+        currenthead = *room_list;
+        //printf("DEBUG:2.2\n");
+    }
+    this_room = createNewRoomNode(currenthead);
     ID = this_room->id;
-    (*(struct room_arg*)arg).room_ID = this_room->id;
 
+    printf("DEBUG:3.\n");
     // Apertura della localsocket
-    localsocket = 15;
+    localsocket = localSocketInit(ID, this_room->localsocket, &localsocket_addr, &localsocket_len);
     printf("DEBUG:4.\n");
 
     // La flag, condivisa da service e room appena creato, opera come un single-use mutex legato alla risorsa.
+    (*(struct room_arg*)arg).room_ID = this_room->id;
     (*(struct room_arg*)arg).flag = 1;
-    printf("\t\tROOM_ID%d: initialized with ID value of \"%d\", and local socket of \"%s:%d\".\n", ID, ID, this_room->localsocket, localsocket);
+    printf("\t\t\t\tROOM_ID%d: initialized with ID value of \"%d\", and local socket of \"%s:%d\".\n", ID, ID, localsocket_addr.sun_path, localsocket);
     fflush(stdout);
 
-    printf("\t\tROOM_ID%d: service thread has ended.\n", ID);
+    printf("\t\t\t\tROOM_ID%d: service thread has ended.\n", ID);
     return 0;
 }
 
 // Creazione del thread della stanza.
 int createNewRoom(int sd, struct room_node** room_list) {
-    printf("DEBUG: Input for createNewRoom.\n");
-    fflush(stdout);
+    /*printf("DEBUG: Input for createNewRoom.\n");
+    fflush(stdout);*/
     int flag;
     pthread_t tid;
 
@@ -90,3 +109,4 @@ int joinRoom(int ID, struct room_node** room_list, struct player_node* player) {
      * */
     return signal_num;
 }
+

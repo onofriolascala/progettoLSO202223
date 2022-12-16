@@ -52,7 +52,8 @@ struct room_node* createNewRoomNode( struct room_node* room_list ) {
         else {
             new->id = 1;
         }
-        sprintf(new->localsocket, "/tmp/LSO202223/thrRoom_socket_local_%d", new->id);
+        //sprintf(new->localsocket, "/tmp/LSO202223/thrRoom_socket_local_%d", new->id);
+        //sprintf(new->localsocket, "/tmp/LSO202223/thrRoom_socket_local_%d", new->id);
         new->player_list = NULL;
         new->player_num = 0;
         new->next = NULL;

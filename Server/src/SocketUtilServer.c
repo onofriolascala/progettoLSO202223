@@ -2,22 +2,8 @@
 // Funzioni per la gestione dei socket da parte dell'applicazione lato server.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include "../include/SocketUtilServer.h"
 #include "../include/Def.h"
-
-
 
 // Funzione adibita all'inizializzazione della socket primaria d'ascolto.
 int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
@@ -53,6 +39,40 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
     printf("MAIN: SocketInit completed.\n");
     fflush(stdout);
     return sd1;
+}
+
+int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_addr, socklen_t* len) {
+    int sd;
+
+    (*localsocket_addr).sun_family = PF_LOCAL;
+    strcpy((*localsocket_addr).sun_path, local_path);
+    *len = sizeof(*localsocket_addr);
+
+    // Apertura del socket lato server.
+    if ((sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
+        perror(":SOCKET ERROR");
+        //exit(1);
+    }
+    // Binding dell'indirizzo al socket.
+    if(bind(sd, (struct sockaddr*)localsocket_addr, *len) < 0){
+        perror(":BIND ERROR");
+        close(sd);
+        //exit(1);
+    }
+    // Setup delle impostazioni del socket
+    if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
+        perror(":SOCKET OPTION ERROR");
+        //exit(1);
+    }
+    // Messa in ascolto del socket.
+    if(listen(sd, MAXCONNECTIONS) < 0) {
+        perror(":LISTEN ERROR");
+        close(sd);
+        //exit(1);
+    }
+    printf("\t\t\t\tROOM_ID%d: localSocketInit completed.\n", ID);
+    fflush(stdout);
+    return sd;
 }
 
 // Funzione contenente il while infinito con annesso ascolto passivo.

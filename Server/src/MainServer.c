@@ -19,19 +19,18 @@
 #include "../include/ThreadService.h"
 #include "../include/Def.h"
 //#include "../include/ThreadRoom.h"
+#include "../include/ListHandler.h"
 
 
 
 int main() {
     int sd1, sd2;
-    struct room_node** room_list_head;
+    struct room_node** room_list;
     struct sockaddr_in server_addr;
     socklen_t len;
 
-    room_list_head = NULL;
-
     sd1 = socketInit(&server_addr, &len);
-    acceptLoop(sd1, room_list_head);
+    acceptLoop(sd1, room_list);
 
     close(sd1);
     printf("Terminazione processo server.\n");
