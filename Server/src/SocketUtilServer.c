@@ -60,10 +60,10 @@ int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_a
         //exit(1);
     }
     // Setup delle impostazioni del socket
-    if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
+    /*if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
         perror(":SOCKET OPTION ERROR");
         //exit(1);
-    }
+    }*/
     // Messa in ascolto del socket.
     if(listen(sd, MAXCONNECTIONS) < 0) {
         perror(":LISTEN ERROR");

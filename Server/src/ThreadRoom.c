@@ -111,6 +111,8 @@ void* thrRoom(void* arg) {
 
     // Chiusura della stanza.
     //*room_list = removeAndDestroyRoomNode(*room_list, ID);
+
+    sleep(20);
     deleteLocalSocket(localsocket, localsocket_addr.sun_path);
 
     printf("\t\t\t\tROOM_ID%d: service thread has ended.\n", ID);
@@ -150,11 +152,32 @@ int createNewRoom(int sd, struct room_node** room_list) {
     return args.room_ID;
 }
 
-//
-int joinRoom(int ID, struct room_node** room_list, struct player_node* player) {
+// AGGIUNGERE MUTEX
+int joinRoom(int ID, struct room_node** room_list, struct player_node* player, char outgoing[]) {
     int signal_num;
+    struct room_node* joined_room;
 
-    //signal_num =
+    signal_num = S_UNKNOWNSIGNAL;
+    joined_room = getRoom(*room_list, ID);
+
+    if (joined_room == NULL) {
+        strcpy(outgoing, "La stanza non esiste.");
+        signal_num = S_ROOMNOTFOUND;
+    }
+    else if (joined_room->player_num > 8){
+        strcpy(outgoing, "La stanza è piena.");
+        signal_num = S_FULLROOM;
+    }
+    else {
+        if (getPlayer(joined_room->player_list, player->player_socket) == NULL) {
+            strcpy(outgoing, "Esiste già un utente con lo stesso nome all'interno della stanza.");
+            signal_num = S_ROOMGREENLIT;
+        }
+        else {
+            strcpy(outgoing, "Esiste già un utente con lo stesso nome all'interno della stanza.");
+            signal_num = 72;
+        }
+    }
 
     /* Comunicazioni attese:
      * 70-Stanza piena, 71-Stanza inesistente, 72-Utente già connesso, 54-Stanza
