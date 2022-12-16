@@ -13,6 +13,8 @@
 
 struct player_node* createNewPlayerNode( int player_socket, char username[] );
 
+struct player_node* addPlayerToPlayerList( struct player_node* player_list, struct player_node* newPlayer);
+
 struct player_node* removePlayerNode( struct player_node* player_list, int target_socket );
 
 int destroyPlayerNode( struct player_node* player_node );

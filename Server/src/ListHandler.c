@@ -25,6 +25,28 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     return new;
 }
 
+struct player_node* addPlayerToPlayerList( struct player_node* player_list, struct player_node* newPlayer){
+    struct player_node* tmp;
+    if( player_list != NULL){
+        if( newPlayer != NULL ){
+            tmp = player_list;
+            //scorre tutta la lista fino a quando non arriva all'elemento prima della testa
+            while( tmp->next->player_socket != player_list->player_socket ){
+                tmp = tmp->next;
+            }
+            newPlayer->next = tmp->next;
+            tmp->next = newPlayer;
+        }
+    }
+    else{
+        if( player_list != NULL) {
+            newPlayer->next = newPlayer;
+            player_list = newPlayer;
+        }
+    }
+    return player_list;
+}
+
 struct player_node* removePlayerNode( struct player_node* player_list, int target_socket ){
     if( player_list != NULL ){
         if( player_list->player_socket == target_socket ){
