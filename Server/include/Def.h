@@ -17,6 +17,9 @@
 
 #define LOCALSOCKETADDRLENGHT 100
 
+// Numero di microsecondi degli usleep()
+#define REFRESHCONSTANT 5000
+
 
 struct player_node{
     char username[USERNAMELENGHT];
@@ -35,12 +38,13 @@ struct room_node{
 
 struct service_arg {
     int sd;
+    struct room_node** room_list;
     struct player_node* player;
     int flag;
 };
 
 struct room_arg {
-    struct room_node* room_list;
+    struct room_node** room_list;
     int room_ID;
     int flag;
 };

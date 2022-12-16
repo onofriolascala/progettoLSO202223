@@ -24,12 +24,12 @@
 
 int main() {
     int sd1, sd2;
-    //struct room_node room_head;
+    struct room_node** room_list_head;
     struct sockaddr_in server_addr;
     socklen_t len;
 
     sd1 = socketInit(&server_addr, &len);
-    acceptLoop(sd1);
+    acceptLoop(sd1, room_list_head);
 
     close(sd1);
     printf("Terminazione processo server.\n");

@@ -28,9 +28,9 @@
 void* thrService(void* arg);
 
 // Creazione del thread. Richiama pthread_create.
-pthread_t createNewService(int sd2);
+pthread_t createNewService(int sd2, struct room_node** room_list);
 // Crea un thread simulando un riavvio.
-pthread_t rebuildService(struct player_node* player);
+pthread_t rebuildService(struct player_node* player, struct room_node** room_list);
 
 // Gestione della Socket di servizio per la comunicazione di avvenuto join.
 /*int createServiceSocket(char service_addr[]);

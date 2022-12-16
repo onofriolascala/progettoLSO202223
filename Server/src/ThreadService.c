@@ -17,13 +17,14 @@ void* thrService(void* arg) {
     //struct player_node player;
     char incoming[MAXCOMMBUFFER];
     char outgoing[MAXCOMMBUFFER];
-    int sd, service_sd, out_len, signal_num;
-
+    int sd, service_sd, out_len, signal_num, room_ID;
     struct player_node* player;
+    struct room_node** room_list;
 
     // Copia i valori della struttura originale.
     sd = (*(struct service_arg*)arg).sd;
     player = (*(struct service_arg*)arg).player;
+    room_list = (*(struct service_arg*)arg).room_list;
 
     // La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
     (*(struct service_arg*)arg).flag = 1;
@@ -126,9 +127,10 @@ void* thrService(void* arg) {
                     break;
                 case 20:
                     printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
-                    //createNewRoom();
+                    room_ID = createNewRoom(sd, room_list);
+                    sprintf(outgoing, "Stanza creata con ID %d", room_ID);
                     //joinRoom();
-                    writeToClient(sd, 54, "Messaggio contenente la stanza.");
+                    writeToClient(sd, 54, outgoing);
                     break;
                 case 21:
                     printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
@@ -175,7 +177,7 @@ void* thrService(void* arg) {
 }
 
 // Creazione del thread in stato detached.
-pthread_t createNewService(int sd2) {
+pthread_t createNewService(int sd2, struct room_node** room_list) {
     /*printf("DEBUG: Input for createNewService sd:%d.\n",sd2);
     fflush(stdout);*/
     int flag;
@@ -183,6 +185,7 @@ pthread_t createNewService(int sd2) {
 
     struct service_arg args;
     args.sd = sd2;
+    args.room_list = room_list;
     args.player = NULL;
     args.flag = 0;
 
@@ -199,7 +202,9 @@ pthread_t createNewService(int sd2) {
     /* La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
      * Senza di essa il main terminerebbe l'esecuzione della funzione prima che il service abbia copiato i valori
      * degli argomenti, che verrebbero persi con la chiusura del record dello stack di attivazione di createNewService. */
-    while(args.flag == 0);
+    while(args.flag == 0) {
+        usleep(REFRESHCONSTANT);
+    }
 
     printf("MAIN: Service thread created with sd:%d.\n", sd2);
     fflush(stdout);
@@ -207,11 +212,12 @@ pthread_t createNewService(int sd2) {
 }
 
 //  Creazione di un nuovo thread service in stato detached, che recupera le informazioni del precedente thread.
-pthread_t rebuildService(struct player_node* player) {
+pthread_t rebuildService(struct player_node* player, struct room_node** room_list) {
     pthread_t tid;
 
     struct service_arg args;
     args.sd = player->player_socket;
+    args.room_list = room_list;
     args.player = player;
     args.flag = 0;
 

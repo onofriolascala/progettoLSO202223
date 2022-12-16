@@ -56,7 +56,7 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
 }
 
 // Funzione contenente il while infinito con annesso ascolto passivo.
-void acceptLoop(int sd1) {
+void acceptLoop(int sd1, struct room_node** room_list) {
     int sd2;
     int count = 5;
     while(count--){
@@ -66,7 +66,7 @@ void acceptLoop(int sd1) {
             //close(sd1);
         }
         else {
-            createNewService(sd2);
+            createNewService(sd2, room_list);
         }
         printf("MAIN: Accept loop restarting...\n");
         fflush(stdout);

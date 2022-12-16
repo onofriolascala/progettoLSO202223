@@ -15,7 +15,7 @@
 int socketInit(struct sockaddr_in* server_addr, socklen_t* len);
 
 // Funzione contenente il while infinito con annesso ascolto passivo.
-void acceptLoop(int sd1);
+void acceptLoop(int sd1, struct room_node** room_list);
 
 
 
