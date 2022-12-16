@@ -31,9 +31,9 @@ int main() {
     // createPrompt();
     // createRender();
 
-    printf("Inserire l'indirizzo ip: ");
-    fgets(server_ip, MAXCOMMBUFFER, stdin);
-    server_ip[strcspn(server_ip, "\n")] = 0;
+    //printf("Inserire l'indirizzo ip: ");
+    //fgets(server_ip, MAXCOMMBUFFER, stdin);
+    //server_ip[strcspn(server_ip, "\n")] = 0;
     /*printf("Inserire la porta: ");
     fgets(tempbuffer, MAXCOMMBUFFER, stdin);
     server_ip[strcspn(tempbuffer, "\n")] = 0;*/
@@ -43,7 +43,7 @@ int main() {
 
     sd1 = socketInit(server_addr, len, server_ip, server_port);
 
-    while(signal_num > 0) {
+    while(signal_num > 0 && signal_num != 50) {
         printf("Opzioni disponibili:\n"
                "0 - Disconnessione\t\t10 - Login\t\t11 - Registrazione\n");
         printf("Inserire un numero tra i precedenti: ");
