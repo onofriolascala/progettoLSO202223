@@ -47,19 +47,24 @@ void* thrRoom(void* arg) {
         currenthead = *room_list;
         //printf("DEBUG:2.2\n");
     }
+
     this_room = createNewRoomNode(currenthead);
     ID = this_room->id;
 
-    printf("DEBUG:3.\n");
+    //printf("DEBUG:3.\n");
     // Apertura della localsocket
     localsocket = localSocketInit(ID, this_room->localsocket, &localsocket_addr, &localsocket_len);
-    printf("DEBUG:4.\n");
+    //printf("DEBUG:4.\n");
 
     // La flag, condivisa da service e room appena creato, opera come un single-use mutex legato alla risorsa.
     (*(struct room_arg*)arg).room_ID = this_room->id;
     (*(struct room_arg*)arg).flag = 1;
     printf("\t\t\t\tROOM_ID%d: initialized with ID value of \"%d\", and local socket of \"%s:%d\".\n", ID, ID, localsocket_addr.sun_path, localsocket);
     fflush(stdout);
+
+    //deleteLocalSocket()
+    close(localsocket);
+    unlink(localsocket_addr.sun_path);
 
     printf("\t\t\t\tROOM_ID%d: service thread has ended.\n", ID);
     return 0;
