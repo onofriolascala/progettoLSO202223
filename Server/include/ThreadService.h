@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -32,7 +33,7 @@ pthread_t createNewService(int sd2);
 pthread_t rebuildService(struct player_node* player);
 
 // Gestione della Socket di servizio per la comunicazione di avvenuto join.
-int createServiceSocket(char service_addr[]);
-int destroyServiceSocket(int service_sd);
+/*int createServiceSocket(char service_addr[]);
+int destroyServiceSocket(int service_sd);*/
 
 #endif /* THREADSERVICE_H */
