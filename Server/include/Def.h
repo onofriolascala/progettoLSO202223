@@ -20,6 +20,13 @@
 // Numero di microsecondi degli usleep()
 #define REFRESHCONSTANT 5000
 
+// Segnali di comunicazione lato Server
+#define S_DISCONNECT 0      // Disconnessione
+#define S_ROOMGREENLIT 54   // Entrata nella stanza consentita
+#define S_FULLROOM 70       // La stanza è piena
+#define S_ROOMNOTFOUND 71   // La stanza non esiste
+#define S_USERINROOM 72     // L'utente è già nella stanza
+#define S_UNKNOWNSIGNAL 99  // Segnale non riconosciuto
 
 struct player_node{
     char username[USERNAMELENGHT];
