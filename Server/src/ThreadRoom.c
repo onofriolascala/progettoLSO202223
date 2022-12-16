@@ -2,32 +2,18 @@
 * Funzioni del thread responsabile della gestione della logica di gioco.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include "../include/ThreadRoom.h"
-#include "../include/ListHandler.h"
-#include "../include/SocketUtilServer.h"
-#include "../include/Def.h"
-
 
 // Funzione principale.
 void* thrRoom(void* arg) {
-    printf("DEBUG: Creazione stanza.\n");
+    //printf("DEBUG: Creazione stanza.\n");
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER];
     int ID, localsocket, room_sd, out_len, signal_num;
     struct room_node** room_list;
     struct room_node* this_room;
     struct room_node* currenthead;
+
+    signal_num = 1;
 
     struct sockaddr_un localsocket_addr;
     socklen_t localsocket_len;
@@ -39,16 +25,17 @@ void* thrRoom(void* arg) {
     // Copia i valori della struttura originale.
     //printf("DEBUG:1,5\n");
     room_list = temp.room_list;
-    if (room_list == NULL) {
+
+    /*if (room_list == NULL) {
         currenthead = NULL;
-        //printf("DEBUG:2.1\n");
+        printf("DEBUG:2.1\n");
     }
     else {
         currenthead = *room_list;
-        //printf("DEBUG:2.2\n");
-    }
+        printf("DEBUG:2.2\n");
+    }*/
 
-    this_room = createNewRoomNode(currenthead);
+    this_room = createAndAddNewRoom(room_list);
     ID = this_room->id;
 
     //printf("DEBUG:3.\n");
@@ -62,9 +49,69 @@ void* thrRoom(void* arg) {
     printf("\t\t\t\tROOM_ID%d: initialized with ID value of \"%d\", and local socket of \"%s:%d\".\n", ID, ID, localsocket_addr.sun_path, localsocket);
     fflush(stdout);
 
-    //deleteLocalSocket()
-    close(localsocket);
-    unlink(localsocket_addr.sun_path);
+    // Switch per la gestione della game logic
+    /*while(signal_num > 0) {
+        while (signal_num > 0) {
+            printf("\t\t\t\t\tDEBUG_ROOMID%d: inizio while.\n", ID);
+            memset(incoming, 0, sizeof(incoming));
+            memset(outgoing, 0, sizeof(outgoing));
+            signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
+            switch (signal_num) {
+                case -1:
+                    break;
+                case -2:
+                    break;
+                case -3:
+                    break;
+                case 0:
+                    printf("\t\t\t<Disconnesione> %d:%s\n", signal_num, incoming);
+                    writeToClient(sd, 50, "OK.");
+                    break;
+                case 10:
+                    strcpy(incoming, "32"
+                                     "debug1debug2debug3debug4debug5de"
+                                     "16"
+                                     "debug1debug2debu");
+                    printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
+                    signal_num = login(sd, incoming, player, outgoing);
+                    writeToClient(sd, signal_num, outgoing);
+                    break;
+                case 11:
+                    printf("\t\t\t<Registrazione> %d:%s\n", signal_num, incoming);
+                    //signin()
+                    writeToClient(sd, 51, "Registrazione");
+                    break;
+                case 14:
+                    printf("\t\t\t<DEBUG> %d:%s\n", signal_num, incoming);
+                    writeToClient(sd, 42, "Hai trovato il messaggio di DEBUG.");
+                    break;
+                case 20:
+                    printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
+                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                    break;
+                case 21:
+                    printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
+                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                    break;
+                case 22:
+                    printf("\t\t\t<Lista stanze> %d:%s\n", signal_num, incoming);
+                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                    break;
+                case 23:
+                    printf("\t\t\t<Logout> %d:%s\n", signal_num, incoming);
+                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                    break;
+                default:
+                    printf("\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
+                    writeToClient(sd, 98, "Comunicazione non riconosciuta.");
+            }
+            fflush(stdout);
+        }
+    }*/
+
+    // Chiusura della stanza.
+    //*room_list = removeAndDestroyRoomNode(*room_list, ID);
+    deleteLocalSocket(localsocket, localsocket_addr.sun_path);
 
     printf("\t\t\t\tROOM_ID%d: service thread has ended.\n", ID);
     return 0;
@@ -82,7 +129,7 @@ int createNewRoom(int sd, struct room_node** room_list) {
     args.room_ID = 0;
     args.flag = 0;
 
-    printf("DEBUG: Creation of detatched thread...\n");
+    //printf("DEBUG: Creation of detatched thread...\n");
     if (pthread_create(&tid, NULL, thrRoom, &args)) {
         printf(":THREAD CREATION ERROR:\n");
         return -1;

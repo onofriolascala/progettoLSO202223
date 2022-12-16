@@ -70,9 +70,15 @@ int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_a
         close(sd);
         //exit(1);
     }
-    printf("\t\t\t\tROOM_ID%d: localSocketInit completed.\n", ID);
+    printf("\t\t\t\tROOM_ID%d: localSocketInit completed with value \"%d\".\n", ID, sd);
     fflush(stdout);
     return sd;
+}
+
+//
+void deleteLocalSocket(int localsocket, char localsocket_path[]) {
+    close(localsocket);
+    unlink(localsocket_path);
 }
 
 // Funzione contenente il while infinito con annesso ascolto passivo.

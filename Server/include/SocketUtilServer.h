@@ -27,6 +27,7 @@
 int socketInit(struct sockaddr_in* server_addr, socklen_t* len);
 
 int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_addr, socklen_t* len);
+void deleteLocalSocket(int localsocket, char localsocket_path[]);
 
 // Funzione contenente il while infinito con annesso ascolto passivo.
 void acceptLoop(int sd1, struct room_node** room_list);

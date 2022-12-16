@@ -26,8 +26,12 @@
 int main() {
     int sd1, sd2;
     struct room_node** room_list;
+    struct room_node* room_head;
     struct sockaddr_in server_addr;
     socklen_t len;
+
+    room_head = NULL;
+    room_list = &room_head;
 
     sd1 = socketInit(&server_addr, &len);
     acceptLoop(sd1, room_list);
