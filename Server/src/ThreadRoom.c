@@ -20,6 +20,7 @@
 
 // Funzione principale.
 void* thrRoom(void* arg) {
+    int ID;
     struct room_node* room_list;
     char localsocket[LOCALSOCKETADDRLENGHT];
     room_list = (struct room_node*)arg;
@@ -31,6 +32,7 @@ void* thrRoom(void* arg) {
     //Crea socket locale e aggiungilo al nodo
     strcpy(this_room->localsocket,localsocket);
 
+    printf("\t\tROOM_ID%d: service thread has ended.\n", ID);
     return 0;
 }
 

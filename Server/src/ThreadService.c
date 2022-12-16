@@ -6,6 +6,7 @@
 #include "../include/ThreadRoom.h"
 #include "../include/CommUtilServer.h"
 #include "../include/ListHandler.h"
+#include "../include/LogicSigninLogin.h"
 #include "../include/Def.h"
 
 // Funzione principale.
@@ -31,6 +32,7 @@ void* thrService(void* arg) {
 
     if (player == NULL) {
         signal_num = 1;
+        player = createNewPlayerNode(sd, "Guest");
     }
     else {
         signal_num = 52;
@@ -38,8 +40,9 @@ void* thrService(void* arg) {
 
     while(signal_num > 0) {
         while (signal_num > 0 && signal_num != 52) {
-            printf("\t\t\tSERVICE_SD%d: primo while.\n", sd);
+            printf("\t\t\tDEBUG_SD%d: primo while.\n", sd);
             memset(incoming, 0, sizeof(incoming));
+            memset(outgoing, 0, sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
             switch (signal_num) {
                 case -1:
@@ -53,14 +56,12 @@ void* thrService(void* arg) {
                     writeToClient(sd, 50, "OK.");
                     break;
                 case 10:
+                    strcpy(incoming, "32"
+                                     "debug1debug2debug3debug4debug5de"
+                                     "16"
+                                     "debug1debug2debu");
                     printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
-                    //signal_num = login(incoming, player, outgoing);
-                    player = createNewPlayerNode(sd, "Pippo");
-                    service_sd = createServiceSocket(player->service_addr);
-                    strcpy(outgoing, player->username);
-                    strcat(outgoing, " - ");
-                    strcat(outgoing, player->service_addr);
-                    signal_num = 52;
+                    signal_num = login(sd, incoming, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
                     break;
                 case 11:
@@ -95,8 +96,9 @@ void* thrService(void* arg) {
             fflush(stdout);
         }
         while (signal_num > 0) {
-            printf("\t\t\tSERVICE_SD%d: secondo while.\n", sd);
+            printf("\t\t\tDEBUG_SD%d: secondo while.\n", sd);
             memset(incoming, 0, sizeof(incoming));
+            memset(outgoing, 0, sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
             switch (signal_num) {
                 case -1:
@@ -124,27 +126,28 @@ void* thrService(void* arg) {
                     break;
                 case 20:
                     printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
-                    //createNewRoom()
-                    //joinRoom()
+                    //createNewRoom();
+                    //joinRoom();
                     writeToClient(sd, 54, "Messaggio contenente la stanza.");
                     break;
                 case 21:
                     printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
-                    //joinRoom()
-                    //waitRoom()
-                    //fetchRoom()
+                    //joinRoom();
+                    //waitRoom();
+                    //fetchRoom();
                     writeToClient(sd, 54, "Messaggio contenente la stanza.");
-                    //closeServiceSocket()
+                    //closeServiceSocket();
                     break;
                 case 22:
                     printf("\t\t\t<Lista stanze> %d:%s\n", signal_num, incoming);
-                    //getRoomList()
+                    //getRoomList();
                     writeToClient(sd, 53, "Lista delle stanze");
                     break;
                 case 23:
                     printf("\t\t\t<Logout> %d:%s\n", signal_num, incoming);
-                    //closeServiceSocket()
-                    //destroyPlayerNode()
+                    //signal_num = logout();
+                    destroyPlayerNode(player);
+                    player = NULL;
                     signal_num = 51;
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;
@@ -232,6 +235,8 @@ pthread_t rebuildService(struct player_node* player) {
     //fflush(stdout);
     return tid;
 }
+
+
 
 int createServiceSocket(char service_addr[]) {
     int service_sd;

@@ -35,7 +35,7 @@ int findUsername(char incoming[])
     return 1;
 }
 
-int login(char incoming[], struct player_node* player, char outgoing[]){
+int login_old(char incoming[], struct player_node* player, char outgoing[]){
     int signal_num;
     //DEPRECATO //controllo coerenza dati trasmessi dal client, username e password che non utilizzano caratteri non accettati ed appartengono al range accettato 6-32
     //Ritengo più efficiente fare un cotrollo di coerenza dati all'inserimento, piuttosto che fare un parsing della concatenzaione di username e password
@@ -57,5 +57,63 @@ int login(char incoming[], struct player_node* player, char outgoing[]){
         strcpy(outgoing,"Login error");
         signal_num=91;
     }
+    return signal_num;
+}
+
+int login(int sd, char incoming[], struct player_node* player, char outgoing[]) {
+    int signal_num;
+    char username[USERNAMELENGHT+1], password[PASSWORDLENGHT+1], temp_buf[MAXSIGNALBUF+1];
+    char* sub_string;
+    int username_len, pswd_len, cursor;
+
+    // Estrazione dello username //
+    // Lunghezza dello username.
+    strncpy(temp_buf, incoming, MAXSIGNALBUF);
+    temp_buf[MAXSIGNALBUF] = '\0';
+    username_len = atoi(temp_buf);
+
+    // Assegnazione cursore e puntatore.
+    cursor = MAXSIGNALBUF;
+    sub_string = &incoming[cursor];
+
+    // Copia username
+    strncpy(username, sub_string, username_len);
+
+    // Aggiornamento cursore e svuotamento della string temporanea.
+    cursor += username_len;
+    username[username_len] = '\0';
+
+    //printf("\t\t\tDEBUG_login: username_len %d %d %s %s\n", username_len, cursor, temp_buf, username);
+    memset(temp_buf, 0, sizeof(temp_buf));
+
+    // Estrazione della password //
+    // Lunghezza della password.
+    sub_string = &incoming[cursor];
+    strncpy(temp_buf, sub_string, MAXSIGNALBUF);
+    temp_buf[MAXSIGNALBUF] = '\0';
+    pswd_len = atoi(temp_buf);
+
+    // Assegnazione cursore e puntatore.
+    cursor += MAXSIGNALBUF;
+    sub_string = &incoming[cursor];
+
+    // Copia password
+    strncpy(password, sub_string, pswd_len);
+    password[pswd_len] = '\0';
+
+    //printf("\t\t\tDEBUG_login: pswd_len %d %d %s %s\n", pswd_len, cursor, temp_buf, password);
+
+    // Accesso alla memoria secondaria/database //
+    if(1){
+        strcpy(outgoing, "Homepage");
+        strcpy(player->username, username);
+        printf("\t\t\tDEBUG_login: nome utente \"%s\" con password \"%s\".\n", username, password);
+        signal_num = 52;
+    }
+    else {
+        strcpy(outgoing, "Credenziali errate.");
+        signal_num = 91;
+    }
+
     return signal_num;
 }

@@ -31,10 +31,10 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
     return player_list;
 }
 
-int destroyPlayerNode( struct player_node* player_node ){
+int destroyPlayerNode( struct player_node* player ) {
     int distrutto = -1;
-    if( player_node != NULL ){
-        free(player_node);
+    if( player != NULL ){
+        free(player);
         distrutto = 1;
     }
     return distrutto;
