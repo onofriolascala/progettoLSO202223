@@ -17,7 +17,7 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     else{
         new->player_socket = player_socket;
         strcpy( new->username, username);
-        sprintf( new->service_addr, "/tmp/LSO202223/thrService_socket_local_%d", player_socket);
+        //sprintf( new->service_addr, "/tmp/LSO202223/thrService_socket_local_%d", player_socket);
         new->next = NULL;
     }
     return new;

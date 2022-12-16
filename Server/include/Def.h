@@ -21,7 +21,7 @@
 struct player_node{
     char username[USERNAMELENGHT];
     int player_socket;
-    char service_addr[LOCALSOCKETADDRLENGHT];
+    //char service_addr[LOCALSOCKETADDRLENGHT];
     struct player_node* next;
 };
 
@@ -36,6 +36,12 @@ struct room_node{
 struct service_arg {
     int sd;
     struct player_node* player;
+    int flag;
+};
+
+struct room_arg {
+    struct room_node* room_list;
+    int room_ID;
     int flag;
 };
 
