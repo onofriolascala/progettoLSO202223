@@ -25,6 +25,7 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     return new;
 }
 
+// ADD MUTEX
 struct player_node* addPlayerToPlayerList( struct player_node* player_list, struct player_node* newPlayer){
     struct player_node* tmp;
     if( player_list != NULL){

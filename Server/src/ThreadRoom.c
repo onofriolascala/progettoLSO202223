@@ -153,7 +153,7 @@ int createNewRoom(int sd, struct room_node** room_list) {
 }
 
 // AGGIUNGERE MUTEX
-int joinRoom(int ID, struct room_node** room_list, struct player_node* player, char outgoing[]) {
+int joinRoom(int sd, int ID, struct room_node** room_list, struct player_node* player, char outgoing[]) {
     int signal_num;
     struct room_node* joined_room;
 
@@ -170,18 +170,22 @@ int joinRoom(int ID, struct room_node** room_list, struct player_node* player, c
     }
     else {
         if (getPlayer(joined_room->player_list, player->player_socket) == NULL) {
-            strcpy(outgoing, "Esiste già un utente con lo stesso nome all'interno della stanza.");
-            signal_num = S_ROOMGREENLIT;
+            strcpy(outgoing, "Entrata nella stanza.");
+            joined_room->player_list = addPlayerToPlayerList(joined_room->player_list, player);
+            //updatePlayerNum()
+            joined_room->player_num += 1;
+            signal_num = S_ROOMOK;
         }
         else {
             strcpy(outgoing, "Esiste già un utente con lo stesso nome all'interno della stanza.");
-            signal_num = 72;
+            signal_num = S_USERINROOM;
         }
     }
 
     /* Comunicazioni attese:
      * 70-Stanza piena, 71-Stanza inesistente, 72-Utente già connesso, 54-Stanza
      * */
+    printf("\t\t\tSERVICE_SD%d: player \"%s\" joined room with ID:%d and %d players.\n", sd, player->username, ID, joined_room->player_num);
     return signal_num;
 }
 

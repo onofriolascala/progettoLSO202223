@@ -129,15 +129,14 @@ void* thrService(void* arg) {
                     printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
                     room_ID = createNewRoom(sd, room_list);
                     sprintf(outgoing, "Stanza creata con ID %d", room_ID);
-                    //joinRoom();
+                    joinRoom(sd, room_ID, room_list, player, outgoing);
                     writeToClient(sd, 54, outgoing);
                     break;
                 case 21:
                     printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
-                    //joinRoom();
-                    //waitRoom();
-                    //fetchRoom();
-                    writeToClient(sd, 54, "Messaggio contenente la stanza.");
+                    room_ID = 1; //DEBUG
+                    signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
+                    writeToClient(sd, S_ROOMOK, outgoing);
                     //closeServiceSocket();
                     break;
                 case 22:
