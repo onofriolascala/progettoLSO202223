@@ -60,7 +60,7 @@ int writeToClient(int sd, int signal_num, char outgoing[]) {
 // Lettura dal server con annesso parser per spacchettamento del signal code. Restituisce il segnale inviato dal client
 int readFromClient(int sd, char incoming[], int max_len){
     int signal_num;
-    char signal_code[MAXSIGNALBUF], tmp[MAXSIGNALBUF];
+    char signal_code[MAXSIGNALBUF+1], tmp[MAXSIGNALBUF];
 
     // Lettura del segnale inviato dal client
     if((read(sd, signal_code, MAXSIGNALBUF)) < 0)
@@ -81,6 +81,7 @@ int readFromClient(int sd, char incoming[], int max_len){
         return -3;
     }
 
+    signal_code[MAXSIGNALBUF] = '\0';
     signal_num = atoi(signal_code);
 
     return signal_num;
