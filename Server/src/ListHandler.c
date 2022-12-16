@@ -51,11 +51,11 @@ struct room_node* createNewRoomNode( struct room_node* room_list ) {
             new->id = room_list->id+1;
         else {
             new->id = 1;
-            sprintf(new->localsocket, "/tmp/LSO202223/thrRoom_socket_local_%d", new->id);
-            new->player_list = NULL;
-            new->player_num = 0;
-            new->next = NULL;
         }
+        sprintf(new->localsocket, "/tmp/LSO202223/thrRoom_socket_local_%d", new->id);
+        new->player_list = NULL;
+        new->player_num = 0;
+        new->next = NULL;
     }
     else;
         //gestire errore malloc

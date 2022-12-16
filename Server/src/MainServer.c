@@ -28,6 +28,8 @@ int main() {
     struct sockaddr_in server_addr;
     socklen_t len;
 
+    room_list_head = NULL;
+
     sd1 = socketInit(&server_addr, &len);
     acceptLoop(sd1, room_list_head);
 
