@@ -56,9 +56,9 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
     struct player_node *tmp, *target;
     if (player_list != NULL) {
         if (player_list->player_socket == target_socket) {
-            tmp = player_list;
+            target = player_list;
             player_list = player_list->next;
-            free(tmp);
+            free(target);
         } else {
             tmp = player_list;
             while (tmp->next->player_socket != target_socket && tmp != player_list)
