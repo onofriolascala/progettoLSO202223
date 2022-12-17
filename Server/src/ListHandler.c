@@ -53,6 +53,31 @@ struct player_node* addPlayerToPlayerList( struct player_node* player_list, stru
 }
 
 struct player_node* removePlayerNode( struct player_node* player_list, int target_socket ){
+    struct player_node* tmp, *target;
+    if( player_list != NULL ) {
+        if( player_list->player_socket == target_socket ){
+            tmp = player_list;
+            player_list = player_list->next;
+            free(tmp);
+        }
+        else{
+            tmp = player_list;
+            while( tmp->next->player_socket != target_socket && tmp != player_list )
+                tmp = tmp->next;
+            // target trovato
+            if( tmp != player_list ){
+                target = tmp->next;
+                tmp->next = tmp->next->next;
+                free(target);
+            }
+        }
+        return player_list;
+    }
+
+
+
+
+
     if( player_list != NULL ){
         if( player_list->player_socket == target_socket ) {
             player_list = player_list->next;
