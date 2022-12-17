@@ -253,32 +253,7 @@ pthread_t rebuildService(struct player_node* player, struct room_node** room_lis
      * degli argomenti, che verrebbero persi con la chiusura del record dello stack di attivazione di createNewService. */
     while(args.flag == 0);
 
-    //printf("SERVICE_SD%d: Service thread created with sd:%d.\n", sd2);
-    //fflush(stdout);
+    printf("SERVICE_SD%d: Service thread created with sd:%d.\n", sd2);
+    fflush(stdout);
     return tid;
 }
-
-
-
-/*int createServiceSocket(char addr_str[], struct sockaddr_un* service_addr) {
-    int sd;
-
-    service_addr->sun_family = PF_LOCAL;
-    strcpy(service_addr->sun_path, addr_str);
-
-    // Apertura del Socket.
-    if ((sd = socket(PF_LOCAL, SOCK_DGRAM, 0)) < 0) {
-        perror(":SOCKET CREATION");
-        exit(1);
-    }
-    // Bind dell'address.
-    if(bind(sd, (struct sockaddr*)service_addr, sizeof(*service_addr)) < 0) {
-        perror(":SOCKET BINDING");
-        close(sd1);
-        exit(1);
-    }
-
-    return sd;
-}
-
-int destroyServiceSocket(int service_sd);*/
