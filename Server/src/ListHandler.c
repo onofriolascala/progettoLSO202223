@@ -74,19 +74,6 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
     return player_list;
 }
 
-
-
-
-    if( player_list != NULL ){
-        if( player_list->player_socket == target_socket ) {
-            player_list = player_list->next;
-        }
-        else
-            player_list->next = removePlayerNode(player_list -> next, target_socket);
-    }
-    return player_list;
-}
-
 int destroyPlayerNode( struct player_node* player ) {
     int distrutto = -1;
     if( player != NULL ){
