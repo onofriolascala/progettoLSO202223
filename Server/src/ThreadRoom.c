@@ -182,7 +182,7 @@ int joinRoom(int sd, int ID, struct room_node** room_list, struct player_node* p
     struct sockaddr_un indirizzo;
     indirizzo.sun_family = PF_LOCAL;
 
-    strncpy(temp_buf, "\0", sizeof());
+    strncpy(temp_buf, "\0", sizeof(temp_buf));
 
     signal_num = S_UNKNOWNSIGNAL;
 
