@@ -33,7 +33,6 @@ void* thrService(void* arg) {
 
     if (player == NULL) {
         signal_num = 1;
-        player = createNewPlayerNode(sd, "Guest");
     }
     else {
         signal_num = 52;
@@ -41,10 +40,13 @@ void* thrService(void* arg) {
 
     while(signal_num > 0) {
         while (signal_num > 0 && signal_num != 52) {
-            printf("\t\t\tDEBUG_SD%d: primo while.\n", sd);
+            //printf("\t\tDEBUG_SD%d: primo while.\n", sd);
+
             memset(incoming, 0, sizeof(incoming));
             memset(outgoing, 0, sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
+
+            printf("\t\tSERVICE_SD%d: <client> %d:%s\n", sd, signal_num, incoming);
             switch (signal_num) {
                 case -1:
                     break;
@@ -52,55 +54,62 @@ void* thrService(void* arg) {
                     break;
                 case -3:
                     break;
-                case 0:
-                    printf("\t\t\t<Disconnesione> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 50, "OK.");
+                case S_DISCONNECT:
+                    writeToClient(sd, S_DISCONNECT, S_DISCONNECT_MSG);
                     break;
-                case 10:
+                case C_LOGIN:
+                    //printf("\t\tDEBUG_SD%d: <Login>.\n", sd);
                     strcpy(incoming, "32"
                                      "debug1debug2debug3debug4debug5de"
                                      "16"
                                      "debug1debug2debu");
-                    printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
+                    player = createNewPlayerNode(sd, "Guest");
                     signal_num = login(sd, incoming, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
                     break;
-                case 11:
-                    printf("\t\t\t<Registrazione> %d:%s\n", signal_num, incoming);
+                case C_SIGNIN:
+                    //printf("\t\tDEBUG_SD%d: <Signin> %d:%s\n", sd, signal_num, incoming);
                     //signin()
-                    writeToClient(sd, 51, "Registrazione");
+                    writeToClient(sd, S_LOGINOK, S_LOGINOK_MSG);
                     break;
                 case 14:
-                    printf("\t\t\t<DEBUG> %d:%s\n", signal_num, incoming);
                     writeToClient(sd, 42, "Hai trovato il messaggio di DEBUG.");
                     break;
-                case 20:
-                    printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                case C_CREATEROOM:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
                     break;
-                case 21:
-                    printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                case C_JOINROOM:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
                     break;
-                case 22:
-                    printf("\t\t\t<Lista stanze> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                case C_LISTROOM:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
                     break;
-                case 23:
-                    printf("\t\t\t<Logout> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Funzionalità non permessa.");
+                case C_LOGOUT:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
+                    break;
+                case C_SELECTWORD:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
+                    break;
+                case C_GUESSSKIP:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
+                    break;
+                case C_EXITROOM:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
                     break;
                 default:
                     printf("\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
-                    writeToClient(sd, 98, "Comunicazione non riconosciuta.");
+                    writeToClient(sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
             }
             fflush(stdout);
         }
-        while (signal_num > 0) {
-            printf("\t\t\tDEBUG_SD%d: secondo while.\n", sd);
+        while (signal_num > 0 && signal_num != 51) {
+            //printf("\t\tDEBUG_SD%d: secondo while.\n", sd);
+
             memset(incoming, 0, sizeof(incoming));
             memset(outgoing, 0, sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
+
+            printf("\t\tSERVICE_SD%d: <client> %d:%s\n", sd, signal_num, incoming);
             switch (signal_num) {
                 case -1:
                     break;
@@ -108,56 +117,56 @@ void* thrService(void* arg) {
                     break;
                 case -3:
                     break;
-                case 0:
-                    printf("\t\t\t<Disconnesione> %d:%s\n", signal_num, incoming);
-                    //closeServiceSocket()
-                    writeToClient(sd, 50, "OK.");
+                case S_DISCONNECT:
+                    writeToClient(sd, S_DISCONNECT, S_DISCONNECT_MSG);
                     break;
-                case 10:
-                    printf("\t\t\t<Login> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Effettuare il logout prima di un nuovo login.");
+                case C_LOGIN:
+                    writeToClient(sd, S_NOPERMISSION, "Effettuare il logout prima di un nuovo login.");
                     break;
-                case 11:
-                    printf("\t\t\t<Registrazione> %d:%s\n", signal_num, incoming);
-                    writeToClient(sd, 98, "Effettuare il logout prima di un nuovo sign in.");
+                case C_SIGNIN:
+                    writeToClient(sd, S_NOPERMISSION, "Effettuare il logout prima di un nuovo sign in.");
                     break;
                 case 14:
-                    printf("\t\t\t<DEBUG> %d:%s\n", signal_num, incoming);
                     writeToClient(sd, 42, "Hai trovato il messaggio di DEBUG.");
                     break;
-                case 20:
-                    printf("\t\t\t<Crea stanza> %d:%s\n", signal_num, incoming);
+                case C_CREATEROOM:
+                    //printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
                     room_ID = createNewRoom(sd, room_list);
                     sprintf(outgoing, "Stanza creata con ID %d", room_ID);
-                    joinRoom(sd, room_ID, room_list, player, outgoing);
-                    writeToClient(sd, 54, outgoing);
+                    signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
+                    writeToClient(sd, signal_num, outgoing);
                     break;
-                case 21:
-                    printf("\t\t\t<Entra stanza> %d:%s\n", signal_num, incoming);
+                case C_JOINROOM:
+                    //printf("\t\tDEBUG_SD%d: <Entra stanza> %d:%s\n", sd, signal_num, incoming);
                     room_ID = 1; //DEBUG
                     signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
-                    writeToClient(sd, S_ROOMOK, outgoing);
-                    //closeServiceSocket();
+                    writeToClient(sd, signal_num, outgoing);
                     break;
-                case 22:
-                    printf("\t\t\t<Lista stanze> %d:%s\n", signal_num, incoming);
+                case C_LISTROOM:
+                    //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);
                     //getRoomList();
                     writeToClient(sd, 53, "Lista delle stanze");
                     break;
-                case 23:
-                    printf("\t\t\t<Logout> %d:%s\n", signal_num, incoming);
+                case C_LOGOUT:
+                    //printf("\t\tDEBUG_SD%d: <Logout> %d:%s\n", sd, signal_num, incoming);
                     //signal_num = logout();
                     destroyPlayerNode(player);
                     player = NULL;
                     signal_num = 51;
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;
+                case C_SELECTWORD:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
+                    break;
+                case C_GUESSSKIP:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
+                    break;
+                case C_EXITROOM:
+                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
+                    break;
                 default:
                     printf("\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
-                    writeToClient(sd, 98, "Comunicazione non riconosciuta.");
-            }
-            if (signal_num == 51) {
-                break;
+                    writeToClient(sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
             }
             fflush(stdout);
         }

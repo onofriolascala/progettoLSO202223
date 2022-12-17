@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 
 #include "../include/ListHandler.h"
+#include "../include/CommUtilServer.h"
 #include "../include/SocketUtilServer.h"
 #include "../include/Def.h"
 

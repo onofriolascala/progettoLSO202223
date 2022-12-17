@@ -61,12 +61,14 @@ int login_old(char incoming[], struct player_node* player, char outgoing[]){
 }
 
 int login(int sd, char incoming[], struct player_node* player, char outgoing[]) {
+    //printf("\t\tDEBUG_loginSD%d: strated with values %s %s.\n", sd, incoming, outgoing);
     int signal_num;
     char username[USERNAMELENGHT+1], password[PASSWORDLENGHT+1], temp_buf[MAXSIGNALBUF+1];
     char* sub_string;
     int username_len, pswd_len, cursor;
 
     // Estrazione dello username //
+    // printf("\t\tDEBUG_loginSD%d: username\n", sd);
     // Lunghezza dello username.
     strncpy(temp_buf, incoming, MAXSIGNALBUF);
     temp_buf[MAXSIGNALBUF] = '\0';
@@ -87,6 +89,7 @@ int login(int sd, char incoming[], struct player_node* player, char outgoing[]) 
     memset(temp_buf, 0, sizeof(temp_buf));
 
     // Estrazione della password //
+    // printf("\t\tDEBUG_loginSD%d: password\n", sd);
     // Lunghezza della password.
     sub_string = &incoming[cursor];
     strncpy(temp_buf, sub_string, MAXSIGNALBUF);
@@ -105,15 +108,18 @@ int login(int sd, char incoming[], struct player_node* player, char outgoing[]) 
 
     // Accesso alla memoria secondaria/database //
     if(1){
+        //printf("\t\tDEBUG_loginSD%d: 1\n", sd);
         strcpy(outgoing, "Homepage");
         strcpy(player->username, username);
-        printf("\t\t\tDEBUG_login: nome utente \"%s\" con password \"%s\".\n", username, password);
+        //printf("\t\tDEBUG_login: nome utente \"%s\" con password \"%s\".\n", username, password);
         signal_num = 52;
     }
     else {
+        //printf("\t\tDEBUG_loginSD%d: 2\n", sd);
         strcpy(outgoing, "Credenziali errate.");
         signal_num = 91;
     }
 
+    //printf("\t\tDEBUG_loginSD%d: ended\n", sd);
     return signal_num;
 }

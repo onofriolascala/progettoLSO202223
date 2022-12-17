@@ -62,12 +62,15 @@ int readFromClient(int sd, char incoming[], int max_len){
     int signal_num;
     char signal_code[MAXSIGNALBUF+1], tmp[MAXSIGNALBUF];
 
+    //printf("DEBUG %s\n", incoming);
+
     // Lettura del segnale inviato dal client
     if((read(sd, signal_code, MAXSIGNALBUF)) < 0)
     {
         perror(":SIGNAL CODE READ ERROR");
         return -1;
     }
+    //printf("DEBUG %s\n", signal_code);
     // Rimozione del separatore
     if((read(sd, tmp, 1)) < 0)
     {

@@ -27,30 +27,34 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
 
 // ADD MUTEX
 struct player_node* addPlayerToPlayerList( struct player_node* player_list, struct player_node* newPlayer){
+    //printf("DEBUG_addPtoPlist:started\n");
     struct player_node* tmp;
     if( player_list != NULL){
+        //printf("DEBUG_addPtoPlist:1\n");
         if( newPlayer != NULL ){
+            //printf("\tDEBUG_addPtoPlist:1.3\n");
             tmp = player_list;
             //scorre tutta la lista fino a quando non arriva all'elemento prima della testa
             while( tmp->next->player_socket != player_list->player_socket ){
+                //printf("\tDEBUG_addPtoPlist:1.4\n");
                 tmp = tmp->next;
             }
             newPlayer->next = tmp->next;
             tmp->next = newPlayer;
         }
     }
-    else{
-        if( player_list != NULL) {
-            newPlayer->next = newPlayer;
-            player_list = newPlayer;
-        }
+    else {
+        //printf("\tDEBUG_addPtoPlist:2\n");
+        newPlayer->next = newPlayer;
+        player_list = newPlayer;
     }
+    //printf("DEBUG_addPtoPlist:completed\n");
     return player_list;
 }
 
 struct player_node* removePlayerNode( struct player_node* player_list, int target_socket ){
     if( player_list != NULL ){
-        if( player_list->player_socket == target_socket ){
+        if( player_list->player_socket == target_socket ) {
             player_list = player_list->next;
         }
         else
@@ -69,15 +73,22 @@ int destroyPlayerNode( struct player_node* player ) {
 }
 
 struct player_node* getPlayer( struct player_node* player_list, int target_socket ){
+    //printf("DEBUG_getplayernode:started\n");
     struct player_node* target;
     if( player_list != NULL){
-        if( player_list->player_socket == target_socket)
+        if( player_list->player_socket == target_socket) {
+            //printf("DEBUG_getplayernode:1\n");
             target = player_list;
-        else
-            target = getPlayer( player_list->next, target_socket);
+        }
+        else {
+            //printf("\tDEBUG_getplayernode:2\n");
+            target = getPlayer(player_list->next, target_socket);
+        }
     }
-    else
+    else {
         target = NULL;
+    }
+    //printf("DEBUG_getplayernode:completed\n");
     return target;
 }
 
@@ -135,6 +146,7 @@ struct room_node* createAndAddNewRoom( struct room_node** room_list){
 }
 
 struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int target_id ){
+    //printf("DEBUG_R&Droomnode:started\n");
     struct room_node* tmp;
     if( room_list != NULL){
         if( room_list->id == target_id ){
@@ -146,19 +158,27 @@ struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int tar
             room_list->next = removeAndDestroyRoomNode( room_list->next, target_id );
         }
     }
+    //printf("DEBUG_R&Droomnode:completed\n");
     return room_list;
 }
 
 struct room_node* getRoom( struct room_node* room_list, int target_id ){
+    //printf("DEBUG_getroomnode:started\n");
     struct room_node* target;
     if( room_list != NULL){
-        if( room_list->id == target_id)
+        if( room_list->id == target_id) {
+            //printf("DEBUG_getroomnode:1\n");
             target = room_list;
-        else
-            target = getRoom( room_list->next, target_id);
+        }
+        else {
+            //printf("\tDEBUG_getroomnode:2\n");
+            target = getRoom(room_list->next, target_id);
+        }
     }
-    else
+    else {
         target = NULL;
+    }
+    //printf("DEBUG_getroomnode:completed\n");
     return target;
 }
 
