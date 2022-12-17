@@ -102,6 +102,7 @@ void* thrService(void* arg) {
             }
             fflush(stdout);
         }
+
         while (signal_num > 0 && signal_num != 51) {
             //printf("\t\tDEBUG_SD%d: secondo while.\n", sd);
 
@@ -135,11 +136,8 @@ void* thrService(void* arg) {
                     //sprintf(outgoing, "Stanza creata con ID %d", room_ID);
                     signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
-                    printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
+                    //printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, outgoing);
                     // Chiusura del threadService in caso di successo
-                    if (signal_num == 50) {
-                        return 0;
-                    }
                     break;
                 case C_JOINROOM:
                     //printf("\t\tDEBUG_SD%d: <Entra stanza> %d:%s\n", sd, signal_num, incoming);
@@ -147,9 +145,6 @@ void* thrService(void* arg) {
                     signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
                     // Chiusura del threadService in caso di successo
-                    if (signal_num == 50) {
-                        return 0;
-                    }
                     break;
                 case C_LISTROOM:
                     //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);
@@ -178,6 +173,10 @@ void* thrService(void* arg) {
                     writeToClient(sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
             }
             fflush(stdout);
+            if (signal_num == 54) {
+                printf("\t\tSERVICE_SD%d: closed thread in favor of ROOM_ID%d.\n", sd, room_ID);
+                return 0;
+            }
         }
     }
 
@@ -188,7 +187,7 @@ void* thrService(void* arg) {
     }*/
 
     close(sd);
-    printf("\t\tSERVICE_SD%d: service thread has ended.\n", sd);
+    printf("\t\tSERVICE_SD%d: service thread has been closed.\n", sd);
     fflush(stdout);
     return 0;
 }

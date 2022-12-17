@@ -42,14 +42,16 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
 }
 
 int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_addr, socklen_t* len) {
-    printf("DEBUG: localSocketInit start.\n");
+    //printf("DEBUG: localSocketInit start.\n");
     int sd;
 
     (*localsocket_addr).sun_family = PF_LOCAL;
     strcpy((*localsocket_addr).sun_path, local_path);
     *len = sizeof(*localsocket_addr);
 
-    unlink(local_path);
+    if(unlink(local_path) < 0) {
+        perror(":UNLINK ERROR");
+    }
     // Apertura del socket lato threadRoom.
     if ((sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
         perror(":SOCKET ERROR");
@@ -62,10 +64,10 @@ int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_a
         //exit(1);
     }
     // Setup delle impostazioni del socket
-    if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
+    /*if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
         perror(":SOCKET OPTION ERROR");
         //exit(1);
-    }
+    }*/
     // Messa in ascolto del socket.
     if(listen(sd, MAXCONNECTIONS) < 0) {
         perror(":LISTEN ERROR");

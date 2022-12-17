@@ -111,6 +111,7 @@ int login(int sd, char incoming[], struct player_node* player, char outgoing[]) 
         //printf("\t\tDEBUG_loginSD%d: 1\n", sd);
         strcpy(outgoing, "Homepage");
         strcpy(player->username, username);
+        player->player_socket = sd;
         //printf("\t\tDEBUG_login: nome utente \"%s\" con password \"%s\".\n", username, password);
         signal_num = 52;
     }

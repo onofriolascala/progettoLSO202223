@@ -96,9 +96,8 @@
 #define C_EXITROOM 32       // Uscita dalla stanza
 
 struct player_node{
-    char username[USERNAMELENGHT];
+    char username[USERNAMELENGHT+1];
     int player_socket;
-    //char service_addr[LOCALSOCKETADDRLENGHT];
     struct player_node* next;
 };
 
