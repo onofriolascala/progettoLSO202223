@@ -86,15 +86,24 @@ int destroyPlayerNode( struct player_node* player ) {
 
 struct player_node* getPlayer( struct player_node* player_list, int target_socket ){
     //printf("DEBUG_getplayernode:started\n");
-    struct player_node* target;
+    struct player_node* target, *tmp;
     if( player_list != NULL){
         if( player_list->player_socket == target_socket) {
             //printf("DEBUG_getplayernode:1\n");
             target = player_list;
         }
         else {
-            //printf("\tDEBUG_getplayernode:2\n");
-            target = getPlayer(player_list->next, target_socket);
+            tmp = player_list->next;
+            while( tmp->player_socket != target_socket && tmp != player_list ){
+                tmp = tmp->next;
+            }
+            if( tmp != player_list ){
+                //hit
+                target = tmp;
+            }
+            else{
+                target = NULL;
+            }
         }
     }
     else {
