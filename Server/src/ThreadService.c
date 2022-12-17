@@ -42,11 +42,11 @@ void* thrService(void* arg) {
         while (signal_num > 0 && signal_num != 52) {
             //printf("\t\tDEBUG_SD%d: primo while.\n", sd);
 
-            memset(incoming, 0, sizeof(incoming));
-            memset(outgoing, 0, sizeof(outgoing));
+            memset(incoming, '\0', sizeof(incoming));
+            memset(outgoing, '\0', sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
 
-            printf("\t\tSERVICE_SD%d: <client> %d:%s\n", sd, signal_num, incoming);
+            printf("\t\tSERVICE_SD%d: <client> %d:%s outgoing %s\n", sd, signal_num, incoming, outgoing);
             switch (signal_num) {
                 case -1:
                     break;
@@ -105,11 +105,11 @@ void* thrService(void* arg) {
         while (signal_num > 0 && signal_num != 51) {
             //printf("\t\tDEBUG_SD%d: secondo while.\n", sd);
 
-            memset(incoming, 0, sizeof(incoming));
-            memset(outgoing, 0, sizeof(outgoing));
+            memset(incoming, '\0', sizeof(incoming));
+            memset(outgoing, '\0', sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
 
-            printf("\t\tSERVICE_SD%d: <client> %d:%s\n", sd, signal_num, incoming);
+            printf("\t\tSERVICE_SD%d: <client> %d:%s outgoing %s\n", sd, signal_num, incoming, outgoing);
             switch (signal_num) {
                 case -1:
                     break;
@@ -132,15 +132,24 @@ void* thrService(void* arg) {
                 case C_CREATEROOM:
                     //printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
                     room_ID = createNewRoom(sd, room_list);
-                    sprintf(outgoing, "Stanza creata con ID %d", room_ID);
+                    //sprintf(outgoing, "Stanza creata con ID %d", room_ID);
                     signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
+                    printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
+                    // Chiusura del threadService in caso di successo
+                    if (signal_num == 50) {
+                        return 0;
+                    }
                     break;
                 case C_JOINROOM:
                     //printf("\t\tDEBUG_SD%d: <Entra stanza> %d:%s\n", sd, signal_num, incoming);
                     room_ID = 1; //DEBUG
                     signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
+                    // Chiusura del threadService in caso di successo
+                    if (signal_num == 50) {
+                        return 0;
+                    }
                     break;
                 case C_LISTROOM:
                     //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);

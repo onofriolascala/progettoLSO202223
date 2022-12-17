@@ -42,13 +42,15 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
 }
 
 int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_addr, socklen_t* len) {
+    printf("DEBUG: localSocketInit start.\n");
     int sd;
 
     (*localsocket_addr).sun_family = PF_LOCAL;
     strcpy((*localsocket_addr).sun_path, local_path);
     *len = sizeof(*localsocket_addr);
 
-    // Apertura del socket lato server.
+    unlink()
+    // Apertura del socket lato threadRoom.
     if ((sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
         perror(":SOCKET ERROR");
         //exit(1);

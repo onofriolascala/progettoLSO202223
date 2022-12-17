@@ -43,6 +43,7 @@ int readFromServer_old(int sock, char msg[], int msgLenght){
 
 // Scrittura al client con anesso parser per l'impacchettamento dei segnali.
 int writeToClient(int sd, int signal_num, char outgoing[]) {
+    printf("\t\tDEBUG_SD%d: writing input %s\n", sd, outgoing);
     char finalmessage[MAXCOMMBUFFER];
     int len;
     if(sprintf(finalmessage, "%d:%s", signal_num, outgoing) < 0) {
@@ -54,15 +55,15 @@ int writeToClient(int sd, int signal_num, char outgoing[]) {
         perror(":WRITE ERROR");
         return -1;
     }
+    printf("\t\tDEBUG_SD%d: writing end %s\n", sd, finalmessage);
     return 0;
 }
 
 // Lettura dal server con annesso parser per spacchettamento del signal code. Restituisce il segnale inviato dal client
 int readFromClient(int sd, char incoming[], int max_len){
+    printf("\t\tDEBUG_SD%d: reading input %s\n", sd, incoming);
     int signal_num;
     char signal_code[MAXSIGNALBUF+1], tmp[MAXSIGNALBUF];
-
-    //printf("DEBUG %s\n", incoming);
 
     // Lettura del segnale inviato dal client
     if((read(sd, signal_code, MAXSIGNALBUF)) < 0)
@@ -70,7 +71,7 @@ int readFromClient(int sd, char incoming[], int max_len){
         perror(":SIGNAL CODE READ ERROR");
         return -1;
     }
-    //printf("DEBUG %s\n", signal_code);
+    printf("\t\tDEBUG_SD%d: reading code %s\n", sd, signal_code);
     // Rimozione del separatore
     if((read(sd, tmp, 1)) < 0)
     {
@@ -87,5 +88,6 @@ int readFromClient(int sd, char incoming[], int max_len){
     signal_code[MAXSIGNALBUF] = '\0';
     signal_num = atoi(signal_code);
 
+    printf("\t\tDEBUG_SD%d: reading endvalue %d %s\n", sd, signal_num, incoming);
     return signal_num;
 }
