@@ -253,7 +253,7 @@ pthread_t rebuildService(struct player_node* player, struct room_node** room_lis
      * degli argomenti, che verrebbero persi con la chiusura del record dello stack di attivazione di createNewService. */
     while(args.flag == 0);
 
-    printf("SERVICE_SD%d: Service thread created with sd:%d.\n", sd2);
+    printf("SERVICE_SD%d: Service thread created with sd:%d.\n", args.sd, args.sd);
     fflush(stdout);
     return tid;
 }
