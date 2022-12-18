@@ -2,8 +2,8 @@
 // Created by osboxes on 12/18/22.
 //
 
-#ifndef ROOMLOGIC_H
-#define ROOMLOGIC_H
+#ifndef LOGICGAME_H
+#define LOGICGAME_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,4 +21,4 @@
 
 #include "../include/Def.h"
 
-#endif //ROOMLOGIC_H
+#endif //LOGICGAME_H
