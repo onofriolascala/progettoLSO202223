@@ -5,8 +5,6 @@
 
 #include "../include/ListHandler.h"
 
-
-
 // Cosa da fare: bisogna gestire gli errori della malloc
 
 // FUNZIONI DI GESTIONE GIOCATORI //
@@ -19,8 +17,8 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     else{
         new->player_socket = player_socket;
         strcpy( new->username, username);
-        //sprintf( new->service_addr, "/tmp/LSO202223/thrService_socket_local_%d", player_socket);
         new->next = NULL;
+        pthread_mutex_init(&new->playerode_mutex, NULL);
     }
     return new;
 }
@@ -58,7 +56,6 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
         if (player_list->player_socket == target_socket) {
             target = player_list;
             player_list = player_list->next;
-            free(target);
         } else {
             tmp = player_list;
             while (tmp->next->player_socket != target_socket && tmp != player_list) {
@@ -68,7 +65,6 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
             if (tmp != player_list) {
                 target = tmp->next;
                 tmp->next = tmp->next->next;
-                free(target);
             }
         }
     }
@@ -78,6 +74,7 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
 int destroyPlayerNode( struct player_node* player ) {
     int distrutto = -1;
     if( player != NULL ){
+        pthread_mutex_destroy(&player->playerode_mutex);
         free(player);
         distrutto = 1;
     }
