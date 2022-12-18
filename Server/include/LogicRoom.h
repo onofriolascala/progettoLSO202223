@@ -8,17 +8,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <pthread.h>
-#include <sys/types.h>
 #include <errno.h>
 #include <netinet/in.h>
-#include <sys/un.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <sys/poll.h>
+#include <sys/types.h>
+#include <sys/un.h>
+#include <sys/socket.h>
+
+
 
 #include "../include/Def.h"
+
+void mainRoomLoop(int listen_sd);
 
 #endif //LOGICROOM_H
