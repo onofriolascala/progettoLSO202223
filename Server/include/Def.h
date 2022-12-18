@@ -99,9 +99,9 @@ struct player_node{
     char username[USERNAMELENGHT+1];
     int player_socket;
     struct player_node* next;
-    pthread_mutex_t playerode_mutex;
-    pthread_attr_t playerode_mutex_attr;
-    pthread_cond_t playerode_mutex_cond;
+    pthread_mutex_t playernode_mutex;
+    pthread_attr_t playernode_mutex_attr;
+    pthread_cond_t playernode_mutex_cond;
 };
 
 struct room_node{

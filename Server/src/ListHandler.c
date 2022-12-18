@@ -18,7 +18,6 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
         new->player_socket = player_socket;
         strcpy( new->username, username);
         new->next = NULL;
-        pthread_mutex_init(&new->playerode_mutex, NULL);
     }
     return new;
 }
@@ -44,6 +43,7 @@ struct player_node* addPlayerToPlayerList( struct player_node* player_list, stru
     else {
         //printf("\tDEBUG_addPtoPlist:2\n");
         newPlayer->next = newPlayer;
+
         player_list = newPlayer;
     }
     //printf("DEBUG_addPtoPlist:completed\n");
@@ -74,7 +74,6 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
 int destroyPlayerNode( struct player_node* player ) {
     int distrutto = -1;
     if( player != NULL ){
-        pthread_mutex_destroy(&player->playerode_mutex);
         free(player);
         distrutto = 1;
     }
