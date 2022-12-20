@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#include "../include/ListHandler.h"
 #include "../include/Def.h"
 
 struct player_node* createNewPlayerNode( int player_socket, char username[] );

@@ -5,6 +5,8 @@
 #ifndef PROGETTOLSO202223_DEF_H
 #define PROGETTOLSO202223_DEF_H
 
+#include <pthread.h>
+
 #define MAXCONNECTIONS 5
 
 #define MAXCOMMBUFFER 1024
