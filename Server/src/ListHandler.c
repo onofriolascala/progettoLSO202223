@@ -5,10 +5,11 @@
 
 #include "../include/ListHandler.h"
 
-// Cosa da fare: bisogna gestire gli errori della malloc
+// Cosa da fare: bisogna gestire gli errori delle malloc
 
 // FUNZIONI DI GESTIONE GIOCATORI //
-
+/* La funzione alloca dinamicamente lo spazio per un nuovo nodo giocatore, restituendone il riferimento.
+ * Non presenta possibili criticità che richiedano un mutex. */
 struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     struct player_node* new;
     if( (new = (struct player_node*)malloc(sizeof(struct player_node))) == NULL){
@@ -22,7 +23,9 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
     return new;
 }
 
-// ADD MUTEX
+/* La funzione riceve una lista circolare di giocatori ed un nodo da aggiungervi. Restituisce la testa della lista
+ * qualora essa fosse stata vuota e quindi riempita dal nodo aggiunto.
+ * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
 struct player_node* addPlayerToPlayerList( struct player_node* player_list, struct player_node* newPlayer){
     //printf("DEBUG_addPtoPlist:started\n");
     struct player_node* tmp;
@@ -50,6 +53,9 @@ struct player_node* addPlayerToPlayerList( struct player_node* player_list, stru
     return player_list;
 }
 
+/* La funzione riceve una lista circolare di giocatori ed il socket descriptor del nodo da rimuovere.
+ * Restituisce la testa della lista qualora essa coincida col nodo da rimuovere.
+ * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
 struct player_node* removePlayerNode( struct player_node* player_list, int target_socket ) {
     struct player_node *tmp, *target;
     if (player_list != NULL) {
@@ -71,6 +77,8 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
     return player_list;
 }
 
+/* La funzione riceve un nodo giocatore e procede a deallocarlo in maniera sicura.
+ * Non presenta possibili criticità che richiedano un mutex. */
 int destroyPlayerNode( struct player_node* player ) {
     int distrutto = -1;
     if( player != NULL ){
@@ -80,6 +88,9 @@ int destroyPlayerNode( struct player_node* player ) {
     return distrutto;
 }
 
+/* La funzione riceve una lista circolare di giocatori ed il socket descriptor del nodo da cercare.
+ * Restituisce il nodo giocatore la cui socket corrisponde con quella in input..
+ * Non presenta criticità che richiedano un mutex. */
 struct player_node* getPlayer( struct player_node* player_list, int target_socket ){
     //printf("DEBUG_getplayernode:started\n");
     struct player_node* target, *tmp;
@@ -110,6 +121,9 @@ struct player_node* getPlayer( struct player_node* player_list, int target_socke
 }
 
 // FUNZIONI DI GESTIONE STANZE //
+/* La funzione riceve la testa di una lista di stanze da cui calcolare l'ID del nuovo nodo. Restituisce
+ * il nuovo nodo creato con tutte le variabili settate o a zero o a null.
+ * Non presenta criticità che richiedano un mutex. */
 struct room_node* createNewRoomNode( struct room_node* room_list ) {
     //printf("DEBUG_createroomnode:started\n");
     fflush(stdout);
@@ -135,6 +149,9 @@ struct room_node* createNewRoomNode( struct room_node* room_list ) {
     return new;
 }
 
+/* La funzione riceve il puntatore alla testa della lista delle stanze ed un nodo da aggiungervi.
+ * Siccome la modifica avviene sul puntatore, non è necessario modificare la testa della lista.
+ * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
 void addRoomToRoomList ( struct room_node** room_list, struct room_node* new_room ){
     //printf("DEBUG_addroomnode:started\n");
     fflush(stdout);
@@ -148,6 +165,9 @@ void addRoomToRoomList ( struct room_node** room_list, struct room_node* new_roo
     fflush(stdout);
 }
 
+/* La funzione riceve il puntatore alla testa della lista delle stanze. Crea ed aggiunge un nuovo nodo
+ * associato alla stanza appena generata.
+ * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
 struct room_node* createAndAddNewRoom( struct room_node** room_list){
     struct room_node* new_room;
 
@@ -162,6 +182,9 @@ struct room_node* createAndAddNewRoom( struct room_node** room_list){
     return new_room;
 }
 
+/* La funzione riceve la testa di una lista di stanze ed l'ID di un nodo da rimuovere. Restituisce la testa
+ * della lista appena modificata.
+ * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
 struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int target_id ){
     //printf("DEBUG_R&Droomnode:started\n");
     struct room_node* tmp;
@@ -179,6 +202,9 @@ struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int tar
     return room_list;
 }
 
+/* La funzione riceve la testa della lista di stanze ed ID da ricercare. Restituisce il nodo il cui ID
+ * combaci con quello dato in input.
+ * Non presenta criticità che richiedano un mutex. */
 struct room_node* getRoom( struct room_node* room_list, int target_id ){
     //printf("DEBUG_getroomnode:started\n");
     struct room_node* target;
