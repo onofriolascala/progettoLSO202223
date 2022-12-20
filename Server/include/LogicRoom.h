@@ -21,7 +21,7 @@
 #include <sys/socket.h>
 
 
-
+#include "../include/CommUtilServer.h"
 #include "../include/Def.h"
 
 void mainRoomLoop(int listen_sd);
