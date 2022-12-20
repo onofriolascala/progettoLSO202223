@@ -5,6 +5,8 @@
 
 #include "../include/ListHandler.h"
 
+pthread_mutex_t room_creation_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 // Cosa da fare: bisogna gestire gli errori delle malloc
 
 // FUNZIONI DI GESTIONE GIOCATORI //
@@ -124,14 +126,14 @@ struct player_node* getPlayer( struct player_node* player_list, int target_socke
 /* La funzione riceve la testa di una lista di stanze da cui calcolare l'ID del nuovo nodo. Restituisce
  * il nuovo nodo creato con tutte le variabili settate o a zero o a null.
  * Non presenta criticità che richiedano un mutex. */
-struct room_node* createNewRoomNode( struct room_node* room_list ) {
+struct room_node* createNewRoomNode( struct room_node* list_head ) {
     //printf("DEBUG_createroomnode:started\n");
     fflush(stdout);
     struct room_node* new;
     new = (struct room_node*)malloc(sizeof(struct room_node));
     if( new != NULL){
-        if( room_list != NULL)
-            new->id = room_list->id+1;
+        if(list_head != NULL)
+            new->id = list_head->id + 1;
         else {
             new->id = 1;
         }
@@ -152,13 +154,13 @@ struct room_node* createNewRoomNode( struct room_node* room_list ) {
 /* La funzione riceve il puntatore alla testa della lista delle stanze ed un nodo da aggiungervi.
  * Siccome la modifica avviene sul puntatore, non è necessario modificare la testa della lista.
  * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
-void addRoomToRoomList ( struct room_node** room_list, struct room_node* new_room ){
+void addRoomToRoomList (struct room_node** head_pointer, struct room_node* new_room ){
     //printf("DEBUG_addroomnode:started\n");
     fflush(stdout);
-    if( room_list != NULL){
+    if(head_pointer != NULL){
         if( new_room != NULL ){
-            new_room->next = *room_list;
-            *room_list = new_room;
+            new_room->next = *head_pointer;
+            *head_pointer = new_room;
         }
     }
     //printf("DEBUG_addroomnode:completed\n");
@@ -168,14 +170,18 @@ void addRoomToRoomList ( struct room_node** room_list, struct room_node* new_roo
 /* La funzione riceve il puntatore alla testa della lista delle stanze. Crea ed aggiunge un nuovo nodo
  * associato alla stanza appena generata.
  * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
-struct room_node* createAndAddNewRoom( struct room_node** room_list){
+struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
     struct room_node* new_room;
 
     //printf("DEBUG_C&Aroomnode:started\n");
     fflush(stdout);
 
-    new_room = createNewRoomNode(*room_list);
-    addRoomToRoomList(room_list, new_room);
+    pthread_mutex_lock(&room_creation_mutex);
+
+    new_room = createNewRoomNode(*head_pointer);
+    addRoomToRoomList(head_pointer, new_room);
+
+    pthread_mutex_unlock(&room_creation_mutex);
 
     //printf("DEBUG_C&Aroomnode:completed\n");
     fflush(stdout);
