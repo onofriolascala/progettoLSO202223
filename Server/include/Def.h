@@ -17,7 +17,9 @@
 #define MAXSIGNALBUF 2
 
 // Costanti per il Login/Signin/Logout.
+#define USERNAMEMINLENGTH 6
 #define USERNAMELENGHT 32
+#define PASSWORDMINLENGTH 10
 #define PASSWORDLENGHT 16
 #define QUERYLENGTH 1024
 
