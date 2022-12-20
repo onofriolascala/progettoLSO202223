@@ -24,6 +24,6 @@
 #include "../include/CommUtilServer.h"
 #include "../include/Def.h"
 
-void mainRoomLoop(int listen_sd);
+void mainRoomLoop(int listen_local_sd);
 
 #endif //LOGICROOM_H

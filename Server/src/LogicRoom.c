@@ -12,7 +12,7 @@ void mainRoomLoop(int listen_local_sd){
     char buffer[MAXCOMMBUFFER];
     int timeout, rc = 0;
     int nfds, new_local_sd, current_size = 0, i, j, signal_code;
-    int end_loop = 0, close_conn, compress_array = 0;
+    int end_loop = 0, close_conn;
 
     memset(fds, 0 ,sizeof(fds));
     fds[0].fd = listen_local_sd;
