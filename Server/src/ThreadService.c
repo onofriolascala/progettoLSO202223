@@ -64,17 +64,15 @@ void* thrService(void* arg) {
                     break;
                 case C_LOGIN:
                     //printf("\t\tDEBUG_SD%d: <Login>.\n", sd);
-                    strcpy(incoming, "32"
-                                     "debug1debug2debug3debug4debug5de"
-                                     "16"
-                                     "debug1debug2debu");
+                    strcpy(incoming, "debug1debug2debug3debug4debug5de-"
+                                     "debug1debug2debu;");
                     player = createNewPlayerNode(sd, "Guest");
                     signal_num = login(sd, incoming, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
                     break;
                 case C_SIGNIN:
                     //printf("\t\tDEBUG_SD%d: <Signin> %d:%s\n", sd, signal_num, incoming);
-                    //signin()
+                    signal_num = signin(incoming, player, outgoing);
                     writeToClient(sd, S_LOGINOK, S_LOGINOK_MSG);
                     break;
                 case 14:
@@ -115,7 +113,7 @@ void* thrService(void* arg) {
             memset(outgoing, '\0', sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
 
-            printf("\t\tSERVICE_SD%d: <client> %d:%s outgoing %s\n", sd, signal_num, incoming, outgoing);
+            printf("\t\tSERVICE_SD%d: <client> \"%d:%s\", outgoing \"%s\"\n", sd, signal_num, incoming, outgoing);
             switch (signal_num) {
                 case -1:
                     writeToClient(sd, S_COMMERROR, "Failed parsing.");
@@ -161,9 +159,9 @@ void* thrService(void* arg) {
                     break;
                 case C_LOGOUT:
                     //printf("\t\tDEBUG_SD%d: <Logout> %d:%s\n", sd, signal_num, incoming);
-                    //signal_num = logout();
-                    destroyPlayerNode(player);
-                    player = NULL;
+                    player = logout(player);
+                    //destroyPlayerNode(player);
+                    //player = NULL;
                     signal_num = S_LOGINOK;
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;

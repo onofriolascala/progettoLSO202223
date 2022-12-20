@@ -23,11 +23,11 @@ int destroyPlayerNode( struct player_node* player_node );
 
 struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int target_id );
 
-struct room_node* createNewRoomNode( struct room_node* room_list );
+struct room_node* createNewRoomNode( struct room_node* list_head );
 
-void addRoomToRoomList ( struct room_node** room_list, struct room_node* new_room );
+void addRoomToRoomList (struct room_node** head_pointer, struct room_node* new_room );
 
-struct room_node* createAndAddNewRoom( struct room_node** room_list );
+struct room_node* createAndAddNewRoom( struct room_node** head_pointer );
 
 struct room_node* getRoom( struct room_node* room_list, int target_id );
 

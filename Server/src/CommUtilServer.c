@@ -65,8 +65,12 @@ int readFromClient(int sd, char incoming[], int max_len){
     // Lettura del segnale inviato dal client
     if((read(sd, signal_code, MAXSIGNALBUF)) < 0)
     {
-        perror(":SIGNAL CODE READ ERROR");
-        return -3;
+        if (errno != EWOULDBLOCK)
+        {
+            perror(":SIGNAL CODE READ ERROR");
+            return -3
+        }
+        return -1;
     }
     signal_code[MAXSIGNALBUF] = '\0';
     //printf("\t\tDEBUG_SD%d: reading code %s\n", sd, signal_code);
@@ -74,16 +78,22 @@ int readFromClient(int sd, char incoming[], int max_len){
     // Rimozione del separatore
     if((read(sd, tmp, 1)) < 0)
     {
-        perror(":SEPARATOR READ ERROR");
-        return -3;
+        if (errno != EWOULDBLOCK) {
+            perror(":SEPARATOR READ ERROR");
+            return -3;
+        }
+        return -1;
     }
     tmp[0] = '\0';
 
     // Lettura del messaggio associato al segnale.
     if((read(sd, incoming, max_len)) < 0)
     {
-        perror(":MESSAGE READ ERROR");
-        return -3;
+        if (errno != EWOULDBLOCK){
+            perror(":MESSAGE READ ERROR");
+            return -3;
+        }
+        return -1;
     }
     incoming[strlen(incoming)] = '\0';
 
