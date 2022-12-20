@@ -19,17 +19,15 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+#include "../include/ThreadRoom.h"
+#include "../include/CommUtilServer.h"
+#include "../include/ListHandler.h"
+#include "../include/LogicSigninLogin.h"
 #include "../include/Def.h"
 
-
-/* Funzione principale. Una volta richiesto e ricevuto un login da parte dell'utente, procede a gestire le sue
- * richieste e a comunicare al client di renderizzare quanto serve. */
-// !!RICHIESTO UN PARSER ED UN DIZIONARIO DELLE COMUNICAZIONI!!
 void* thrService(void* arg);
 
-// Creazione del thread. Richiama pthread_create.
 pthread_t createNewService(int sd2, struct room_node** room_list);
-// Crea un thread simulando un riavvio.
 pthread_t rebuildService(struct player_node* player, struct room_node** room_list);
 
 #endif /* THREADSERVICE_H */

@@ -5,8 +5,19 @@
 #ifndef COMMUTILSERVER_H
 #define COMMUTILSERVER_H
 
-int writeToServer_old(int sock, char msg[], int msgLenght);
-int readFromServer_old(int sock, char msg[],int msgLenght);
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include "../include/Def.h"
 
 int readFromClient(int sd, char incoming[],int max_len);
 int writeToClient(int sd, int signal_num, char outgoing[]);

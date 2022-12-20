@@ -7,22 +7,24 @@
 
 #include <pthread.h>
 
+// Costanti per la gestione delle socket.
 #define MAXCONNECTIONS 5
+#define LOCALSOCKETADDRLENGHT 100
+#define SERVERPORT 5200
 
+// Costanti per le comunicazioni.
 #define MAXCOMMBUFFER 1024
-
 #define MAXSIGNALBUF 2
 
+// Costanti per il Login/Signin/Logout.
 #define USERNAMELENGHT 32
-
 #define PASSWORDLENGHT 16
+#define QUERYLENGTH 1024
 
-#define LOCALSOCKETADDRLENGHT 100
-
-// Numero di microsecondi degli usleep()
+// Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 5000
 
-// Segnali di comunicazione lato Server
+// Segnali di comunicazione lato Server.
 #define S_DISCONNECT 0      // Disconnessione del client
 #define S_DISCONNECT_MSG "Disconnessione."
 
@@ -77,16 +79,18 @@
 #define S_SIGNINERROR 92    // Username già in uso
 #define S_SIGNINERROR_MSG "Username già in uso."
 
-#define S_NOPERMISSION 97   // Funzionalità non disponibile.
+#define S_NOPERMISSION 96   // Funzionalità non disponibile.
 #define S_NOPERMISSION_MSG "Funzionalità non disponibile."
 
-#define S_UNKNOWNSIGNAL 98  // Segnale non riconosciuto
+#define S_UNKNOWNSIGNAL 97  // Segnale non riconosciuto
 #define S_UNKNOWNSIGNAL_MSG "Segnale non riconosciuto."
 
-#define S_COMMTIMOUT 99     // Timout della comunicazione
+#define S_COMMTIMOUT 98     // Timout della comunicazione
 #define S_COMMTIMOUT_MSG "Timout della comunicazione."
 
-// Segnali di comunicazione lato Client
+#define S_COMMERROR 99     // Generico errore di comunicazione lato server
+
+// Segnali di comunicazione lato Client.
 #define C_LOGIN 10          // Login
 #define C_SIGNIN 11         // Registrazione
 #define C_CREATEROOM 20     // Creazione di una stanza
