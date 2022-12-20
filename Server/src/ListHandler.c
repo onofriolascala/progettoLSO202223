@@ -193,6 +193,7 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
  * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
 struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int target_id ){
     //printf("DEBUG_R&Droomnode:started\n");
+    /*                      ** RICORSIVA**
     struct room_node* tmp;
     if( room_list != NULL){
         if( room_list->id == target_id ){
@@ -205,6 +206,28 @@ struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int tar
         }
     }
     //printf("DEBUG_R&Droomnode:completed\n");
+    return room_list;
+     */
+
+    struct room_node* tmp, *target;
+
+    if( room_list != NULL){
+        if( room_list->id == target_id ){
+            target = room_list;
+            room_list = room_list->next;
+        }
+        else{
+            tmp = room_list;
+            while( tmp->next != NULL && tmp->next->id != target_id ){
+                tmp = tmp->next;
+            }
+            target = tmp->next;
+            tmp->next = tmp->next->next;
+        }
+        if(target != NULL){
+            free(target);
+        }
+    }
     return room_list;
 }
 
