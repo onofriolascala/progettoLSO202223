@@ -3,13 +3,13 @@
 */
 
 #include "../include/ThreadService.h"
-#include "../include/ThreadRoom.h"
-#include "../include/CommUtilServer.h"
-#include "../include/ListHandler.h"
-#include "../include/LogicSigninLogin.h"
-#include "../include/Def.h"
 
-// Funzione principale.
+/* Funzione del service thread. Gestisce le comunicazioni con un singolo client fino alla sua disconnessione
+ * o eventuale entrata in una stanza di gioco. In quest'ultimo caso il thread viene chiuso per salvare risorse,
+ * perchè sia "riavviato" all'uscita dall'utente dalla stanza.
+ * Una volta ricevuto un login da parte dell'utente, procede a gestire le sue richieste e a comunicare al client
+ * di renderizzare quanto serve alla sua elaborazione.
+ * Riceve in ingresso la struttura service_args. Essendo un detatched thread non restituisce nulla. */
 void* thrService(void* arg) {
     /*printf("DEBUG: Thread started...\n");
     fflush(stdout);*/
@@ -23,7 +23,7 @@ void* thrService(void* arg) {
 
     // Copia i valori della struttura originale.
     sd = (*(struct service_arg*)arg).sd;
-    player = (*(struct service_arg*)arg).player;
+    player = (*(struct service_arg *) arg).player;
     room_list = (*(struct service_arg*)arg).room_list;
 
     // La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
@@ -33,9 +33,11 @@ void* thrService(void* arg) {
 
     if (player == NULL) {
         signal_num = 1;
+        //printf("\t\tDEBUG_SD%d: mode new thread.\n", sd);
     }
     else {
         signal_num = 52;
+        //printf("\t\tDEBUG_SD%d: mode rebuilt thread.\n", sd);
     }
 
     while(signal_num > 0) {
@@ -46,13 +48,16 @@ void* thrService(void* arg) {
             memset(outgoing, '\0', sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
 
-            printf("\t\tSERVICE_SD%d: <client> %d:%s outgoing %s\n", sd, signal_num, incoming, outgoing);
+            printf("\t\tSERVICE_SD%d: <client> \"%d:%s\", outgoing \"%s\"\n", sd, signal_num, incoming, outgoing);
             switch (signal_num) {
                 case -1:
+                    writeToClient(sd, S_COMMERROR, "Failed parsing.");
                     break;
                 case -2:
+                    writeToClient(sd, S_COMMERROR, "Failed write.");
                     break;
                 case -3:
+                    writeToClient(sd, S_COMMERROR, "Failed read.");
                     break;
                 case S_DISCONNECT:
                     writeToClient(sd, S_DISCONNECT, S_DISCONNECT_MSG);
@@ -113,10 +118,13 @@ void* thrService(void* arg) {
             printf("\t\tSERVICE_SD%d: <client> %d:%s outgoing %s\n", sd, signal_num, incoming, outgoing);
             switch (signal_num) {
                 case -1:
+                    writeToClient(sd, S_COMMERROR, "Failed parsing.");
                     break;
                 case -2:
+                    writeToClient(sd, S_COMMERROR, "Failed write.");
                     break;
                 case -3:
+                    writeToClient(sd, S_COMMERROR, "Failed read.");
                     break;
                 case S_DISCONNECT:
                     writeToClient(sd, S_DISCONNECT, S_DISCONNECT_MSG);
@@ -149,14 +157,14 @@ void* thrService(void* arg) {
                 case C_LISTROOM:
                     //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);
                     //getRoomList();
-                    writeToClient(sd, 53, "Lista delle stanze");
+                    writeToClient(sd, S_ROOMLISTOK, S_ROOMLISTOK_MSG);
                     break;
                 case C_LOGOUT:
                     //printf("\t\tDEBUG_SD%d: <Logout> %d:%s\n", sd, signal_num, incoming);
                     //signal_num = logout();
                     destroyPlayerNode(player);
                     player = NULL;
-                    signal_num = 51;
+                    signal_num = S_LOGINOK;
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;
                 case C_SELECTWORD:
@@ -173,26 +181,27 @@ void* thrService(void* arg) {
                     writeToClient(sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
             }
             fflush(stdout);
-            if (signal_num == 54) {
+            if (signal_num == S_ROOMOK) {
                 printf("\t\tSERVICE_SD%d: closed thread in favor of ROOM_ID%d.\n", sd, room_ID);
                 return 0;
             }
         }
     }
 
-    /* La funzione inizia la terminazione finale. Dopo di essa dovra essere stato deallocato il nodo del giocatore e
-     * dovrà essere chiusa la socket associata. */
-    /*if(player != NULL) {
+    /* La funzione inizia la fase di terminazione a seguito di una disconnessione. E' per tanto necessario deallocare
+     * il nodo giocatore e chiudere la socket. */
+    if(player != NULL) {
         destroyPlayerNode(player);
-    }*/
-
+    }
     close(sd);
     printf("\t\tSERVICE_SD%d: service thread has been closed.\n", sd);
     fflush(stdout);
     return 0;
 }
 
-// Creazione del thread in stato detached.
+/* Pseudo-costruttore del thread di handling delle richieste lato client, in stato detatched.
+ * Riceve in input il puntatore alla testa della lista delle stanze ed il nuovo socket descriptor accettato
+ * dal main thread. Restituisce il thread id appena generato. */
 pthread_t createNewService(int sd2, struct room_node** room_list) {
     /*printf("DEBUG: Input for createNewService sd:%d.\n",sd2);
     fflush(stdout);*/
@@ -207,7 +216,7 @@ pthread_t createNewService(int sd2, struct room_node** room_list) {
 
     //printf("DEBUG: Creation of detatched thread...\n");
     if (pthread_create(&tid, NULL, thrService, &args)) {
-        printf(":THREAD CREATION ERROR:\n");
+        fprintf(stderr, ":THREAD CREATION ERROR: unable to create new service thread. Closing socket.\n");
         close(sd2);
         return -1;
     }
@@ -217,7 +226,7 @@ pthread_t createNewService(int sd2, struct room_node** room_list) {
 
     /* La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
      * Senza di essa il main terminerebbe l'esecuzione della funzione prima che il service abbia copiato i valori
-     * degli argomenti, che verrebbero persi con la chiusura del record dello stack di attivazione di createNewService. */
+     * degli argomenti. */
     while(args.flag == 0) {
         usleep(REFRESHCONSTANT);
     }
@@ -227,7 +236,10 @@ pthread_t createNewService(int sd2, struct room_node** room_list) {
     return tid;
 }
 
-//  Creazione di un nuovo thread service in stato detached, che recupera le informazioni del precedente thread.
+/* Pseudo-costruttore del thread di handling delle richieste lato client, in stato detatched.
+ * Simula un recupero dell'elaborazione di un service thread precedentemente chiuso, ma in realtà è diverso.
+ * Riceve in input il puntatore alla testa della lista delle stanze ed il giocatore in uscita dalla stanza
+ * di gioco. Restituisce il thread id appena generato. */
 pthread_t rebuildService(struct player_node* player, struct room_node** room_list) {
     pthread_t tid;
 
@@ -239,9 +251,8 @@ pthread_t rebuildService(struct player_node* player, struct room_node** room_lis
 
     //printf("DEBUG: Creation of detatched thread...\n");
     if (pthread_create(&tid, NULL, thrService, &args)) {
-        printf(":THREAD CREATION ERROR:\n");
-        //close(sd2);
-        //pthread_cancel(pthread_self());
+        fprintf(stderr, ":THREAD REBUILD ERROR: unable to re-create new service thread. Closing player socket.\n");
+        close(player->player_socket);
         return -1;
     }
 
@@ -249,8 +260,8 @@ pthread_t rebuildService(struct player_node* player, struct room_node** room_lis
     pthread_detach(tid);
 
     /* La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
-     * Senza di essa il main terminerebbe l'esecuzione della funzione prima che il service abbia copiato i valori
-     * degli argomenti, che verrebbero persi con la chiusura del record dello stack di attivazione di createNewService. */
+     * Senza di essa il room thread terminerebbe l'esecuzione della funzione prima che il service abbia copiato i valori
+     * degli argomenti. */
     while(args.flag == 0);
 
     printf("SERVICE_SD%d: Service thread created with sd:%d.\n", args.sd, args.sd);
