@@ -18,7 +18,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 #include "../include/Def.h"
+
+int* randomSCT(int [], int);
 
 #endif //LOGICGAME_H
