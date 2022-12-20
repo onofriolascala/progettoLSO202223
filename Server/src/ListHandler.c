@@ -177,10 +177,12 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
     fflush(stdout);
 
     pthread_mutex_lock(&room_creation_mutex);
+    pthread_mutex_lock(&(*head_pointer)->roomnode_mutex);
 
     new_room = createNewRoomNode(*head_pointer);
     addRoomToRoomList(head_pointer, new_room);
 
+    pthread_mutex_unlock(&(*head_pointer)->roomnode_mutex);
     pthread_mutex_unlock(&room_creation_mutex);
 
     //printf("DEBUG_C&Aroomnode:completed\n");
@@ -191,44 +193,70 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
 /* La funzione riceve la testa di una lista di stanze ed l'ID di un nodo da rimuovere. Restituisce la testa
  * della lista appena modificata.
  * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
-struct room_node* removeAndDestroyRoomNode( struct room_node* room_list, int target_id ){
+void removeAndDestroyRoomNode(struct room_node** head_pointer, int target_id ){
     //printf("DEBUG_R&Droomnode:started\n");
     /*                      ** RICORSIVA**
     struct room_node* tmp;
-    if( room_list != NULL){
-        if( room_list->id == target_id ){
-            tmp = room_list;
-            room_list = room_list->next;
+    if( list_head != NULL){
+        if( list_head->id == target_id ){
+            tmp = list_head;
+            list_head = list_head->next;
             free(tmp);
         }
         else{
-            room_list->next = removeAndDestroyRoomNode( room_list->next, target_id );
+            list_head->next = removeAndDestroyRoomNode( list_head->next, target_id );
         }
     }
     //printf("DEBUG_R&Droomnode:completed\n");
-    return room_list;
+    return list_head;
      */
 
-    struct room_node* tmp, *target;
+    struct room_node *list_head;
+    struct room_node *tmp, *target;
 
-    if( room_list != NULL){
-        if( room_list->id == target_id ){
-            target = room_list;
-            room_list = room_list->next;
+    pthread_mutex_lock(&room_creation_mutex);
+    if((*head_pointer) != NULL){
+
+        pthread_mutex_lock(&(*head_pointer)->roomnode_mutex);
+        pthread_mutex_unlock(&room_creation_mutex);
+        list_head = *head_pointer;
+
+        if(list_head->id == target_id ){
+            target = list_head;
+            (*head_pointer) = list_head->next;
+            pthread_mutex_unlock(&target->roomnode_mutex);
         }
-        else{
-            tmp = room_list;
-            while( tmp->next != NULL && tmp->next->id != target_id ){
+        else {
+            tmp = list_head;
+            // !isNULL(tmp->next) { lock tmp->next }
+            if(tmp->next != NULL) {
+                pthread_mutex_unlock(&tmp->next->roomnode_mutex);
+            }
+            while( tmp->next != NULL && tmp->next->id != target_id ) {
+                if(tmp->next->next != NULL) {
+                    pthread_mutex_unlock(&tmp->next->next->roomnode_mutex);
+                }
+                pthread_mutex_unlock(&tmp->roomnode_mutex);
                 tmp = tmp->next;
             }
-            target = tmp->next;
-            tmp->next = tmp->next->next;
+            if(tmp->next != NULL) {
+                target = tmp->next;
+                tmp->next = tmp->next->next;
+                pthread_mutex_unlock(&tmp->roomnode_mutex);
+                pthread_mutex_unlock(&target->roomnode_mutex);
+            }
+            else {
+                target = NULL;
+                pthread_mutex_unlock(&tmp->roomnode_mutex);
+            }
         }
         if(target != NULL){
             free(target);
         }
     }
-    return room_list;
+    else {
+        pthread_mutex_unlock(&room_creation_mutex);
+    }
 }
 
 /* La funzione riceve la testa della lista di stanze ed ID da ricercare. Restituisce il nodo il cui ID

@@ -68,7 +68,7 @@ int readFromClient(int sd, char incoming[], int max_len){
         if (errno != EWOULDBLOCK)
         {
             perror(":SIGNAL CODE READ ERROR");
-            return -3
+            return -3;
         }
         return -1;
     }

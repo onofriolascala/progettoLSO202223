@@ -141,7 +141,7 @@ void* thrRoom(void* arg) {
     }
 
     // Chiusura della stanza.
-    *room_list = removeAndDestroyRoomNode(*room_list, ID);
+    //*room_list = removeAndDestroyRoomNode(*room_list, ID);
 
     //sleep(10);
     deleteLocalSocket(localsocket, localsocket_addr.sun_path);
