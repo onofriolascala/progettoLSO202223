@@ -218,8 +218,8 @@ void removeAndDestroyRoomNode(struct room_node** head_pointer, int target_id ){
     if((*head_pointer) != NULL){
 
         pthread_mutex_lock(&(*head_pointer)->roomnode_mutex);
-        pthread_mutex_unlock(&room_creation_mutex);
         list_head = *head_pointer;
+        pthread_mutex_unlock(&room_creation_mutex);
 
         if(list_head->id == target_id ){
             target = list_head;
