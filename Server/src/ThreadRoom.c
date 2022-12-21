@@ -125,7 +125,6 @@ void* thrRoom(void* arg) {
             case C_EXITROOM:
                 //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
                 //removePlayerNode();
-                //destroyPlayerNode();
                 //updatePlayerNum()
                 this_room->player_num -= 1;
 
@@ -141,7 +140,7 @@ void* thrRoom(void* arg) {
     }
 
     // Chiusura della stanza.
-    //*room_list = removeAndDestroyRoomNode(*room_list, ID);
+    removeAndDestroyRoomNode(room_list, ID);
 
     //sleep(10);
     deleteLocalSocket(localsocket, localsocket_addr.sun_path);

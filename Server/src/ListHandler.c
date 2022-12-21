@@ -142,6 +142,7 @@ struct room_node* createNewRoomNode( struct room_node* list_head ) {
         new->player_list = NULL;
         new->player_num = 0;
         new->next = NULL;
+        pthread_mutex_init(&new->roomnode_mutex, NULL);
     }
     else {
         //gestire errore malloc
@@ -177,12 +178,18 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
     fflush(stdout);
 
     pthread_mutex_lock(&room_creation_mutex);
-    pthread_mutex_lock(&(*head_pointer)->roomnode_mutex);
+    if ((*head_pointer) != NULL) {
+        pthread_mutex_lock(&(*head_pointer)->roomnode_mutex);
 
-    new_room = createNewRoomNode(*head_pointer);
-    addRoomToRoomList(head_pointer, new_room);
+        new_room = createNewRoomNode(*head_pointer);
+        addRoomToRoomList(head_pointer, new_room);
 
-    pthread_mutex_unlock(&(*head_pointer)->roomnode_mutex);
+        pthread_mutex_unlock(&(*head_pointer)->roomnode_mutex);
+    }
+    else {
+        new_room = createNewRoomNode(*head_pointer);
+        addRoomToRoomList(head_pointer, new_room);
+    }
     pthread_mutex_unlock(&room_creation_mutex);
 
     //printf("DEBUG_C&Aroomnode:completed\n");
