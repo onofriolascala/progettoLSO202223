@@ -94,7 +94,7 @@ int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_a
         //exit(1);
     }*/
     // Messa in ascolto del socket.
-    if(listen(sd, MAXCONNECTIONS) < 0) {
+    if(listen(sd, MAXLOCALCONNECTIONS) < 0) {
         perror(":LISTEN ERROR");
         close(sd);
         //exit(1);

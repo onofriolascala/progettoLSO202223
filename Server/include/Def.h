@@ -9,6 +9,7 @@
 
 // Costanti per la gestione delle socket.
 #define MAXCONNECTIONS 5
+#define MAXLOCALCONNECTIONS 5
 #define LOCALSOCKETADDRLENGTH 100
 #define SERVERPORT 5200
 

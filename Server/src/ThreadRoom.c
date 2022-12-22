@@ -7,44 +7,29 @@
 // Funzione principale.
 void* thrRoom(void* arg) {
     //printf("DEBUG: Creazione stanza.\n");
-    char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER];
-    int ID, localsocket, temp_sd, out_len, signal_num;
+    char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER], parser_buf[USERNAMELENGTH];
+    int ID, localsocket, temp_sd, parser_sd, signal_num;
     struct room_node** room_list;
     struct room_node* this_room;
-    struct room_node* currenthead;
-
-    signal_num = 1;
+    struct player_node* joining_player;
 
     struct sockaddr_un localsocket_addr;
+    struct room_arg temp;
+
+    signal_num = 0;
     socklen_t localsocket_len;
 
-    struct room_arg temp;
-    temp = *(struct room_arg*)arg;
-    //printf("DEBUG:1.\n");
-
     // Copia i valori della struttura originale.
-    //printf("DEBUG:1,5\n");
-    room_list = temp.room_list;
-
-    /*if (room_list == NULL) {
-        currenthead = NULL;
-        printf("DEBUG:2.1\n");
-    }
-    else {
-        currenthead = *room_list;
-        printf("DEBUG:2.2\n");
-    }*/
+    room_list = (*(struct room_arg*)arg).room_list;
 
     this_room = createAndAddNewRoom(room_list);
     ID = this_room->id;
+    (*(struct room_arg*)arg).room_ID = this_room->id;
 
-    //printf("DEBUG:3.\n");
     // Apertura della localsocket
     localsocket = localSocketInit(ID, this_room->localsocket, &localsocket_addr, &localsocket_len);
-    //printf("DEBUG:4.\n");
 
     // La flag, condivisa da service e room appena creato, opera come un single-use mutex legato alla risorsa.
-    (*(struct room_arg*)arg).room_ID = this_room->id;
     (*(struct room_arg*)arg).flag = 1;
     printf("\t\t\t\tROOM_ID%d: initialized with ID value of \"%d\", and local socket of \"%s:%d\".\n", ID, ID, localsocket_addr.sun_path, localsocket);
     fflush(stdout);
@@ -58,16 +43,24 @@ void* thrRoom(void* arg) {
         //close(localsocket);
     }
     else {
-        writeToClient(temp_sd, S_OK, S_OK_MSG);
-        if((readFromClient(temp_sd, incoming, MAXCOMMBUFFER)) == S_ROOMOK) {
-            close(temp_sd);
-            temp_sd = this_room->player_list->player_socket;
+        //writeToClient(temp_sd, S_OK, S_OK_MSG);
+        if((readFromClient(temp_sd, incoming, MAXCOMMBUFFER)) == C_JOINROOM) {
+            if((signal_num = joinParser(incoming, outgoing, parser_buf, &parser_sd)) == 0) {
+                if ((joining_player = getPlayer(this_room->player_list, parser_sd)) == NULL) {
+                    joining_player = createNewPlayerNode(parser_sd, parser_buf);
+                    this_room->player_list = addPlayerToPlayerList(this_room->player_list, joining_player);
+                    this_room->player_num += 1;
+                    writeToClient(temp_sd, S_OK, S_OK_MSG);
+                    close(temp_sd);
+                    temp_sd = this_room->player_list->player_socket;
+                    signal_num = S_OK;
+                }
+            }
         }
-        else {
-
-            close(temp_sd);
-            temp_sd = 0;
-        }
+    }
+    if(signal_num != S_OK) {
+        writeToClient(temp_sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
+        close(temp_sd);
     }
 
     //printf("%d %d %s\n", signal_num, temp_sd, incoming);
@@ -88,8 +81,13 @@ void* thrRoom(void* arg) {
                 break;
             case -3:
                 break;
+            case S_DISCONNECT_ABRUPT:
+                //removePlayerNode();
+                //destroyPlayerNode();
+                //updatePlayerNum()
+                this_room->player_num -= 1;
+                break;
             case S_DISCONNECT:
-                printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
                 //removePlayerNode();
                 //destroyPlayerNode();
                 //updatePlayerNum()
@@ -124,12 +122,12 @@ void* thrRoom(void* arg) {
                 break;
             case C_EXITROOM:
                 //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
-                //removePlayerNode();
-                //updatePlayerNum()
-                this_room->player_num -= 1;
-
                 // Riavvio del threadService
                 rebuildService(this_room->player_list, room_list);
+                //removePlayerNode();
+                //destroyPlayerNode();
+                //updatePlayerNum()
+                this_room->player_num -= 1;
                 writeToClient(temp_sd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
                 break;
             default:
@@ -254,3 +252,38 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
     return signal_num;
 }
 
+int joinParser(char incoming[], char outgoing[], char username[], int *sd) {
+    char *saveptr = NULL;
+    char *username_p, *sd_p;
+    int username_len, sd_len, return_value;
+
+    return_value = 1;
+
+    username_p = strtok_r(incoming, "-", &saveptr);
+    sd_p = strtok_r(NULL, "\0", &saveptr);
+
+    if(username_p != NULL && sd_p != NULL) {
+        username_len = strlen(username_p);
+        sd_len = strlen(sd_p);
+
+        if (username_len >= USERNAMEMINLENGTH && username_len < USERNAMELENGTH
+            && sd_len <= (MAXCOMMBUFFER - username_len - 5))
+        {
+            fprintf(stderr, ":JOIN ERROR: wrong length for username or sd arguments detected.\n");
+            strcpy(outgoing, "Credenziali errate.");
+            return_value = S_LOGINERROR;
+        }
+        else {
+            strncpy(username, username_p, username_len);
+            username[username_len] = '\0';
+            *sd = atoi(sd_p);
+            return_value = 0;
+        }
+    }
+    else {
+        fprintf(stderr, ":JOIN ERROR: null username or password arguments detected.\n");
+        strcpy(outgoing, "Credenziali errate.");
+        return_value = S_LOGINERROR;
+    }
+    return return_value;
+}

@@ -83,25 +83,8 @@ void* thrService(void* arg) {
                 case 14:
                     writeToClient(sd, 42, "Hai trovato il messaggio di DEBUG.");
                     break;
-                case C_CREATEROOM:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_JOINROOM:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_LISTROOM:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_LOGOUT:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_SELECTWORD:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_GUESSSKIP:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_EXITROOM:
+                case C_CREATEROOM: case C_JOINROOM: case C_LISTROOM: case C_LOGOUT:
+                case C_SELECTWORD: case C_GUESSSKIP: case C_EXITROOM:
                     writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
                     break;
                 default:
@@ -144,12 +127,12 @@ void* thrService(void* arg) {
                     writeToClient(sd, 42, "Hai trovato il messaggio di DEBUG.");
                     break;
                 case C_CREATEROOM:
-                    //printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
+                    printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
                     room_ID = createNewRoom(sd, room_list);
-                    //sprintf(outgoing, "Stanza creata con ID %d", room_ID);
-                    //signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
+                    sprintf(outgoing, "Stanza creata con ID %d", room_ID);
+                    signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
                     writeToClient(sd, signal_num, outgoing);
-                    //printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, outgoing);
+                    printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, outgoing);
                     // Chiusura del threadService in caso di successo
                     break;
                 case C_JOINROOM:
@@ -173,13 +156,7 @@ void* thrService(void* arg) {
                     printf("\t\tDEBUG_SD%d: <Logout successful. New player username is \"%s\">\n", sd, username);
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;
-                case C_SELECTWORD:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_GUESSSKIP:
-                    writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                    break;
-                case C_EXITROOM:
+                case C_SELECTWORD: case C_GUESSSKIP: case C_EXITROOM:
                     writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
                     break;
                 default:
