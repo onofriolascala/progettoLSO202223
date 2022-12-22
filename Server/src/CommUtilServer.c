@@ -4,53 +4,48 @@
 
 #include "../include/CommUtilServer.h"
 
-int writeToServer_old(int sock, char msg[], int msgLenght){
-    int n;
-    if((n = write(sock, msg, msgLenght)) < msgLenght){
-        if(n < 0){
-            perror(":WRITE ERROR");
-            return -1;
-        }
-    }
-    return n;
-}
-
-int readFromServer_old(int sock, char msg[], int msgLenght){
-    int n;
-    if((n = read(sock, msg, msgLenght ) < msgLenght)){
-        if(n < 0){
-            perror(":READ ERROR");
-            return -1;
-        }
-    }
-    return n;
-}
-
 /* Scrittura al client con anesso parser per l'impacchettamento dei segnali.
  * Riceve in input il socket descriptor della comunicazione ed il segnale da restituire al client con annessa
  * una stringa non nulla.
  * Restituisce l'esito della comunicazione. 0 per successo, -1 per errore di parsing, -2 per write error. */
 int writeToClient(int sd, int signal_num, char outgoing[]) {
-    //printf("\t\tDEBUG_SD%d: writing input %s\n", sd, outgoing);
+    int len, return_value;
     char finalmessage[MAXCOMMBUFFER];
-    int len;
 
+    return_value = 0;
     finalmessage[0] = '\0';
 
-    if(sprintf(finalmessage, "%d:%s", signal_num, outgoing) < 0) {
-        perror(":COMPOSITION ERROR");
-        return -1;
+    if (signal_num < 10) {
+        if (snprintf(finalmessage, MAXCOMMBUFFER, "0%d:%s;", signal_num, outgoing) < 0) {
+            perror(":COMPOSITION ERROR");
+            return -1;
+        }
+    }
+    else {
+        if (snprintf(finalmessage, MAXCOMMBUFFER, "%d:%s;", signal_num, outgoing) < 0) {
+            perror(":COMPOSITION ERROR");
+            return -1;
+        }
     }
 
     len = strlen(finalmessage);
-    finalmessage[len] = '\0';
 
-    if(write(sd, finalmessage, len) < 0) {
-        perror(":WRITE ERROR");
-        return -2;
+    if(len >= (MAXCOMMBUFFER - 2)) {
+        finalmessage[MAXCOMMBUFFER - 2] = ';';
+        finalmessage[MAXCOMMBUFFER - 1] = '\0';
+        if(write(sd, finalmessage, MAXCOMMBUFFER) < 0) {
+            perror(":WRITE ERROR");
+            return_value = -2;
+        }
+    }
+    else {
+        if(write(sd, finalmessage, len) < 0) {
+            perror(":WRITE ERROR");
+            return_value = -2;
+        }
     }
     //printf("\t\tDEBUG_SD%d: writing end %s\n", sd, finalmessage);
-    return 0;
+    return return_value;
 }
 
 /* Lettura dal client con anesso parser per lo spacchettamento dei segnali.
@@ -58,46 +53,47 @@ int writeToClient(int sd, int signal_num, char outgoing[]) {
  * su cui ricevere i dati, con annessa una lunghezza massima.
  * Restituisce l'esito della comunicazione. Il segnale in ingresso per successo, -3 per errore di lettura. */
 int readFromClient(int sd, char incoming[], int max_len){
-    //printf("\t\tDEBUG_SD%d: reading input %s\n", sd, incoming);
-    int signal_num;
-    char signal_code[MAXSIGNALBUF + 1], tmp[MAXSIGNALBUF];
+    int signal_num, signal_len, message_len;
+    char *saveptr;
+    char *signal_p, *message_p;
+    char incoming_buf[MAXCOMMBUFFER], signal_code[MAXSIGNALBUF+1];
 
-    // Lettura del segnale inviato dal client
-    if((read(sd, signal_code, MAXSIGNALBUF)) < 0)
+    saveptr = NULL;
+    signal_num = S_COMMERROR;
+
+    if((read(sd, incoming_buf, MAXCOMMBUFFER)) < 0)
     {
         if (errno != EWOULDBLOCK)
         {
-            perror(":SIGNAL CODE READ ERROR");
+            perror(":READ ERROR");
             return -3;
         }
         return -1;
     }
-    signal_code[MAXSIGNALBUF] = '\0';
-    //printf("\t\tDEBUG_SD%d: reading code %s\n", sd, signal_code);
 
-    // Rimozione del separatore
-    if((read(sd, tmp, 1)) < 0)
-    {
-        if (errno != EWOULDBLOCK) {
-            perror(":SEPARATOR READ ERROR");
-            return -3;
+    signal_p = strtok_r(incoming_buf, ":", &saveptr);
+    message_p = strtok_r(NULL, ";", &saveptr);
+
+    if(signal_p != NULL && message_p != NULL) {
+        signal_len = strlen(signal_p);
+        message_len = strlen(message_p);
+
+        if (signal_len == MAXSIGNALBUF && message_len < (MAXCOMMBUFFER - 4))
+        {
+            strncpy(signal_code, signal_p, signal_len);
+            signal_code[signal_len] = '\0';
+            strncpy(incoming, message_p, message_len);
+            incoming[message_len] = '\0';
+
+            signal_num = atoi(signal_code);
         }
-        return -1;
-    }
-    tmp[0] = '\0';
-
-    // Lettura del messaggio associato al segnale.
-    if((read(sd, incoming, max_len)) < 0)
-    {
-        if (errno != EWOULDBLOCK){
-            perror(":MESSAGE READ ERROR");
-            return -3;
+        else {
+            fprintf(stderr, ":READ ERROR: wrong length for signal or message arguments detected.\n");
         }
-        return -1;
     }
-    incoming[strlen(incoming)] = '\0';
-
-    signal_num = atoi(signal_code);
+    else {
+        fprintf(stderr, ":READ ERROR: null signal or message arguments detected.\n");
+    }
 
     //printf("\t\tDEBUG_SD%d: reading endvalue %d %s\n", sd, signal_num, incoming);
     return signal_num;

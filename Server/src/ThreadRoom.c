@@ -151,8 +151,8 @@ void* thrRoom(void* arg) {
 
 // Creazione del thread della stanza.
 int createNewRoom(int sd, struct room_node** room_list) {
-    /*printf("DEBUG: Input for createNewRoom.\n");
-    fflush(stdout);*/
+    printf("DEBUG: Input for createNewRoom.\n");
+    fflush(stdout);
     int flag;
     pthread_t tid;
 
@@ -182,85 +182,62 @@ int createNewRoom(int sd, struct room_node** room_list) {
     return args.room_ID;
 }
 
-// AGGIUNGERE MUTEX
-int joinRoom(int sd, int ID, struct room_node** room_list, struct player_node* player, char outgoing[]) {
-    //printf("\t\tSERVICE_SD%d: join started\n", sd);
-    fflush(stdout);
+// Da sincronizzare con la distruzione delle stanze
+int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], char outgoing[]) {
+    printf("\t\tSERVICE_SD%d: join started\n", sd);
+
     int signal_num, room_sd;
-    char temp_buf[MAXCOMMBUFFER];
+    char temp_in[MAXCOMMBUFFER], temp_out[MAXCOMMBUFFER];
     struct room_node* joined_room;
-
     struct sockaddr_un indirizzo;
+
     indirizzo.sun_family = PF_LOCAL;
-
-    memset(temp_buf, '\0', sizeof(temp_buf));
-
     signal_num = S_UNKNOWNSIGNAL;
 
-    if (room_list == NULL){
-        //printf("DEBUG:0\n");
-    }
-    else {
-        //printf("DEBUG:1\n");
-    }
-    fflush(stdout);
-
-    joined_room = getRoom(*room_list, ID);
+    joined_room = getRoom(*head_pointer, ID);
 
     if (joined_room == NULL) {
-        //printf("DEBUG:2\n");
         strcpy(outgoing, S_ROOMNOTFOUND_MSG);
         signal_num = S_ROOMNOTFOUND;
     }
-    else if (joined_room->player_num > 8){
-        //printf("DEBUG:3\n");
+    else if (joined_room->player_num >= 8){
         strcpy(outgoing, S_FULLROOM_MSG);
         signal_num = S_FULLROOM;
     }
     else {
-        //printf("DEBUG:4\n");
-        if (getPlayer(joined_room->player_list, player->player_socket) == NULL) {
-            //printf("DEBUG:5\n");
 
-            strcpy(indirizzo.sun_path, joined_room->localsocket);
-
-            // Creazione del socket
-            if((room_sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
-                perror(":SOCKET CREATION");
-                strcpy(outgoing, "Impossibile creare socket locale del service.");
-                return S_UNKNOWNSIGNAL;
-            }
-            // Connessione...
-            if(connect(room_sd, (struct sockaddr*)&indirizzo, sizeof(indirizzo)) < 0) {
-                perror(":SOCKET CONNECT");
-                strcpy(outgoing, "Impossibile connettersi a localsocket.");
-                return S_UNKNOWNSIGNAL;
-            }
-            //printf("\t\tDEBUG_joinSD%d: connection established with room_sd \"%d\" on addr \"%s\" signal buf \"%s\".\n", sd, room_sd, indirizzo.sun_path, temp_buf);
-            fflush(stdout);
-            signal_num = readFromClient(room_sd, temp_buf, MAXCOMMBUFFER);
-            //printf("\t\tDEBUG_joinSD%d: signal %d:%s\n", sd, signal_num, temp_buf);
-            fflush(stdout);
-
-            if(signal_num == 50) {
-                strcpy(outgoing, S_ROOMOK_MSG);
-                joined_room->player_list = addPlayerToPlayerList(joined_room->player_list, player);
-                //updatePlayerNum()
-                joined_room->player_num += 1;
-                signal_num = S_ROOMOK;
-            }
-            else {
-                signal_num = S_UNKNOWNSIGNAL;
-                strcpy(outgoing, "Lettura scorretta da localSocket.");
-            }
-            writeToClient(room_sd, signal_num, outgoing);
-            close(room_sd);
+        strcpy(indirizzo.sun_path, joined_room->localsocket);
+        // Creazione del socket
+        if((room_sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
+            perror(":SOCKET CREATION");
+            strcpy(outgoing, "Impossibile creare socket locale del service.");
+            return S_UNKNOWNSIGNAL;
         }
-        else {
-            //printf("DEBUG:6\n");
+        // Connessione...
+        if(connect(room_sd, (struct sockaddr*)&indirizzo, sizeof(indirizzo)) < 0) {
+            perror(":SOCKET CONNECT");
+            strcpy(outgoing, "Impossibile connettersi a localsocket.");
+            return S_UNKNOWNSIGNAL;
+        }
+        // Invio delle informazioni utente
+        sprintf(temp_out, "%s-%d", username, sd);
+        writeToClient(room_sd, C_JOINROOM, temp_out);
+        // Attesa di conferma dalla stanza
+        signal_num = readFromClient(room_sd, temp_in, MAXCOMMBUFFER);
+
+        if (signal_num == S_OK) {
+            strcpy(outgoing, S_ROOMOK_MSG);
+            signal_num = S_ROOMOK;
+        }
+        else if (signal_num == S_USERINROOM) {
             strcpy(outgoing, S_USERINROOM_MSG);
             signal_num = S_USERINROOM;
         }
+        else {
+            strcpy(outgoing, "Lettura scorretta da localSocket.");
+            signal_num = S_UNKNOWNSIGNAL;
+        }
+        close(room_sd);
     }
 
     /* Comunicazioni attese:
@@ -268,11 +245,11 @@ int joinRoom(int sd, int ID, struct room_node** room_list, struct player_node* p
      * */
     if(signal_num == 54) {
         printf("\t\tSERVICE_SD%d: player \"%s\" joined room with ID:%d and %d players.\n", sd,
-               player->username, ID, joined_room->player_num);
+               username, ID, joined_room->player_num);
     }
     else {
         printf("\t\tSERVICE_SD%d: player \"%s\" unable to join room with ID:%d on basis:\"%s\".\n", sd,
-               player->username, ID, outgoing);
+               username, ID, outgoing);
     }
     return signal_num;
 }

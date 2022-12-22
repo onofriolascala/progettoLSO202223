@@ -5,7 +5,7 @@
 
 #include "../include/ListHandler.h"
 
-pthread_mutex_t room_creation_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t roomhead_pointer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Cosa da fare: bisogna gestire gli errori delle malloc
 
@@ -58,12 +58,17 @@ struct player_node* addPlayerToPlayerList( struct player_node* player_list, stru
 /* La funzione riceve una lista circolare di giocatori ed il socket descriptor del nodo da rimuovere.
  * Restituisce la testa della lista qualora essa coincida col nodo da rimuovere.
  * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
-struct player_node* removePlayerNode( struct player_node* player_list, int target_socket ) {
-    struct player_node *tmp, *target;
+struct player_node* removePlayerNode( struct player_node** playerhead_pointer, int target_socket ) {
+    struct player_node *tmp, *target, *player_list;
+
+    target = NULL;
+    player_list = (*playerhead_pointer);
+
     if (player_list != NULL) {
         if (player_list->player_socket == target_socket) {
             target = player_list;
-            player_list = player_list->next;
+            (*playerhead_pointer) = player_list->next;
+            target->next = NULL;
         } else {
             tmp = player_list;
             while (tmp->next->player_socket != target_socket && tmp != player_list) {
@@ -73,10 +78,11 @@ struct player_node* removePlayerNode( struct player_node* player_list, int targe
             if (tmp != player_list) {
                 target = tmp->next;
                 tmp->next = tmp->next->next;
+                target->next = NULL;
             }
         }
     }
-    return player_list;
+    return target;
 }
 
 /* La funzione riceve un nodo giocatore e procede a deallocarlo in maniera sicura.
@@ -177,7 +183,7 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
     //printf("DEBUG_C&Aroomnode:started\n");
     fflush(stdout);
 
-    pthread_mutex_lock(&room_creation_mutex);
+    pthread_mutex_lock(&roomhead_pointer_mutex);
     if ((*head_pointer) != NULL) {
         pthread_mutex_lock(&(*head_pointer)->roomnode_mutex);
 
@@ -190,7 +196,7 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
         new_room = createNewRoomNode(*head_pointer);
         addRoomToRoomList(head_pointer, new_room);
     }
-    pthread_mutex_unlock(&room_creation_mutex);
+    pthread_mutex_unlock(&roomhead_pointer_mutex);
 
     //printf("DEBUG_C&Aroomnode:completed\n");
     fflush(stdout);
@@ -221,19 +227,20 @@ void removeAndDestroyRoomNode(struct room_node** head_pointer, int target_id ){
     struct room_node *list_head;
     struct room_node *tmp, *target;
 
-    pthread_mutex_lock(&room_creation_mutex);
+    pthread_mutex_lock(&roomhead_pointer_mutex);
     if((*head_pointer) != NULL){
 
         pthread_mutex_lock(&(*head_pointer)->roomnode_mutex);
         list_head = *head_pointer;
-        pthread_mutex_unlock(&room_creation_mutex);
 
         if(list_head->id == target_id ){
             target = list_head;
             (*head_pointer) = list_head->next;
             pthread_mutex_unlock(&target->roomnode_mutex);
+            pthread_mutex_unlock(&roomhead_pointer_mutex);
         }
         else {
+            pthread_mutex_unlock(&roomhead_pointer_mutex);
             tmp = list_head;
             // !isNULL(tmp->next) { lock tmp->next }
             if(tmp->next != NULL) {
@@ -262,7 +269,7 @@ void removeAndDestroyRoomNode(struct room_node** head_pointer, int target_id ){
         }
     }
     else {
-        pthread_mutex_unlock(&room_creation_mutex);
+        pthread_mutex_unlock(&roomhead_pointer_mutex);
     }
 }
 

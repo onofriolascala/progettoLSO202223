@@ -13,11 +13,9 @@
 #include "../include/ListHandler.h"
 #include "../include/Def.h"
 
-int signin(char incoming[], struct player_node* player, char outgoing[]);
+int signin(char incoming[], char username[], char outgoing[]);
 
-struct player_node* logout(struct player_node* player);
-
-int login(int sd, char incoming[], struct player_node* player, char outgoing[]);
+int login(int sd, char incoming[], char username[], char outgoing[]);
 
 int loginParser(char incoming[], char outgoing[], char username[], char password[]);
 

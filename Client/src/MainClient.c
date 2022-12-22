@@ -26,7 +26,7 @@ int main() {
     char tempbuffer[MAXCOMMBUFFER];
 
     // Inizializzazioni
-    signal_num = 1;
+    signal_num = 2;
 
     // createPrompt();
     // createRender();
@@ -43,14 +43,17 @@ int main() {
 
     sd1 = socketInit(server_addr, len, server_ip, server_port);
 
-    while(signal_num > 0 && signal_num != 50) {
+    while(signal_num > 1 && signal_num != 50) {
+        printf("\e[2J");
         printf("Opzioni disponibili:\n"
-               "0 - Disconnessione\t\t10 - Login\t\t11 - Registrazione\n");
+               "1  - Disconnessione\t\t10 - Login\t\t11 - Registrazione\n"
+               "20 - Crea Stanza   \t\t21 - Join \t\t22 - Lista\n"
+               "23 - Logout        \t\t30 - Word \t\t31 - Guess\t\t32 - ExitRoom\n");
         printf("Inserire un numero tra i precedenti: ");
         fflush(stdout);
         fgets(server_ip, MAXCOMMBUFFER, stdin);
         server_ip[strcspn(server_ip, "\n")] = 0;
-        strcat(server_ip, ":test");
+        strcat(server_ip, ":test;");
         printf("%s\n", server_ip);
         write(sd1, server_ip, strlen(server_ip)+1);
 

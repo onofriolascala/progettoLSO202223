@@ -72,7 +72,10 @@ int localSocketInit(int ID, char local_path[], struct sockaddr_un* localsocket_a
     *len = sizeof(*localsocket_addr);
 
     if(unlink(local_path) < 0) {
-        perror(":UNLINK ERROR");
+        if (errno != ENOENT)
+        {
+            perror(":UNLINK ERROR");
+        }
     }
     // Apertura del socket lato threadRoom.
     if ((sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){

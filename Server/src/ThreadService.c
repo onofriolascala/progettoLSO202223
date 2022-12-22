@@ -17,38 +17,40 @@ void* thrService(void* arg) {
     //struct player_node player;
     char incoming[MAXCOMMBUFFER];
     char outgoing[MAXCOMMBUFFER];
+    char username[USERNAMELENGTH + 1];
     int sd, service_sd, out_len, signal_num, room_ID;
-    struct player_node* player;
     struct room_node** room_list;
+
+    signal_num = 2;
 
     // Copia i valori della struttura originale.
     sd = (*(struct service_arg*)arg).sd;
-    player = (*(struct service_arg *) arg).player;
     room_list = (*(struct service_arg*)arg).room_list;
+    strcpy(username, (*(struct service_arg *)arg).username);
 
     // La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
     (*(struct service_arg*)arg).flag = 1;
-    printf("\t\tSERVICE_SD%d: initialized with socket value of \"%d\", and player value of \"%s\".\n", sd, sd, player->username);
+    printf("\t\tSERVICE_SD%d: initialized with socket value of \"%d\", and player value of \"%s\".\n", sd, sd, ":Sostituire con stringa giocatore:");
     fflush(stdout);
 
-    if (player == NULL) {
-        signal_num = 1;
+    if (username[0] == '\0') {
+        signal_num = 2;
         //printf("\t\tDEBUG_SD%d: mode new thread.\n", sd);
     }
     else {
-        signal_num = 52;
+        signal_num = S_HOMEPAGEOK;
         //printf("\t\tDEBUG_SD%d: mode rebuilt thread.\n", sd);
     }
 
-    while(signal_num > 0) {
-        while (signal_num > 0 && signal_num != 52) {
+    while(signal_num > 1) {
+        while (signal_num > 1 && signal_num != 52) {
             //printf("\t\tDEBUG_SD%d: primo while.\n", sd);
 
             memset(incoming, '\0', sizeof(incoming));
             memset(outgoing, '\0', sizeof(outgoing));
             signal_num = readFromClient(sd, incoming, MAXCOMMBUFFER);
 
-            printf("\t\tSERVICE_SD%d: <client> \"%d:%s\", outgoing \"%s\"\n", sd, signal_num, incoming, outgoing);
+            printf("\t\tSERVICE_SD%d: <client> \"%d:%s\".\n", sd, signal_num, incoming);
             switch (signal_num) {
                 case -1:
                     writeToClient(sd, S_COMMERROR, "Failed parsing.");
@@ -66,14 +68,17 @@ void* thrService(void* arg) {
                     //printf("\t\tDEBUG_SD%d: <Login>.\n", sd);
                     strcpy(incoming, "debug1debug2debug3debug4debug5de-"
                                      "debug1debug2debu;");
-                    player = createNewPlayerNode(sd, "Guest");
-                    signal_num = login(sd, incoming, player, outgoing);
+                    signal_num = login(sd, incoming, username, outgoing);
+                    //printf("\t\tDEBUG_SD%d: <Login as \"%s\">.\n", sd, username);
                     writeToClient(sd, signal_num, outgoing);
                     break;
                 case C_SIGNIN:
-                    //printf("\t\tDEBUG_SD%d: <Signin> %d:%s\n", sd, signal_num, incoming);
-                    signal_num = signin(incoming, player, outgoing);
-                    writeToClient(sd, S_LOGINOK, S_LOGINOK_MSG);
+                    printf("\t\tDEBUG_SD%d: <Signin>\n", sd);
+                    strcpy(incoming, "debug1debug2debug3debug4debug5de-"
+                                     "debug1debug2debu;");
+                    signal_num = signin(incoming, username, outgoing);
+                    printf("\t\tDEBUG_SD%d: <Signin as \"%s\">.\n", sd, username);
+                    writeToClient(sd, signal_num, outgoing);
                     break;
                 case 14:
                     writeToClient(sd, 42, "Hai trovato il messaggio di DEBUG.");
@@ -106,7 +111,7 @@ void* thrService(void* arg) {
             fflush(stdout);
         }
 
-        while (signal_num > 0 && signal_num != 51) {
+        while (signal_num > 1 && signal_num != 51) {
             //printf("\t\tDEBUG_SD%d: secondo while.\n", sd);
 
             memset(incoming, '\0', sizeof(incoming));
@@ -124,6 +129,8 @@ void* thrService(void* arg) {
                 case -3:
                     writeToClient(sd, S_COMMERROR, "Failed read.");
                     break;
+                case S_DISCONNECT_ABRUPT:
+                    break;
                 case S_DISCONNECT:
                     writeToClient(sd, S_DISCONNECT, S_DISCONNECT_MSG);
                     break;
@@ -140,17 +147,19 @@ void* thrService(void* arg) {
                     //printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
                     room_ID = createNewRoom(sd, room_list);
                     //sprintf(outgoing, "Stanza creata con ID %d", room_ID);
-                    signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
+                    //signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
                     writeToClient(sd, signal_num, outgoing);
                     //printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, outgoing);
                     // Chiusura del threadService in caso di successo
                     break;
                 case C_JOINROOM:
-                    //printf("\t\tDEBUG_SD%d: <Entra stanza> %d:%s\n", sd, signal_num, incoming);
+                    printf("\t\tDEBUG_SD%d: <Entra stanza>\n", sd);
                     room_ID = 1; //DEBUG
-                    signal_num = joinRoom(sd, room_ID, room_list, player, outgoing);
+                    signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
                     writeToClient(sd, signal_num, outgoing);
-                    // Chiusura del threadService in caso di successo
+                    if(signal_num == S_OK) {
+                        pthread_exit(NULL);
+                    }
                     break;
                 case C_LISTROOM:
                     //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);
@@ -158,11 +167,10 @@ void* thrService(void* arg) {
                     writeToClient(sd, S_ROOMLISTOK, S_ROOMLISTOK_MSG);
                     break;
                 case C_LOGOUT:
-                    //printf("\t\tDEBUG_SD%d: <Logout> %d:%s\n", sd, signal_num, incoming);
-                    player = logout(player);
-                    //destroyPlayerNode(player);
-                    //player = NULL;
+                    printf("\t\tDEBUG_SD%d: <Logout>\n", sd);
+                    strcpy(username, "\0");
                     signal_num = S_LOGINOK;
+                    printf("\t\tDEBUG_SD%d: <Logout successful. New player username is \"%s\">\n", sd, username);
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;
                 case C_SELECTWORD:
@@ -188,9 +196,9 @@ void* thrService(void* arg) {
 
     /* La funzione inizia la fase di terminazione a seguito di una disconnessione. E' per tanto necessario deallocare
      * il nodo giocatore e chiudere la socket. */
-    if(player != NULL) {
+    /*if(player != NULL) {
         destroyPlayerNode(player);
-    }
+    }*/
     close(sd);
     printf("\t\tSERVICE_SD%d: service thread has been closed.\n", sd);
     fflush(stdout);
@@ -209,7 +217,7 @@ pthread_t createNewService(int sd2, struct room_node** room_list) {
     struct service_arg args;
     args.sd = sd2;
     args.room_list = room_list;
-    args.player = NULL;
+    strcpy(args.username, "\0");
     args.flag = 0;
 
     //printf("DEBUG: Creation of detatched thread...\n");
@@ -244,7 +252,7 @@ pthread_t rebuildService(struct player_node* player, struct room_node** room_lis
     struct service_arg args;
     args.sd = player->player_socket;
     args.room_list = room_list;
-    args.player = player;
+    strcpy(args.username, player->username);
     args.flag = 0;
 
     //printf("DEBUG: Creation of detatched thread...\n");
