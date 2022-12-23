@@ -8,40 +8,122 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include <sys/types.h>
+#include <sys/un.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "../include/SocketUtilClient.h"
+#include <poll.h>
 
-#define MAXCOMMBUFFER 1024
+#include "../include/SocketUtilClient.h"
+#include "../include/CommUtilClient.h"
+#include "../include/ThreadPrompt.h"
+#include "../include/ThreadRender.h"
+#include "../include/PollSwitches.h"
+#include "../../Server/include/Def.h"
 
 int main() {
-    int sd1, sd2, server_port, signal_num;
+    int sd1, sd2, localsocket, prompt_socket, render_socket, server_port, signal_num;
     struct sockaddr_in server_addr;
-    socklen_t len;
-    char server_ip[MAXCOMMBUFFER];
-    char tempbuffer[MAXCOMMBUFFER];
+    struct sockaddr_un localsocket_addr;
+    socklen_t server_len;
+    socklen_t local_len;
+    char *saveptr, *server_p, *port_p;
+    char server_ip[LOCALSOCKETADDRLENGTH], incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER];
+
+    // Inizializzazione altri thread
+    signal_num = 2;
+    localsocket = localSocketInit(&localsocket_addr, &local_len);
+
+    createPrompt(localsocket, &prompt_socket);
+    //createRender(localsocket, &render_socket);
+
+    //              MAIN CLIENT LOOP                //
+
+    struct pollfd fds[CLIENTPOLLINGCONST];
+    char buffer[MAXCOMMBUFFER];
+    int timeout, rc = 0;
+    int num_fds, new_local_sd, usr_sd, current_size, i, j, signal_code;
+    int end_loop = 0, close_conn;
 
     // Inizializzazioni
-    signal_num = 2;
+    current_size = 0;
 
-    // createPrompt();
-    // createRender();
+    memset(fds, 0 ,sizeof(fds));
+    fds[0].fd = -1;                     // Socket riservata alla connessione col server
+    fds[0].events = POLLIN;             // Inizialmente settata a -1 per essere ignorata.
+    fds[1].fd = prompt_socket;
+    fds[1].events = POLLIN;
+    //fds[2].fd = render_socket;
+    //fds[2].events = POLLIN;
+    num_fds = 1;
+
+    timeout = ( 3 * 60 * 1000 );
+
+    emptyConsole();
+    renderConnection();
+    writeToServer(prompt_socket, 1, "Enabled");
+
+    fcntl(prompt_socket, F_SETFL, fcntl(prompt_socket, F_GETFL, 0) | O_NONBLOCK);
+
+    do {
+        printf("MAIN: Waiting on poll function...\n");
+        fflush(stdout);
+
+        memset(incoming, '\0', sizeof(incoming));
+        memset(outgoing, '\0', sizeof(outgoing));
+
+        rc = poll(fds, num_fds, timeout);
+
+        // Errore del poll
+        if( rc < 0 ) {
+            perror(":POLL ERROR");
+            break;
+        }
+        // Timeout
+        if( rc == 0 ) {
+            printf("MAIN: poll timed out. Closing the logic loop\n");
+            break;
+        }
+        current_size = num_fds;
+        for(i = 0; i < 3; i++){
+            if(fds[i].revents == 0){
+                continue;
+            }
+            if(fds[i].revents != POLLIN){
+                //unexpected behaviour
+                fprintf(stderr, ":REVENTS ERROR: fds[%d].revents = %d\n", i, fds[i].revents);
+                end_loop = 1;
+                break;
+            }
+            // Socket del prompt
+            if(fds[i].fd == prompt_socket) {
+                printf("DEBUG PROMPT %d\n", fds[i].fd);
+            }
+            // Socket del giocatore
+            else {
+                printf("DEBUG SERVER %d\n", fds[i].fd);
+            }
+        }
+        // restart polling unless loop ended
+    } while( !end_loop );
+
+    // rendi le socket non blocking
 
     //printf("Inserire l'indirizzo ip: ");
     //fgets(server_ip, MAXCOMMBUFFER, stdin);
     //server_ip[strcspn(server_ip, "\n")] = 0;
+
     /*printf("Inserire la porta: ");
     fgets(tempbuffer, MAXCOMMBUFFER, stdin);
     server_ip[strcspn(tempbuffer, "\n")] = 0;*/
     // Inizializzazione connessione
-    strcpy(server_ip, "25.72.233.6");
+    /*strcpy(server_ip, "25.72.233.6");
     server_port = 5200;
 
-    sd1 = socketInit(server_addr, len, server_ip, server_port);
+    sd1 = socketInit(server_addr, server_len, server_ip, server_port);
 
     while(signal_num > 1 && signal_num != 50) {
         printf("\e[2J");
@@ -64,9 +146,9 @@ int main() {
         read(sd1, server_ip, MAXCOMMBUFFER);
         printf("MAIN: server says %d:%s\n", signal_num, server_ip);
         fflush(stdout);
-    }
+    }*/
 
-    close(sd1);
+    //close(sd1);
     printf("Terminazione processo client.\n");
     return 0;
 }

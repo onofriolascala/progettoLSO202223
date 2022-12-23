@@ -13,6 +13,9 @@
 #define LOCALSOCKETADDRLENGTH 100
 #define SERVERPORT 5200
 
+#define CLIENTLOCALSOCKET "/tmp/mainClient_socket_local"
+#define CLIENTPOLLINGCONST 3
+
 // Costanti per le comunicazioni.
 #define MAXCOMMBUFFER 1024
 #define MAXSIGNALBUF 2
@@ -105,6 +108,8 @@
 #define C_SELECTWORD 30     // Selezione della parola
 #define C_GUESSSKIP 31      // Guess o passo
 #define C_EXITROOM 32       // Uscita dalla stanza
+#define C_CLIENTERROR 49    // Generico errore lato client
+
 
 struct player_node{
     char username[USERNAMELENGTH+1];
