@@ -11,7 +11,7 @@ void* thrRoom(void* arg) {
     int ID, localsocket, temp_sd, parser_sd, signal_num;
     struct room_node** room_list;
     struct room_node* this_room;
-    struct player_node* joining_player;
+    struct player_node *joining_player, *temp_player;
 
     struct sockaddr_un localsocket_addr;
     struct room_arg temp;
@@ -82,15 +82,13 @@ void* thrRoom(void* arg) {
             case -3:
                 break;
             case S_DISCONNECT_ABRUPT:
-                //removePlayerNode();
-                //destroyPlayerNode();
-                //updatePlayerNum()
+                temp_player = removePlayerNode(this_room->playerhead_pointer, temp_sd);
+                destroyPlayerNode(temp_player);
                 this_room->player_num -= 1;
                 break;
             case S_DISCONNECT:
-                //removePlayerNode();
-                //destroyPlayerNode();
-                //updatePlayerNum()
+                temp_player = removePlayerNode(this_room->playerhead_pointer, temp_sd);
+                destroyPlayerNode(temp_player);
                 this_room->player_num -= 1;
                 writeToClient(temp_sd, S_DISCONNECT, S_DISCONNECT_MSG);
                 break;
@@ -124,9 +122,8 @@ void* thrRoom(void* arg) {
                 //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
                 // Riavvio del threadService
                 rebuildService(this_room->player_list, room_list);
-                //removePlayerNode();
-                //destroyPlayerNode();
-                //updatePlayerNum()
+                temp_player = removePlayerNode(this_room->playerhead_pointer, temp_sd);
+                destroyPlayerNode(temp_player);
                 this_room->player_num -= 1;
                 writeToClient(temp_sd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
                 break;
@@ -180,7 +177,7 @@ int createNewRoom(int sd, struct room_node** room_list) {
     return args.room_ID;
 }
 
-// Da sincronizzare con la distruzione delle stanze
+// Da sincronizzare con la distruzione delle stanze? Ma come?
 int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], char outgoing[]) {
     printf("\t\tSERVICE_SD%d: join started\n", sd);
 
@@ -203,7 +200,6 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
         signal_num = S_FULLROOM;
     }
     else {
-
         strcpy(indirizzo.sun_path, joined_room->localsocket);
         // Creazione del socket
         if((room_sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
@@ -240,6 +236,7 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
 
     /* Comunicazioni attese:
      * 70-Stanza piena, 71-Stanza inesistente, 72-Utente già connesso, 54-Stanza
+     * 97-Segnale Sconosciuto, 95-Stanza non risponde
      * */
     if(signal_num == 54) {
         printf("\t\tSERVICE_SD%d: player \"%s\" joined room with ID:%d and %d players.\n", sd,

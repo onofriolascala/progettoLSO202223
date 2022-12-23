@@ -28,16 +28,16 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
 /* La funzione riceve una lista circolare di giocatori ed un nodo da aggiungervi. Restituisce la testa della lista
  * qualora essa fosse stata vuota e quindi riempita dal nodo aggiunto.
  * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
-struct player_node* addPlayerToPlayerList( struct player_node* player_list, struct player_node* newPlayer){
+struct player_node* addPlayerToPlayerList(struct player_node* playerlist_head, struct player_node* newPlayer){
     //printf("DEBUG_addPtoPlist:started\n");
     struct player_node* tmp;
-    if( player_list != NULL){
+    if(playerlist_head != NULL){
         //printf("DEBUG_addPtoPlist:1\n");
         if( newPlayer != NULL ){
             //printf("\tDEBUG_addPtoPlist:1.3\n");
-            tmp = player_list;
+            tmp = playerlist_head;
             //scorre tutta la lista fino a quando non arriva all'elemento prima della testa
-            while( tmp->next->player_socket != player_list->player_socket ){
+            while(tmp->next->player_socket != playerlist_head->player_socket ){
                 //printf("\tDEBUG_addPtoPlist:1.4\n");
                 tmp = tmp->next;
             }
@@ -49,33 +49,33 @@ struct player_node* addPlayerToPlayerList( struct player_node* player_list, stru
         //printf("\tDEBUG_addPtoPlist:2\n");
         newPlayer->next = newPlayer;
 
-        player_list = newPlayer;
+        playerlist_head = newPlayer;
     }
     //printf("DEBUG_addPtoPlist:completed\n");
-    return player_list;
+    return playerlist_head;
 }
 
 /* La funzione riceve una lista circolare di giocatori ed il socket descriptor del nodo da rimuovere.
  * Restituisce la testa della lista qualora essa coincida col nodo da rimuovere.
- * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
+ * Non presenta criticità che richiedano un mutex. */
 struct player_node* removePlayerNode( struct player_node** playerhead_pointer, int target_socket ) {
-    struct player_node *tmp, *target, *player_list;
+    struct player_node *tmp, *target, *playerlist_head;
 
     target = NULL;
-    player_list = (*playerhead_pointer);
+    playerlist_head = (*playerhead_pointer);
 
-    if (player_list != NULL) {
-        if (player_list->player_socket == target_socket) {
-            target = player_list;
-            (*playerhead_pointer) = player_list->next;
+    if (playerlist_head != NULL) {
+        if (playerlist_head->player_socket == target_socket) {
+            target = playerlist_head;
+            (*playerhead_pointer) = playerlist_head->next;
             target->next = NULL;
         } else {
-            tmp = player_list;
-            while (tmp->next->player_socket != target_socket && tmp != player_list) {
+            tmp = playerlist_head;
+            while (tmp->next->player_socket != target_socket && tmp != playerlist_head) {
                 tmp = tmp->next;
             }
             // target trovato
-            if (tmp != player_list) {
+            if (tmp != playerlist_head) {
                 target = tmp->next;
                 tmp->next = tmp->next->next;
                 target->next = NULL;
@@ -99,20 +99,20 @@ int destroyPlayerNode( struct player_node* player ) {
 /* La funzione riceve una lista circolare di giocatori ed il socket descriptor del nodo da cercare.
  * Restituisce il nodo giocatore la cui socket corrisponde con quella in input..
  * Non presenta criticità che richiedano un mutex. */
-struct player_node* getPlayer( struct player_node* player_list, int target_socket ){
+struct player_node* getPlayer( struct player_node* playerlist_head, int target_socket ){
     //printf("DEBUG_getplayernode:started\n");
-    struct player_node* target, *tmp;
-    if( player_list != NULL){
-        if( player_list->player_socket == target_socket) {
+    struct player_node *target, *tmp;
+    if( playerlist_head != NULL){
+        if( playerlist_head->player_socket == target_socket) {
             //printf("DEBUG_getplayernode:1\n");
-            target = player_list;
+            target = playerlist_head;
         }
         else {
-            tmp = player_list->next;
-            while( tmp->player_socket != target_socket && tmp != player_list ){
+            tmp = playerlist_head->next;
+            while( tmp->player_socket != target_socket && tmp != playerlist_head ){
                 tmp = tmp->next;
             }
-            if( tmp != player_list ){
+            if( tmp != playerlist_head ){
                 //hit
                 target = tmp;
             }
@@ -208,21 +208,6 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
  * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
 void removeAndDestroyRoomNode(struct room_node** head_pointer, int target_id ){
     //printf("DEBUG_R&Droomnode:started\n");
-    /*                      ** RICORSIVA**
-    struct room_node* tmp;
-    if( list_head != NULL){
-        if( list_head->id == target_id ){
-            tmp = list_head;
-            list_head = list_head->next;
-            free(tmp);
-        }
-        else{
-            list_head->next = removeAndDestroyRoomNode( list_head->next, target_id );
-        }
-    }
-    //printf("DEBUG_R&Droomnode:completed\n");
-    return list_head;
-     */
 
     struct room_node *list_head;
     struct room_node *tmp, *target;
