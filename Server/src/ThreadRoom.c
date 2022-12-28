@@ -59,15 +59,15 @@ void* thrRoom(void* arg) {
     char buffer[MAXCOMMBUFFER];
     int timeout, rc = 0;
     //int localsocket;
-    int nfds, new_local_sd, usr_sd, current_size = 0, i, j, signal_code;
+    int nfds, new_local_sd, new_usr_sd, current_size = 0, i, j, signal_code;
     int end_loop = 0, close_conn;
 
 
     /*                gameLogic                                  */
 
-    struct player_node* current_player;
-    struct player_node* suzerain;
-    int close_room = 0;
+    struct player_node* current_player = NULL;
+    struct player_node* suzerain = NULL;
+    int close_room = 0, word_is_selected = 0;
 
     //initializing the listening socket into the polling array
     memset(fds, 0 ,sizeof(fds));
@@ -76,7 +76,10 @@ void* thrRoom(void* arg) {
     nfds = 1;
 
     timeout = ( 3 * 60 * 1000);
+
     while( !close_room ){
+        /* inizio di un nuovo round */
+        word_is_selected = 0;
         do{
             printf("DEBUG: Waiting on poll function...\n");
             fflush(stdout);
@@ -102,6 +105,7 @@ void* thrRoom(void* arg) {
                     //unexpected behaviour
                     printf("DEBUG: Error! fds[%d].revents = %d\n",i, fds[i].revents);
                     end_loop = 1;
+                    close_room = 1;
                     break;
                 }
                 if(fds[i].fd == localsocket){
@@ -114,16 +118,25 @@ void* thrRoom(void* arg) {
                             if (errno != EWOULDBLOCK){
                                 perror("  accept() failed");
                                 end_loop = 1;
+                                close_room = 1;
                             }
                             break;
                         }
-                        //new join routine
-                        //usr_sd = getUsernameSocket()
-                        fds[nfds].fd = usr_sd;
+                        /*  new join routine   */
+                        //new_usr_sd = getUsernameSocket();
+                        //new_usr = getPlayer( this_room->player_list, new_usr_sd);
+                        fds[nfds].fd = new_usr_sd;
                         fds[nfds].events = POLLIN;
                         nfds++;
-
-                    }while( localsocket != -1 );
+                        /* if no suzerain was chosen set new usr as the suzerain*/
+                        if( suzerain == NULL){
+                            // suzerain = new_usr;
+                        }
+                        /* if no usr was set to play set him as the current player*/
+                        if( current_player == NULL){
+                            //current_player = new_usr;
+                        }
+                    }while( new_local_sd != -1 );
                 }
                 else {
                     //not the listening socket, managing the players socket
@@ -169,6 +182,7 @@ void* thrRoom(void* arg) {
                             break;
                         case C_SELECTWORD:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
+                            //word_is_selected = 1;
                             writeToClient(fds[i].fd, S_OK, "Parola.");
                             break;
                         case C_GUESSSKIP:
@@ -195,6 +209,13 @@ void* thrRoom(void* arg) {
                             fds[j].fd = fds[j + 1].fd;
                         }
                         nfds--;
+                        /* check to see if the room is empty*/
+                        if ( nfds == 1 ){
+                            //room is empty
+                            //closing room routine
+                            end_loop = 1;
+                            close_room = 1;
+                        }
                     }
                 }
             }
