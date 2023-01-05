@@ -37,6 +37,149 @@ void* thrRoom(void* arg) {
     memset(incoming, '\0', sizeof(incoming));
     memset(outgoing, '\0', sizeof(outgoing));
 
+
+    /*                 mainRoomLoop                   */
+
+    struct pollfd fds[9];
+    char buffer[MAXCOMMBUFFER];
+    int timeout, rc = 0;
+    //int localsocket;
+    int nfds, new_local_sd, usr_sd, current_size = 0, i, j, signal_code;
+    int end_loop = 0, close_conn;
+
+    memset(fds, 0 ,sizeof(fds));
+    fds[0].fd = localsocket;
+    fds[0].events = POLLIN;
+    nfds = 1;
+
+    timeout = ( 3 * 60 * 1000);
+
+    do{
+        printf("DEBUG: Waiting on poll function...\n");
+        fflush(stdout);
+
+        rc = poll(fds, nfds, timeout);
+
+        if( rc < 0 ){
+            //poll failed
+            perror("poll failed");
+            break;
+        }
+        if( rc == 0 ){
+            // timeout raggiunto
+            printf("DEBUG: poll timed out. Closing the logic loop\n");
+            break;
+        }
+        current_size = nfds;
+        for(i = 0; i < current_size; i++){
+            if(fds[i].revents == 0){
+                continue;
+            }
+            if(fds[i].revents != POLLIN){
+                //unexpected behaviour
+                printf("DEBUG: Error! fds[%d].revents = %d\n",i, fds[i].revents);
+                end_loop = 1;
+                break;
+            }
+            if(fds[i].fd == localsocket){
+                do{
+                    //the listening socket is readable, so we manage the new incoming connections
+                    printf("DEBUG: new incoming connection to the room\n");
+
+                    new_local_sd = accept(localsocket, NULL, NULL);
+                    if (new_local_sd < 0){
+                        if (errno != EWOULDBLOCK){
+                            perror("  accept() failed");
+                            end_loop = 1;
+                        }
+                        break;
+                    }
+                    //new join routine
+                    //usr_sd = getUsernameSocket()
+                    fds[nfds].fd = usr_sd;
+                    fds[nfds].events = POLLIN;
+                    nfds++;
+
+                }while( localsocket != -1 );
+            }
+            else {
+                //not the listening socket, managing the players socket
+                close_conn = 0;
+                signal_num = readFromClient(fds[i].fd, buffer, MAXCOMMBUFFER);
+                switch (signal_num) {
+                    case -1:
+                        //EWOULDBLOCK ERROR
+                        break;
+                    case -2:
+                        close_conn = 1;
+                        break;
+                    case -3:
+                        //ERROR DIFFERENT FROM EWOULDBLOCK
+                        close_conn = 1;
+                        break;
+                    case S_DISCONNECT:
+                        printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
+                        //removePlayerNode();
+                        //destroyPlayerNode();
+                        //updatePlayerNum();
+                        this_room->player_num -= 1;
+                        close_conn = 1;
+                        writeToClient(fds[i].fd, S_DISCONNECT, S_DISCONNECT_MSG);
+                        break;
+                    case C_LOGIN:
+                        writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di un nuovo login.");
+                        break;
+                    case C_SIGNIN:
+                        writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di un nuovo sign in.");
+                        break;
+                    case C_CREATEROOM:
+                        writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di crearne una nuova.");
+                        break;
+                    case C_JOINROOM:
+                        writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di unirsi ad un'altra.");
+                        break;
+                    case C_LISTROOM:
+                        writeToClient(fds[i].fd, S_NOPERMISSION, S_NOPERMISSION_MSG);
+                        break;
+                    case C_LOGOUT:
+                        writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di effettuare il logout.");
+                        break;
+                    case C_SELECTWORD:
+                        //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
+                        writeToClient(fds[i].fd, S_OK, "Parola.");
+                        break;
+                    case C_GUESSSKIP:
+                        //printf("\t\t\t\tDEBUG_STANZAID%d: <Guess> %d:%s\n", ID, signal_num, incoming);
+                        writeToClient(fds[i].fd, signal_num, "Mancato");
+                        break;
+                    case C_EXITROOM:
+                        //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
+                        //removePlayerNode();
+                        //updatePlayerNum()
+                        this_room->player_num -= 1;
+                        close_conn = 1;
+                        // Riavvio del threadService
+                        rebuildService(this_room->player_list, room_list);
+                        writeToClient(fds[i].fd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
+                        break;
+                    default:
+                        printf("\t\t\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
+                        writeToClient(fds[i].fd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
+                }
+                if (close_conn) {
+                    //if the close connection flag is true we need to remove the socket descriptor from the polling array
+                    for (j = i; j < nfds; j++) {
+                        fds[j].fd = fds[j + 1].fd;
+                    }
+                    nfds--;
+                }
+            }
+        }
+        // restart polling unless loop ended
+    }while(!end_loop);
+
+
+    /*
     // Routine di accettazione sulla localsocket
     if((temp_sd = accept(localsocket, NULL, NULL)) < 0) {
         perror(":ACCEPT ERROR");
@@ -134,6 +277,7 @@ void* thrRoom(void* arg) {
         fflush(stdout);
     }
 
+     */
     // Chiusura della stanza.
     removeAndDestroyRoomNode(room_list, ID);
 
