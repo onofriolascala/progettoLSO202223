@@ -1,3 +1,4 @@
+
 /*
 * Funzioni del thread responsabile della gestione della logica di gioco.
 */
@@ -138,11 +139,24 @@ void* thrRoom(void* arg) {
                             //ERROR DIFFERENT FROM EWOULDBLOCK
                             close_conn = 1;
                             break;
+                        case S_DISCONNECT_ABRUPT:
+                            printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
+                            //removePlayerNode();
+                            //destroyPlayerNode();
+                            //updatePlayerNum();
+                            //sender = getPlayerNodeByFD(playerlist, fds[i].fd) if( suzerain == sender ) , suzerain = suzerain->next
+                            //if( currentPlayer == sender) currentPlayer = current_player->next
+                            this_room->player_num -= 1;
+                            close_conn = 1;
+                            //writeToClient(fds[i].fd, S_DISCONNECT, S_DISCONNECT_MSG);
+                            break;
                         case S_DISCONNECT:
                             printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
                             //removePlayerNode();
                             //destroyPlayerNode();
                             //updatePlayerNum();
+                            //sender = getPlayerNodeByFD(playerlist, fds[i].fd) if( suzerain == sender ) , suzerain = suzerain->next
+                            //if( currentPlayer == sender) currentPlayer = current_player->next
                             this_room->player_num -= 1;
                             close_conn = 1;
                             writeToClient(fds[i].fd, S_DISCONNECT, S_DISCONNECT_MSG);
@@ -180,6 +194,8 @@ void* thrRoom(void* arg) {
                             //updatePlayerNum()
                             this_room->player_num -= 1;
                             close_conn = 1;
+                            //sender = getPlayerNodeByFD(playerlist, fds[i].fd) if( suzerain == sender ) , suzerain = suzerain->next
+                            //if( currentPlayer == sender) currentPlayer = current_player->next
                             // Riavvio del threadService
                             rebuildService(this_room->player_list, room_list);
                             writeToClient(fds[i].fd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
