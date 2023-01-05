@@ -53,7 +53,7 @@ int writeToClient(int sd, int signal_num, char outgoing[]) {
  * su cui ricevere i dati, con annessa una lunghezza massima.
  * Restituisce l'esito della comunicazione. Il segnale in ingresso per successo, -3 per errore di lettura. */
 int readFromClient(int sd, char incoming[], int max_len){
-    int signal_num, signal_len, message_len;
+    int signal_num, signal_len, message_len, n_tmp;
     char *saveptr;
     char *signal_p, *message_p;
     char incoming_buf[MAXCOMMBUFFER], signal_code[MAXSIGNALBUF+1];
@@ -61,7 +61,7 @@ int readFromClient(int sd, char incoming[], int max_len){
     saveptr = NULL;
     signal_num = S_COMMERROR;
 
-    if((read(sd, incoming_buf, MAXCOMMBUFFER)) < 0)
+    if((n_tmp = read(sd, incoming_buf, MAXCOMMBUFFER)) < 0)
     {
         if (errno != EWOULDBLOCK)
         {
@@ -69,6 +69,10 @@ int readFromClient(int sd, char incoming[], int max_len){
             return -3;
         }
         return -1;
+    }
+    else if(n_tmp == 0) {
+        fprintf(stderr, ":READ ERROR: Client socket has closed unexpectedly. Closing Service Thread.\n");
+        return 0;
     }
 
     signal_p = strtok_r(incoming_buf, ":", &saveptr);
@@ -92,6 +96,11 @@ int readFromClient(int sd, char incoming[], int max_len){
         }
     }
     else {
+        if(signal_p != NULL) {
+            strncpy(signal_code, signal_p, signal_len);
+            signal_code[signal_len] = '\0';
+            signal_num = atoi(signal_code);
+        }
         fprintf(stderr, ":READ ERROR: null signal or message arguments detected.\n");
     }
 

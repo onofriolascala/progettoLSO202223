@@ -32,16 +32,18 @@ void* thrPrompt(void* arg) {
 
         printf("Input: ");
         fgets(outgoing, MAXCOMMBUFFER, stdin);
-        outgoing[strcspn(outgoing, "\n")] = 0;
+        outgoing[strcspn(outgoing, "\n")] = '\0';
 
-        writeToServer(main_socket, 0, "ciao.");
+        //sleep(10);
 
-        mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+        //writeToServer(main_socket, 0, "ciao.");
+
+        //mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
 
         mode = 0;
 
         fflush(stdout);
-        switch (mode) {
+        switch (atoi(outgoing)) {
             case -1:
                 // EWOULDBLOCK ERROR
                 break;
@@ -57,6 +59,12 @@ void* thrPrompt(void* arg) {
                 } else {
                     writeToServer(main_socket, C_CLIENTERROR, outgoing);
                 }*/
+                break;
+            case 42:
+                writeToServer(main_socket, 42, "25.72.233.6-5200");
+                break;
+            case 51:
+                writeToServer(main_socket, 51, "pippo-pippo");
                 break;
             default:
                 printf("\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);

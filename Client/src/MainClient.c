@@ -52,10 +52,10 @@ int main() {
     current_size = 0;
 
     memset(fds, 0 ,sizeof(fds));
-    fds[0].fd = -1;                     // Socket riservata alla connessione col server
+    fds[0].fd = prompt_socket;                     // Socket riservata alla connessione col server
     fds[0].events = POLLIN;             // Inizialmente settata a -1 per essere ignorata.
-    fds[1].fd = prompt_socket;
-    fds[1].events = POLLIN;
+    //fds[1].fd = prompt_socket;
+    //fds[1].events = POLLIN;
     //fds[2].fd = render_socket;
     //fds[2].events = POLLIN;
     num_fds = 1;
@@ -87,9 +87,9 @@ int main() {
             printf("MAIN: poll timed out. Closing the logic loop\n");
             break;
         }
-        current_size = num_fds;
-        for(i = 0; i < 3; i++){
+        for(i = 0; i < num_fds; i++){
             if(fds[i].revents == 0){
+                printf("DEBUG CONTINUE \n");
                 continue;
             }
             if(fds[i].revents != POLLIN){
@@ -100,11 +100,29 @@ int main() {
             }
             // Socket del prompt
             if(fds[i].fd == prompt_socket) {
-                printf("DEBUG PROMPT %d\n", fds[i].fd);
+                signal_num = readFromServer(prompt_socket, incoming, MAXCOMMBUFFER);
+
+                if (signal_num == 42) {
+                    server_p = strtok_r(incoming, "-", &saveptr);
+                    port_p = strtok_r(NULL, "\0", &saveptr);
+
+                    fds[1].fd = socketInit(&server_addr, &server_len, server_p, atoi(port_p));
+                    fds[1].events = POLLIN;
+                    num_fds++;
+
+                    printf("DEBUG PROMPT %d %s\n", fds[i].fd, incoming);
+
+                    emptyConsole();
+                    renderLogin();
+                }
+                if (signal_num == 51) {
+                    writeToServer(fds[1].fd, 10, incoming);
+                }
             }
             // Socket del giocatore
             else {
-                printf("DEBUG SERVER %d\n", fds[i].fd);
+                signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
+                printf("DEBUG SERVER %d %s\n", fds[i].fd, incoming);
             }
         }
         // restart polling unless loop ended

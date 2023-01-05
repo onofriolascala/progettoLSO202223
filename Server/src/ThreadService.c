@@ -61,6 +61,8 @@ void* thrService(void* arg) {
                 case -3:
                     writeToClient(sd, S_COMMERROR, "Failed read.");
                     break;
+                case S_DISCONNECT_ABRUPT:
+                    break;
                 case S_DISCONNECT:
                     writeToClient(sd, S_DISCONNECT, S_DISCONNECT_MSG);
                     break;
@@ -161,13 +163,12 @@ void* thrService(void* arg) {
                     break;
                 default:
                     printf("\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
-                    writeToClient(sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
             }
             fflush(stdout);
-            if (signal_num == S_ROOMOK) {
+            /*if (signal_num == S_ROOMOK) {
                 printf("\t\tSERVICE_SD%d: closed thread in favor of ROOM_ID%d.\n", sd, room_ID);
                 return 0;
-            }
+            }*/
         }
     }
 
