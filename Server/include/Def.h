@@ -9,8 +9,12 @@
 
 // Costanti per la gestione delle socket.
 #define MAXCONNECTIONS 5
-#define LOCALSOCKETADDRLENGHT 100
+#define MAXLOCALCONNECTIONS 5
+#define LOCALSOCKETADDRLENGTH 100
 #define SERVERPORT 5200
+
+#define CLIENTLOCALSOCKET "/tmp/mainClient_socket_local"
+#define CLIENTPOLLINGCONST 3
 
 // Costanti per le comunicazioni.
 #define MAXCOMMBUFFER 1024
@@ -18,16 +22,18 @@
 
 // Costanti per il Login/Signin/Logout.
 #define USERNAMEMINLENGTH 6
-#define USERNAMELENGHT 32
+#define USERNAMELENGTH 32
 #define PASSWORDMINLENGTH 10
-#define PASSWORDLENGHT 16
+#define PASSWORDLENGTH 16
 #define QUERYLENGTH 1024
 
 // Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 5000
 
 // Segnali di comunicazione lato Server.
-#define S_DISCONNECT 0      // Disconnessione del client
+#define S_DISCONNECT_ABRUPT 0      // Disconnessione improvvisa
+
+#define S_DISCONNECT 1      // Disconnessione
 #define S_DISCONNECT_MSG "Disconnessione."
 
 #define S_OK 50             // Generico messaggio di OK
@@ -102,31 +108,31 @@
 #define C_SELECTWORD 30     // Selezione della parola
 #define C_GUESSSKIP 31      // Guess o passo
 #define C_EXITROOM 32       // Uscita dalla stanza
+#define C_CLIENTERROR 49    // Generico errore lato client
+
 
 struct player_node{
-    char username[USERNAMELENGHT+1];
+    char username[USERNAMELENGTH+1];
     int player_socket;
     struct player_node* next;
     pthread_mutex_t playernode_mutex;
-    pthread_attr_t playernode_mutex_attr;
-    pthread_cond_t playernode_mutex_cond;
 };
 
 struct room_node{
     int id;
-    char localsocket[LOCALSOCKETADDRLENGHT];
+    char localsocket[LOCALSOCKETADDRLENGTH];
     struct player_node* player_list;
+    struct player_node** playerhead_pointer;
+    struct player_node** turn_pointer;
     int player_num;
     struct room_node* next;
     pthread_mutex_t roomnode_mutex;
-    pthread_attr_t roomnode_mutex_attr;
-    pthread_cond_t roomnode_mutex_cond;
 };
 
 struct service_arg {
     int sd;
     struct room_node** room_list;
-    struct player_node* player;
+    char username[USERNAMELENGTH+1];
     int flag;
 };
 

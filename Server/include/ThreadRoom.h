@@ -34,6 +34,7 @@ void* thrRoom(void* arg);
 
 // Creazione del thread. Richiama <foo_name> dal thread costruttore.
 int createNewRoom(int sd, struct room_node** room_list);
-int joinRoom(int sd, int ID, struct room_node** room_list, struct player_node* player, char outgoing[]);
+int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], char outgoing[]);
+int joinParser(char incoming[], char outgoing[], char username[], int *sd);
 
 #endif //PROGETTOLSO202223_THREADROOM_H

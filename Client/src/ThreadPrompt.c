@@ -2,28 +2,112 @@
 // Created by Mattia on 03/12/2022.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include "../include/ThreadPrompt.h"
 
 void* thrPrompt(void* arg) {
-    void* out;
+    int main_socket, signal_num, temp_int, prompt_status, mode;
+    char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER], tempbuffer[MAXCOMMBUFFER];
+    struct sockaddr_un localaddr;
+    localaddr.sun_family = PF_LOCAL;
+    strcpy(localaddr.sun_path, CLIENTLOCALSOCKET);
 
-    return out;
+    if((main_socket = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
+        perror(":PROMPT SOCKET CREATION");
+        exit(1);
+    }
+    // Connessione...
+    if(connect(main_socket, (struct sockaddr*)&localaddr, sizeof(localaddr)) < 0) {
+        perror(":PROMPT SOCKET CONNECT");
+        exit(1);
+    }
+    //printf("\tRENDER: Prompt thread created with main_socket sd:%d.\n", main_socket);
+
+    prompt_status = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+
+    fcntl(main_socket, F_SETFL, fcntl(main_socket, F_GETFL, 0) | O_NONBLOCK);
+
+    while (prompt_status) {
+        prompt_status = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+        memset(incoming, '\0', sizeof(incoming));
+
+        printf("Input: ");
+        fgets(outgoing, MAXCOMMBUFFER, stdin);
+        outgoing[strcspn(outgoing, "\n")] = 0;
+
+        writeToServer(main_socket, 0, "ciao.");
+
+        mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+
+        mode = 0;
+
+        fflush(stdout);
+        switch (mode) {
+            case -1:
+                // EWOULDBLOCK ERROR
+                break;
+            case -2:
+                break;
+            case -3:
+                // ERROR DIFFERENT FROM EWOULDBLOCK
+                break;
+            case 0:
+                //printf("\t\tPROMPT: <Connessione>\n");
+                /*if ((temp_int = promptConnection(outgoing)) == 0) {
+                    writeToServer(main_socket, 0, outgoing);
+                } else {
+                    writeToServer(main_socket, C_CLIENTERROR, outgoing);
+                }*/
+                break;
+            default:
+                printf("\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
+                //writeToServer(fds[i].fd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
+        }
+    }
+
+    printf("\tRENDER: Prompt thread closed.\n");
+    return 0;
 }
 
-pthread_t createPrompt() {
+pthread_t createPrompt(int localsocket, int *prompt_socket) {
     pthread_t tid;
 
+    //printf("DEBUG: Creation of detatched thread...\n");
+    if (pthread_create(&tid, NULL, thrPrompt, NULL)) {
+        fprintf(stderr, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
+        deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
+        exit(1);
+    }
+
+    // Detatch necessario per far sì che le risorse del thread siano liberate senza un join.
+    pthread_detach(tid);
+
+    if((*prompt_socket = accept(localsocket, NULL, NULL)) < 0) {
+        perror(":ACCEPT ERROR");
+        deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
+        exit(1);
+    }
+
+    printf("MAIN: Prompt thread created with prompt_socket sd:%d.\n", *prompt_socket);
+    fflush(stdout);
     return tid;
+}
+
+int promptConnection(char outgoing[]) {
+    int return_value;
+    char tempbuffer[MAXCOMMBUFFER];
+
+    return_value = 0;
+
+    printf("Inserire l'indirizzo ip: ");
+    fgets(outgoing, MAXCOMMBUFFER, stdin);
+    outgoing[strcspn(outgoing, "\n")] = '-';
+
+    printf("Inserire la porta: ");
+    fgets(tempbuffer, MAXCOMMBUFFER, stdin);
+    tempbuffer[strcspn(tempbuffer, "\n")] = ';';
+
+    strcat(outgoing, tempbuffer);
+    outgoing[strcspn(outgoing, ";")+1] = '\0';
+
+    return return_value;
 }
