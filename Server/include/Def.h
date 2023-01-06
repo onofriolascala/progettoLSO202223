@@ -6,6 +6,8 @@
 #define PROGETTOLSO202223_DEF_H
 
 #include <pthread.h>
+#include <netinet/in.h>
+#include <sys/types.h>
 
 // Costanti per la gestione delle socket.
 #define MAXCONNECTIONS 5
@@ -99,6 +101,7 @@
 #define S_COMMERROR 99     // Generico errore di comunicazione lato server
 
 // Segnali di comunicazione lato Client.
+#define C_CONNECTION 02     // Client si connette a server
 #define C_LOGIN 10          // Login
 #define C_SIGNIN 11         // Registrazione
 #define C_CREATEROOM 20     // Creazione di una stanza
@@ -140,6 +143,14 @@ struct room_arg {
     struct room_node** room_list;
     int room_ID;
     int flag;
+};
+
+struct server_connection {
+    int *sd;
+    struct sockaddr_in addr;
+    socklen_t len;
+    char ip[MAXCOMMBUFFER];
+    int port;
 };
 
 #endif //PROGETTOLSO202223_DEF_H

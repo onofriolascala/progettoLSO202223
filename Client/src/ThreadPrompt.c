@@ -30,6 +30,8 @@ void* thrPrompt(void* arg) {
         prompt_status = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
         memset(incoming, '\0', sizeof(incoming));
 
+        sleep(1);
+
         printf("Input: ");
         fgets(outgoing, MAXCOMMBUFFER, stdin);
         outgoing[strcspn(outgoing, "\n")] = '\0';
@@ -61,10 +63,11 @@ void* thrPrompt(void* arg) {
                 }*/
                 break;
             case 42:
-                writeToServer(main_socket, 42, "25.72.233.6-5200");
+                printf("\n\t%d\t\n", main_socket);
+                writeToServer(main_socket, C_CONNECTION, "25.72.233.6-5200");
                 break;
             case 51:
-                writeToServer(main_socket, 51, "pippo-pippo");
+                writeToServer(main_socket, C_LOGIN, "pippo-pippo");
                 break;
             default:
                 printf("\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);

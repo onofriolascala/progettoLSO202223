@@ -25,20 +25,18 @@
 #include "../../Server/include/Def.h"
 
 int main() {
-    int sd1, sd2, localsocket, prompt_socket, render_socket, server_port, signal_num;
-    struct sockaddr_in server_addr;
+    int localsocket, prompt_socket, signal_num;
     struct sockaddr_un localsocket_addr;
-    socklen_t server_len;
     socklen_t local_len;
-    char *saveptr, *server_p, *port_p;
-    char server_ip[LOCALSOCKETADDRLENGTH], incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER];
+    char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER];
+
+    struct server_connection server;
 
     // Inizializzazione altri thread
     signal_num = 2;
     localsocket = localSocketInit(&localsocket_addr, &local_len);
 
     createPrompt(localsocket, &prompt_socket);
-    //createRender(localsocket, &render_socket);
 
     //              MAIN CLIENT LOOP                //
 
@@ -56,11 +54,11 @@ int main() {
     fds[0].events = POLLIN;                        // Inizialmente settata a -1 per essere ignorata.
     fds[1].fd = -1;
     fds[1].events = POLLIN;
-    //fds[2].fd = render_socket;
-    //fds[2].events = POLLIN;
     num_fds = 2;
 
     timeout = ( 3 * 60 * 1000 );
+
+    server.sd = &fds[1].fd;
 
     emptyConsole();
     renderConnection();
@@ -101,23 +99,7 @@ int main() {
             // Socket del prompt
             if(fds[i].fd == prompt_socket) {
                 signal_num = readFromServer(prompt_socket, incoming, MAXCOMMBUFFER);
-
-                if (signal_num == 42) {
-                    server_p = strtok_r(incoming, "-", &saveptr);
-                    port_p = strtok_r(NULL, "\0", &saveptr);
-
-                    fds[1].fd = socketInit(&server_addr, &server_len, server_p, atoi(port_p));
-                    fds[1].events = POLLIN;
-                    num_fds++;
-
-                    printf("DEBUG PROMPT %d %s\n", fds[i].fd, incoming);
-
-                    emptyConsole();
-                    renderLogin();
-                }
-                if (signal_num == 51) {
-                    writeToServer(fds[1].fd, 10, incoming);
-                }
+                end_loop = switchPrompt(&server, signal_num, incoming);
             }
             // Socket del giocatore
             else {
@@ -128,45 +110,6 @@ int main() {
         // restart polling unless loop ended
     } while( !end_loop );
 
-    // rendi le socket non blocking
-
-    //printf("Inserire l'indirizzo ip: ");
-    //fgets(server_ip, MAXCOMMBUFFER, stdin);
-    //server_ip[strcspn(server_ip, "\n")] = 0;
-
-    /*printf("Inserire la porta: ");
-    fgets(tempbuffer, MAXCOMMBUFFER, stdin);
-    server_ip[strcspn(tempbuffer, "\n")] = 0;*/
-    // Inizializzazione connessione
-    /*strcpy(server_ip, "25.72.233.6");
-    server_port = 5200;
-
-    sd1 = socketInit(server_addr, server_len, server_ip, server_port);
-
-    while(signal_num > 1 && signal_num != 50) {
-        printf("\e[2J");
-        printf("Opzioni disponibili:\n"
-               "1  - Disconnessione\t\t10 - Login\t\t11 - Registrazione\n"
-               "20 - Crea Stanza   \t\t21 - Join \t\t22 - Lista\n"
-               "23 - Logout        \t\t30 - Word \t\t31 - Guess\t\t32 - ExitRoom\n");
-        printf("Inserire un numero tra i precedenti: ");
-        fflush(stdout);
-        fgets(server_ip, MAXCOMMBUFFER, stdin);
-        server_ip[strcspn(server_ip, "\n")] = 0;
-        strcat(server_ip, ":test;");
-        printf("%s\n", server_ip);
-        write(sd1, server_ip, strlen(server_ip)+1);
-
-        memset(server_ip,0,sizeof(server_ip));
-        read(sd1, server_ip, 2);
-        signal_num = atoi(server_ip);
-        read(sd1, server_ip, 1);
-        read(sd1, server_ip, MAXCOMMBUFFER);
-        printf("MAIN: server says %d:%s\n", signal_num, server_ip);
-        fflush(stdout);
-    }*/
-
-    //close(sd1);
     printf("Terminazione processo client.\n");
     return 0;
 }
