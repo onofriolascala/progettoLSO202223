@@ -44,8 +44,9 @@ void* thrPrompt(void* arg) {
 
         mode = 0;
 
-        fflush(stdout);
-        switch (atoi(outgoing)) {
+        signal_num = atoi(outgoing);
+
+        switch (signal_num) {
             case -1:
                 // EWOULDBLOCK ERROR
                 break;
@@ -62,16 +63,19 @@ void* thrPrompt(void* arg) {
                     writeToServer(main_socket, C_CLIENTERROR, outgoing);
                 }*/
                 break;
-            case 42:
-                printf("\n\t%d\t\n", main_socket);
-                writeToServer(main_socket, C_CONNECTION, "25.72.233.6-5200");
-                break;
-            case 51:
+            case 10:
                 writeToServer(main_socket, C_LOGIN, "pippo-pippo");
                 break;
+            case 42:
+                writeToServer(main_socket, C_CONNECTION, "25.72.233.6-5200");
+                break;
             default:
-                printf("\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
-                //writeToServer(fds[i].fd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
+                //printf("\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
+                printf("\t\t<DEBUG>: sending directly this signal \"%d\".\n", signal_num);
+                printf("Input string: ");
+                fgets(outgoing, MAXCOMMBUFFER, stdin);
+                outgoing[strcspn(outgoing, "\n")] = '\0';
+                writeToServer(main_socket, signal_num, outgoing);
         }
     }
 

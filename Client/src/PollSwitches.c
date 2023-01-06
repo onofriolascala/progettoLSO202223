@@ -25,14 +25,13 @@ int switchPrompt(struct server_connection *server, int signal_num, char incoming
             break;
         case S_DISCONNECT_ABRUPT:
             printf("\t\tPROMPT_SWITCH: <Exit> %d:%s\n", signal_num, incoming);
-            writeToServer(*(server->sd), signal_num, incoming);
-            close(*(server->sd));
             end_loop = 1;
             break;
         case S_DISCONNECT:
             printf("\t\tPROMPT_SWITCH: <Disconnection> %d:%s\n", signal_num, incoming);
             writeToServer(*(server->sd), signal_num, incoming);
             close(*(server->sd));
+            *(server->sd) = -1;
             end_loop = 0;
             break;
         case C_CONNECTION:
