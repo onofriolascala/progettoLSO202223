@@ -128,7 +128,7 @@ int writeToServer(int sd, int signal_num, char outgoing[]) {
  * su cui ricevere i dati, con annessa una lunghezza massima.
  * Restituisce l'esito della comunicazione. Il segnale in ingresso per successo, -3 per errore di lettura. */
 int readFromServer(int sd, char incoming[], int max_len){
-    int signal_num, signal_len, message_len;
+    int signal_num, signal_len, message_len, n_tmp;
     char *saveptr;
     char *signal_p, *message_p;
     char incoming_buf[MAXCOMMBUFFER], signal_code[MAXSIGNALBUF+1];
@@ -136,7 +136,7 @@ int readFromServer(int sd, char incoming[], int max_len){
     saveptr = NULL;
     signal_num = S_COMMERROR;
 
-    if((read(sd, incoming_buf, MAXCOMMBUFFER)) < 0)
+    if((n_tmp = read(sd, incoming_buf, MAXCOMMBUFFER)) < 0)
     {
         if (errno != EWOULDBLOCK)
         {
@@ -144,6 +144,10 @@ int readFromServer(int sd, char incoming[], int max_len){
             return -3;
         }
         return -1;
+    }
+    else if(n_tmp == 0) {
+        fprintf(stderr, ":READ ERROR: Server socket has closed unexpectedly. Resetting Connection.\n");
+        return 1;
     }
 
     signal_p = strtok_r(incoming_buf, ":", &saveptr);

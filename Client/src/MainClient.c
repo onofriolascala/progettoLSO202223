@@ -53,12 +53,12 @@ int main() {
 
     memset(fds, 0 ,sizeof(fds));
     fds[0].fd = prompt_socket;                     // Socket riservata alla connessione col server
-    fds[0].events = POLLIN;             // Inizialmente settata a -1 per essere ignorata.
-    //fds[1].fd = prompt_socket;
-    //fds[1].events = POLLIN;
+    fds[0].events = POLLIN;                        // Inizialmente settata a -1 per essere ignorata.
+    fds[1].fd = -1;
+    fds[1].events = POLLIN;
     //fds[2].fd = render_socket;
     //fds[2].events = POLLIN;
-    num_fds = 1;
+    num_fds = 2;
 
     timeout = ( 3 * 60 * 1000 );
 
