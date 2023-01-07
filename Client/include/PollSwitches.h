@@ -23,7 +23,7 @@
 #include "../include/ThreadRender.h"
 #include "../../Server/include/Def.h"
 
-int switchServer(struct server_connection *server, int signal_num, char incoming[]);
-int switchPrompt(struct server_connection *server, int signal_num, char incoming[]);
+int switchServer(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]);
+int switchPrompt(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]);
 
 #endif // POLLSWITCHES_H

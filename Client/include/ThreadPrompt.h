@@ -27,8 +27,9 @@
 
 void* thrPrompt(void* arg);
 
-pthread_t createPrompt(int localsocket, int *prompt_socket);
+pthread_t createPrompt(int localsocket, int *prompt_socket, struct current_line *prompt_line);
 
-int promptConnection(char outgoing[]);
+void promptConnection(struct current_line *prompt_line, char outgoing[]);
+void promptChar(struct current_line *prompt_line, char outgoing[], int max_len);
 
 #endif //PROGETTOLSO202223_THREADPROMPT_H

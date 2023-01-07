@@ -86,15 +86,14 @@ void emptyConsole(void) {
 }
 
 void renderConnection(void) {
-    printf("*****\t\t\tSCHERMATA TEMPORANEA DI CONNESSIONE\t\t\t*****\n"
+    printf("\n*****\t\t\tSCHERMATA TEMPORANEA DI CONNESSIONE\t\t\t*****\n"
            "\n"
-           "Inserire indirizzo ip e porta del server a cui si desidera connettersi.\n"
-           "!ATTENZIONE! Per abilitare la modalità automatica inserire 42.\n\n");
+           "Inserire indirizzo ip e porta del server a cui si desidera connettersi.\n\n");
     fflush(stdout);
 }
 
 void renderLogin(void) {
-    printf("*****\t\t\tSCHERMATA TEMPORANEA DI LOGIN\t\t\t*****\n"
+    printf("\n*****\t\t\tSCHERMATA TEMPORANEA DI LOGIN\t\t\t*****\n"
            "\n"
            "Scelte disponibili:\n"
            "\t\t0 - Disconnessione dal server\n"
@@ -104,7 +103,7 @@ void renderLogin(void) {
 }
 
 void renderHomepage(void) {
-    printf("*****\t\t\tSCHERMATA TEMPORANEA DI HOMEAGE\t\t\t*****\n"
+    printf("\n*****\t\t\tSCHERMATA TEMPORANEA DI HOMEPAGE\t\t\t*****\n"
            "\n"
            "Scelte disponibili:\n"
            "\t\t0 - Logout\n"

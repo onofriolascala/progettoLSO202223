@@ -18,7 +18,8 @@ int socketInit(struct sockaddr_in *addr, socklen_t *len, char ip[], int port){
     }
     if(connect(sd1, (struct sockaddr*)addr, *len) < 0) {
         perror(":CONNECT ERROR");
-        exit(1);
+        close(sd1);
+        return 0;
     }
 
     printf("DEBUG: socketInit completed.\n");

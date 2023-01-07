@@ -32,11 +32,20 @@ int main() {
 
     struct server_connection server;
 
+    // Inizializzazione della current line e del suo mutex
+    struct current_line *prompt_line;
+    if((prompt_line = (struct current_line*)malloc(sizeof(struct current_line))) == NULL){
+        //gestire errore malloc
+        fprintf(stderr, ":CURRENT LINE STRUCT MALLOC: prompt_line was initialized to NULL.");
+        exit(1);
+    }
+    pthread_mutex_init(&prompt_line->mutex, NULL);
+
     // Inizializzazione altri thread
     signal_num = 2;
     localsocket = localSocketInit(&localsocket_addr, &local_len);
 
-    createPrompt(localsocket, &prompt_socket);
+    createPrompt(localsocket, &prompt_socket, prompt_line);
 
     //              MAIN CLIENT LOOP                //
 
@@ -56,14 +65,14 @@ int main() {
     fds[1].events = POLLIN;
     num_fds = 2;
 
-    timeout = ( 3 * 60 * 1000 );
+    timeout = ( 3 * 60 * 99999000 );
 
     server.sd = &fds[1].fd;
 
-    emptyConsole();
-    renderConnection();
-    writeToServer(prompt_socket, 1, "Enabled");
-
+    // Rendering della schermata iniziale.
+    // Via libera al prompt.
+    writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+    // La socket viene impostata su non bloccante.
     fcntl(prompt_socket, F_SETFL, fcntl(prompt_socket, F_GETFL, 0) | O_NONBLOCK);
 
     do {
@@ -87,7 +96,7 @@ int main() {
         }
         for(i = 0; i < num_fds; i++){
             if(fds[i].revents == 0){
-                printf("DEBUG CONTINUE \n");
+                printf("MAIN: poll continued.\n");
                 continue;
             }
             if(fds[i].revents != POLLIN){
@@ -99,12 +108,14 @@ int main() {
             // Socket del prompt
             if(fds[i].fd == prompt_socket) {
                 signal_num = readFromServer(prompt_socket, incoming, MAXCOMMBUFFER);
-                end_loop = switchPrompt(&server, signal_num, incoming);
+                printf("MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
+                end_loop = switchPrompt(&server, prompt_socket, signal_num, incoming);
             }
             // Socket del giocatore
             else {
                 signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
-                printf("DEBUG SERVER %d %s\n", fds[i].fd, incoming);
+                printf("MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);
+                end_loop = switchServer(&server, prompt_socket, signal_num, incoming);
             }
         }
         // restart polling unless loop ended

@@ -4,13 +4,21 @@
 
 #include "../include/ThreadPrompt.h"
 
+#define MAXIPBYTES 16
+#define MAXPORTBYTES 6
+
 void* thrPrompt(void* arg) {
-    int main_socket, signal_num, temp_int, prompt_status, mode;
+    int main_socket, signal_num, prompt_mode, out_len;
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER], tempbuffer[MAXCOMMBUFFER];
+
     struct sockaddr_un localaddr;
     localaddr.sun_family = PF_LOCAL;
     strcpy(localaddr.sun_path, CLIENTLOCALSOCKET);
 
+    struct current_line *prompt_line;
+    prompt_line = (struct current_line*)arg;
+
+    // Apertura socket su un indirizzo costante.
     if((main_socket = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
         perror(":PROMPT SOCKET CREATION");
         exit(1);
@@ -20,35 +28,26 @@ void* thrPrompt(void* arg) {
         perror(":PROMPT SOCKET CONNECT");
         exit(1);
     }
-    //printf("\tRENDER: Prompt thread created with main_socket sd:%d.\n", main_socket);
 
-    prompt_status = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
-
+    // Completamento inizializzazione lato MainThread.
+    prompt_mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+    // La socket viene impostata su non bloccante.
     fcntl(main_socket, F_SETFL, fcntl(main_socket, F_GETFL, 0) | O_NONBLOCK);
 
-    while (prompt_status) {
-        prompt_status = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+    //              MAIN PROMPT LOOP                //
+
+    do {
+        usleep(5000);
+
         memset(incoming, '\0', sizeof(incoming));
+        memset(outgoing, '\0', sizeof(incoming));
 
-        sleep(1);
+        out_len = strlen(outgoing);
 
-        printf("Input: ");
-        fgets(outgoing, MAXCOMMBUFFER, stdin);
-        outgoing[strcspn(outgoing, "\n")] = '\0';
-
-        //sleep(10);
-
-        //writeToServer(main_socket, 0, "ciao.");
-
-        //mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
-
-        mode = 0;
-
-        signal_num = atoi(outgoing);
-
-        switch (signal_num) {
+        switch (prompt_mode) {
             case -1:
                 // EWOULDBLOCK ERROR
+                sleep(3);
                 break;
             case -2:
                 break;
@@ -56,38 +55,34 @@ void* thrPrompt(void* arg) {
                 // ERROR DIFFERENT FROM EWOULDBLOCK
                 break;
             case 0:
-                //printf("\t\tPROMPT: <Connessione>\n");
-                /*if ((temp_int = promptConnection(outgoing)) == 0) {
-                    writeToServer(main_socket, 0, outgoing);
-                } else {
-                    writeToServer(main_socket, C_CLIENTERROR, outgoing);
-                }*/
                 break;
-            case 10:
-                writeToServer(main_socket, C_LOGIN, "pippo-pippo");
-                break;
-            case 42:
-                writeToServer(main_socket, C_CONNECTION, "25.72.233.6-5200");
+            case C_CONNECTION:
+                promptConnection(prompt_line, outgoing);
+                writeToServer(main_socket, C_CONNECTION, outgoing);
                 break;
             default:
-                //printf("\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
-                printf("\t\t<DEBUG>: sending directly this signal \"%d\".\n", signal_num);
-                printf("Input string: ");
+                printf("\t\t\t\tPROMPT_THREAD: <DEBUG> signal number not recognized. Manual response enabled.\n");
+                printf("\t\t\t\tSignal Number: ");
+                fgets(outgoing, MAXCOMMBUFFER, stdin);
+                outgoing[strcspn(outgoing, "\n")] = '\0';
+                signal_num = atoi(outgoing);
+                printf("\t\t\t\tMessage: ");
                 fgets(outgoing, MAXCOMMBUFFER, stdin);
                 outgoing[strcspn(outgoing, "\n")] = '\0';
                 writeToServer(main_socket, signal_num, outgoing);
         }
-    }
+        prompt_mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+    } while (prompt_mode != 0);
 
     printf("\tRENDER: Prompt thread closed.\n");
     return 0;
 }
 
-pthread_t createPrompt(int localsocket, int *prompt_socket) {
+pthread_t createPrompt(int localsocket, int *prompt_socket, struct current_line *prompt_line) {
     pthread_t tid;
 
     //printf("DEBUG: Creation of detatched thread...\n");
-    if (pthread_create(&tid, NULL, thrPrompt, NULL)) {
+    if (pthread_create(&tid, NULL, thrPrompt, prompt_line)) {
         fprintf(stderr, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
         deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
         exit(1);
@@ -107,22 +102,80 @@ pthread_t createPrompt(int localsocket, int *prompt_socket) {
     return tid;
 }
 
-int promptConnection(char outgoing[]) {
-    int return_value;
-    char tempbuffer[MAXCOMMBUFFER];
+void promptConnection(struct current_line *prompt_line, char outgoing[]) {
+    char temp_buffer[MAXCOMMBUFFER];
 
-    return_value = 0;
+    renderConnection();
 
-    printf("Inserire l'indirizzo ip: ");
-    fgets(outgoing, MAXCOMMBUFFER, stdin);
-    outgoing[strcspn(outgoing, "\n")] = '-';
+    memset(prompt_line->input, '\0', sizeof(prompt_line->input));
 
-    printf("Inserire la porta: ");
-    fgets(tempbuffer, MAXCOMMBUFFER, stdin);
-    tempbuffer[strcspn(tempbuffer, "\n")] = ';';
+    strcpy(prompt_line->input, "Attivare modalità di debug? (Y/y) ");
+    printf("%s", prompt_line->input);
+    fflush(stdout);
+    promptChar(prompt_line, temp_buffer, 2);
 
-    strcat(outgoing, tempbuffer);
+    if((temp_buffer[0] == 'Y') || (temp_buffer[0] == 'y')) {
+        printf("!ATTENZIONE! Connessione automatica avviata. Connessione a "
+               "25.72.233.6:5200\n");
+        strcpy(outgoing, "25.72.233.6-5200");
+        return;
+    }
+    else {
+        printf("!ATTENZIONE! Connessione automatica disattivata.\n\n");
+    }
+
+
+    strcpy(prompt_line->input, "Inserire l'indirizzo IPv4: ");
+    printf("%s", prompt_line->input);
+    fflush(stdout);
+    promptChar(prompt_line, temp_buffer, MAXIPBYTES);
+
+    strcat(outgoing, temp_buffer);
+    strcat(outgoing, "-");
+
+    strcpy(prompt_line->input, "Inserire la porta: ");
+    printf("%s", prompt_line->input);
+    fflush(stdout);
+    promptChar(prompt_line, temp_buffer, MAXPORTBYTES);
+
+    strcat(outgoing, temp_buffer);
     outgoing[strcspn(outgoing, ";")+1] = '\0';
+}
 
-    return return_value;
+// Riceve la struttura temporanea per il salvataggio della riga di comando, rigorosamente vuota, e restituisce per
+// riferimento il messaggio finale in uscita dal prompt.
+void promptChar(struct current_line *prompt_line, char outgoing[], int max_len) {
+    int line_len, c;
+
+    if(max_len <= 0) {
+        fprintf(stderr, "\t\tPROMPTCHAR: max_len cannot be less or equal to zero.\n");
+        return;
+    }
+
+    memset(prompt_line->line, '\0', sizeof(prompt_line->line));
+    line_len = 0;
+
+    do {
+        if(pthread_mutex_trylock(&prompt_line->mutex) == 0) {
+            c = getchar();
+            if (c == '\n') {
+                prompt_line->line[line_len++] = '\0';
+                strcpy(outgoing, prompt_line->line);
+                memset(prompt_line->input, '\0', sizeof(prompt_line->input));
+                memset(prompt_line->line, '\0', sizeof(prompt_line->line));
+                pthread_mutex_unlock(&prompt_line->mutex);
+                break;
+            }
+            if (line_len < max_len - 1) {
+                prompt_line->line[line_len++] = c;
+            }
+            else {
+                prompt_line->line[max_len - 1] = '\0';
+            }
+            pthread_mutex_unlock(&prompt_line->mutex);
+        }
+        else {
+            usleep(5000);
+        }
+    } while(1);
 }
