@@ -45,8 +45,12 @@ void* thrRoom(void* arg) {
     char buffer[MAXCOMMBUFFER];
     int timeout, rc = 0;
     //int localsocket;
-    int nfds, new_local_sd, new_usr_sd, current_size = 0, i, j, signal_code;
+    int nfds, new_local_sd, current_size = 0, i, j, signal_code;
     int end_loop = 0, close_conn;
+    char *saveptr = NULL;
+    char *username_p, *fd_p;
+    struct player_node* new_player;
+    int new_player_fd;
 
 
     /*                gameLogic                                  */
@@ -95,39 +99,64 @@ void* thrRoom(void* arg) {
                     break;
                 }
                 if(fds[i].fd == localsocket){
-                    do{
-                        //the listening socket is readable, so we manage the new incoming connections
-                        printf("DEBUG: new incoming connection to the room\n");
-
-                        new_local_sd = accept(localsocket, NULL, NULL);
-                        if (new_local_sd < 0){
-                            if (errno != EWOULDBLOCK){
-                                perror("  accept() failed");
-                                end_loop = 1;
-                                close_room = 1;
-                            }
-                            break;
+                    //the listening socket is readable, so we manage the new incoming connections
+                    printf("DEBUG: new incoming connection to the room\n");
+                    new_local_sd = accept(localsocket, NULL, NULL);
+                    if (new_local_sd < 0){
+                        if (errno != EWOULDBLOCK){
+                            perror("  accept() failed");
+                            end_loop = 1;
+                            close_room = 1;
                         }
-                        /*  new join routine   */
-                        //new_usr_sd = getUsernameSocket();
-                        //new_usr = getPlayer( this_room->player_list, new_usr_sd);
-                        fds[nfds].fd = new_usr_sd;
+                        break;
+                    }
+                    /*  new join routine   */
+                    printf("DEBUG: New connection to the room was accepted\n");
+                    fflush(stdout);
+
+
+                    signal_num = readFromClient(new_local_sd, incoming, MAXCOMMBUFFER);
+
+                    username_p = strtok_r(incoming, "-", &saveptr);
+                    fd_p = strtok_r(NULL, "\0", &saveptr);
+                    new_player_fd = atoi(fd_p);
+                    //check if the usr is already in the room
+                    new_player = getPlayer(this_room->player_list, new_player_fd);
+
+                    if( new_player == NULL){
+
+                        new_player = createNewPlayerNode(new_player_fd, username_p);
+                        this_room->player_list = addPlayerToPlayerList(this_room->player_list, new_player);
+
+                        writeToClient(new_local_sd, S_OK, "ok");
+
+                        fds[nfds].fd = new_player_fd;
                         fds[nfds].events = POLLIN;
                         nfds++;
+                        /* game logic */
                         /* if no suzerain was chosen set new usr as the suzerain*/
                         if( suzerain == NULL){
-                            // suzerain = new_usr;
+                            printf("DEBUG: Selecting new suzerain...\n");
+                            suzerain = new_player;
+                            printf("DEBUG: Suzerain set! Current suzerain: %s\n", new_player->username);
                         }
+                        /* game logic */
                         /* if no usr was set to play set him as the current player*/
                         if( current_player == NULL){
-                            //current_player = new_usr;
+                            printf("DEBUG: Selecting new gamer...\n");
+                            current_player = new_player;
+                            printf("DEBUG: New gamer set! Current gamer: %s\n", new_player->username);
                         }
-                    }while( new_local_sd != -1 );
+                    }
+                    else{
+                        writeToClient(new_local_sd, S_USERINROOM, "userinroom");
+                    }
+
                 }
                 else {
                     //not the listening socket, managing the players socket
                     close_conn = 0;
-                    signal_num = readFromClient(fds[i].fd, buffer, MAXCOMMBUFFER);
+                    signal_num = readFromClient(fds[i].fd, incoming, MAXCOMMBUFFER);
                     switch (signal_num) {
                         case -1:
                             //EWOULDBLOCK ERROR
@@ -224,107 +253,6 @@ void* thrRoom(void* arg) {
         }while(!end_loop);
     }
 
-
-
-    /*
-    // Routine di accettazione sulla localsocket
-    if((temp_sd = accept(localsocket, NULL, NULL)) < 0) {
-        perror(":ACCEPT ERROR");
-        //close(localsocket);
-    }
-    else {
-        //writeToClient(temp_sd, S_OK, S_OK_MSG);
-        if((readFromClient(temp_sd, incoming, MAXCOMMBUFFER)) == C_JOINROOM) {
-            if((signal_num = joinParser(incoming, outgoing, parser_buf, &parser_sd)) == 0) {
-                if ((joining_player = getPlayer(this_room->player_list, parser_sd)) == NULL) {
-                    joining_player = createNewPlayerNode(parser_sd, parser_buf);
-                    this_room->player_list = addPlayerToPlayerList(this_room->player_list, joining_player);
-                    this_room->player_num += 1;
-                    writeToClient(temp_sd, S_OK, S_OK_MSG);
-                    close(temp_sd);
-                    temp_sd = this_room->player_list->player_socket;
-                    signal_num = S_OK;
-                }
-            }
-        }
-    }
-    if(signal_num != S_OK) {
-        writeToClient(temp_sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
-        close(temp_sd);
-    }
-
-    //printf("%d %d %s\n", signal_num, temp_sd, incoming);
-
-    // Switch per la gestione della game logic
-    while (this_room->player_num > 0) {
-        //printf("\t\tDEBUG_SD%d: secondo while.\n", sd);
-
-        memset(incoming, '\0', sizeof(incoming));
-        memset(outgoing, '\0', sizeof(outgoing));
-        signal_num = readFromClient(temp_sd, incoming, MAXCOMMBUFFER);
-
-        printf("\t\t\t\tROOM_ID%d: <client> %d:%s\n", ID, signal_num, incoming);
-        switch (signal_num) {
-            case -1:
-                break;
-            case -2:
-                break;
-            case -3:
-                break;
-            case S_DISCONNECT_ABRUPT:
-                temp_player = removePlayerNode(this_room->playerhead_pointer, temp_sd);
-                destroyPlayerNode(temp_player);
-                this_room->player_num -= 1;
-                break;
-            case S_DISCONNECT:
-                temp_player = removePlayerNode(this_room->playerhead_pointer, temp_sd);
-                destroyPlayerNode(temp_player);
-                this_room->player_num -= 1;
-                writeToClient(temp_sd, S_DISCONNECT, S_DISCONNECT_MSG);
-                break;
-            case C_LOGIN:
-                writeToClient(temp_sd, S_NOPERMISSION, "Uscire dalla stanza prima di un nuovo login.");
-                break;
-            case C_SIGNIN:
-                writeToClient(temp_sd, S_NOPERMISSION, "Uscire dalla stanza prima di un nuovo sign in.");
-                break;
-            case C_CREATEROOM:
-                writeToClient(temp_sd, S_NOPERMISSION, "Uscire dalla stanza prima di crearne una nuova.");
-                break;
-            case C_JOINROOM:
-                writeToClient(temp_sd, S_NOPERMISSION, "Uscire dalla stanza prima di unirsi ad un'altra.");
-                break;
-            case C_LISTROOM:
-                writeToClient(temp_sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
-                break;
-            case C_LOGOUT:
-                writeToClient(temp_sd, S_NOPERMISSION, "Uscire dalla stanza prima di effettuare il logout.");
-                break;
-            case C_SELECTWORD:
-                //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
-                writeToClient(temp_sd, S_OK, "Parola.");
-                break;
-            case C_GUESSSKIP:
-                //printf("\t\t\t\tDEBUG_STANZAID%d: <Guess> %d:%s\n", ID, signal_num, incoming);
-                writeToClient(temp_sd, signal_num, "Mancato");
-                break;
-            case C_EXITROOM:
-                //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
-                // Riavvio del threadService
-                rebuildService(this_room->player_list, room_list);
-                temp_player = removePlayerNode(this_room->playerhead_pointer, temp_sd);
-                destroyPlayerNode(temp_player);
-                this_room->player_num -= 1;
-                writeToClient(temp_sd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
-                break;
-            default:
-                printf("\t\t\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
-                writeToClient(temp_sd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
-        }
-        fflush(stdout);
-    }
-
-     */
     // Chiusura della stanza.
     removeAndDestroyRoomNode(room_list, ID);
 
