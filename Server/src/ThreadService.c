@@ -35,6 +35,7 @@ void* thrService(void* arg) {
 
     if (username[0] == '\0') {
         signal_num = 2;
+        writeToClient(sd, S_LOGINOK, S_LOGINOK_MSG);
         //printf("\t\tDEBUG_SD%d: mode new thread.\n", sd);
     }
     else {
