@@ -2,8 +2,8 @@
 // Created by Mattia on 03/12/2022.
 //
 
-#ifndef PROGETTOLSO202223_THREADRENDER_H
-#define PROGETTOLSO202223_THREADRENDER_H
+#ifndef PROGETTOLSO202223_CONSOLELAYOUTS_H
+#define PROGETTOLSO202223_CONSOLELAYOUTS_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,8 +21,8 @@
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"
 #include "../include/ThreadPrompt.h"
-#include "../include/ThreadRender.h"
-#include "../../Server/include/Def.h"
+#include "../include/ConsoleLayouts.h"
+#include "../include/Def.h"
 
 /*void* thrRender(void* arg);
 
@@ -33,4 +33,4 @@ void renderConnection(void);
 void renderLogin(void);
 void renderHomepage(void);
 
-#endif //PROGETTOLSO202223_THREADRENDER_H
+#endif //PROGETTOLSO202223_CONSOLELAYOUTS_H

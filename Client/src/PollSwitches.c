@@ -14,7 +14,7 @@ int switchServer(struct server_connection *server, int prompt_socket, int signal
             // ERROR DIFFERENT FROM EWOULDBLOCK
             end_loop = 1;
             break;
-        case S_DISCONNECT: S_DISCONNECT_ABRUPT:
+        case S_DISCONNECT:
             printf("\t\tSERVER_SWITCH: <Server Disconnected> %d:%s\n", signal_num, incoming);
             close(*(server->sd));
             *(server->sd) = -1;

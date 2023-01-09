@@ -18,7 +18,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "../../Server/include/Def.h"
+#include "../include/Def.h"
 
 int socketInit(struct sockaddr_in *server_addr, socklen_t *len, char ip[], int port);
 

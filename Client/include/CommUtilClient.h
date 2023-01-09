@@ -17,7 +17,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "../../Server/include/Def.h"
+#include "../include/Def.h"
 
 int relayStatus(int sd, int signal_num);
 int receiveStatus(int sd);

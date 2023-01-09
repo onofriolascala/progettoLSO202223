@@ -15,9 +15,6 @@
 #define LOCALSOCKETADDRLENGTH 100
 #define SERVERPORT 5200
 
-#define CLIENTLOCALSOCKET "/tmp/mainClient_socket_local"
-#define CLIENTPOLLINGCONST 3
-
 // Costanti per le comunicazioni.
 #define MAXCOMMBUFFER 1024
 #define MAXSIGNALBUF 2
@@ -143,20 +140,6 @@ struct room_arg {
     struct room_node** room_list;
     int room_ID;
     int flag;
-};
-
-struct server_connection {
-    int *sd;
-    struct sockaddr_in addr;
-    socklen_t len;
-    char ip[MAXCOMMBUFFER];
-    int port;
-};
-
-struct current_line {
-    char input[MAXCOMMBUFFER];
-    char line[MAXCOMMBUFFER];
-    pthread_mutex_t mutex;
 };
 
 #endif //PROGETTOLSO202223_DEF_H

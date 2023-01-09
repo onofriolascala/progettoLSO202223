@@ -2,7 +2,7 @@
 // Created by Mattia on 03/12/2022.
 //
 
-#include "../include/ThreadRender.h"
+#include "../include/ConsoleLayouts.h"
 
 /*void* thrRender(void* arg) {
     int main_socket, signal_num;

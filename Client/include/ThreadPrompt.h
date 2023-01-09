@@ -22,8 +22,8 @@
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"
 #include "../include/ThreadPrompt.h"
-#include "../include/ThreadRender.h"
-#include "../../Server/include/Def.h"
+#include "../include/ConsoleLayouts.h"
+#include "../include/Def.h"
 
 void* thrPrompt(void* arg);
 

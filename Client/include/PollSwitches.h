@@ -20,8 +20,8 @@
 #include <poll.h>
 
 #include "../include/CommUtilClient.h"
-#include "../include/ThreadRender.h"
-#include "../../Server/include/Def.h"
+#include "../include/ConsoleLayouts.h"
+#include "../include/Def.h"
 
 int switchServer(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]);
 int switchPrompt(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]);
