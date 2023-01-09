@@ -23,5 +23,7 @@
 #include "../include/Def.h"
 
 int* randomSCT(int [], int);
+void pick(char*, int);
+void randomWords(char*);
 
 #endif //LOGICGAME_H

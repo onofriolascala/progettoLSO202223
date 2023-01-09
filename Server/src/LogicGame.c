@@ -4,10 +4,6 @@
 
 #include "../include/LogicGame.h"
 
-int* randomSCT(int [], int);
-void pick(char*, int);
-void randomWords(char*);
-
 int* randomSCT(int array[], int j){
     char buf[MAXCOMMBUFFER]="";
     int fd,k;

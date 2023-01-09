@@ -28,7 +28,7 @@ char* parserIp(char* incoming[]){
     }
     ip = strtok_r(NULL, "-", &saveptr);
     len=strlen(ip);
-    if (len > 3) {
+    if ((len > 3) || (len < 1)) {
         return -1;
     }
     else{
@@ -55,7 +55,7 @@ char* parserPort(char incoming[]){
     strtok_r(incoming, "-", &saveptr);
     pr = strtok_r(NULL, "\0", &saveptr);
     len=strlen(pr);
-    if ((len > MAXPORT) && (len < MINPORT)) {
+    if ((len > MAXPORT) || (len < MINPORT)) {
         return -1;
     }
     strcpy(temp, pr);
@@ -73,12 +73,10 @@ char* parserPassword(char incoming[]){
     char* psw;
     char* saveptr;
     int len;
-    int uppercaseCount=0;
-    int specialCharCount=0;
     strtok_r(incoming, "-", &saveptr);
     psw = strtok_r(NULL, "\0", &saveptr);
     len=strlen(psw);
-    if ((len < PASSWORDMINLENGTH) && (len > PASSWORDLENGTH)) {
+    if ((len < PASSWORDMINLENGTH) || (len > PASSWORDLENGTH)) {
         return -1;
     }
     strcpy(temp, psw);
@@ -87,26 +85,23 @@ char* parserPassword(char incoming[]){
             return -2;
         }
     }
-    printf("%s", temp);
+    //printf("%s", temp);
     return 0;
 }
 
-char* parserUsername(char incoming[]){
+char* parserUsername(char incoming[]) {
     char temp[USERNAMELENGTH];
-    char* user;
-    char* saveptr;
+    char *user;
+    char *saveptr;
     int len;
-    int uppercaseCount=0;
-    int specialCharCount=0;
-    strtok_r(incoming, "-", &saveptr);
-    user = strtok_r(NULL, "\0", &saveptr);
-    len=strlen(user);
-    if ((len < USERNAMEMINLENGTH) && (len > USERNAMELENGTH)) {
+    user = strtok_r(incoming, "-", &saveptr);
+    len = strlen(user);
+    if ((len < USERNAMEMINLENGTH) || (len > USERNAMELENGTH)) {
         return -1;
     }
     strcpy(temp, user);
-    for (int i=0; i<len; i++) {
-        if(temp[i]<'!' || temp[i]>'z'){
+    for (int i = 0; i < len; i++) {
+        if (temp[i] < '!' || temp[i] > 'z') {
             return -2;
         }
     }
