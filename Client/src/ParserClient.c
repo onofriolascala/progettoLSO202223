@@ -55,7 +55,7 @@ char* parserPort(char incoming[]){
     strtok_r(incoming, "-", &saveptr);
     pr = strtok_r(NULL, "\0", &saveptr);
     len=strlen(pr);
-    if ((len > 4)&&(len < 1)) {
+    if ((len > MAXPORT) && (len < MINPORT)) {
         return -1;
     }
     strcpy(temp, pr);

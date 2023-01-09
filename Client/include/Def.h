@@ -20,6 +20,11 @@
 #define MAXCOMMBUFFER 1024
 #define MAXSIGNALBUF 2
 
+// Costanti per le dimensioni dell'ip e delle porte
+#define MAXIP 15
+#define MAXPORT 4
+#define MINPORT 1
+
 // Costanti per il Login/Signin/Logout.
 #define USERNAMEMINLENGTH 6
 #define USERNAMELENGTH 32
