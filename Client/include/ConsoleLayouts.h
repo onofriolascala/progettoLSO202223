@@ -24,13 +24,16 @@
 #include "../include/ConsoleLayouts.h"
 #include "../include/Def.h"
 
-/*void* thrRender(void* arg);
-
-pthread_t createRender(int localsocket, int *render_socket);*/
-
 void emptyConsole(void);
+
+void inputGeneric(void);
+void inputAddress(void);
+void inputPort(void);
+void inputUsername(void);
+void inputPassword(void);
+void inputRoom(void);
+
 void renderConnection(void);
 void renderLogin(void);
-void renderHomepage(void);
 
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H

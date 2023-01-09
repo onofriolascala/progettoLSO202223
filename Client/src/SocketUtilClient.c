@@ -53,7 +53,7 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
         exit(1);
     }
     // Messa in ascolto del socket.
-    if(listen(sd, MAXLOCALCONNECTIONS) < 0) {
+    if(listen(sd, 1) < 0) {
         perror(":LISTEN ERROR");
         close(sd);
         unlink(CLIENTLOCALSOCKET);

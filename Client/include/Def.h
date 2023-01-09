@@ -130,4 +130,10 @@ struct current_line {
     pthread_mutex_t mutex;
 };
 
+struct display {
+    char input[MAXCOMMBUFFER];
+    char line[MAXCOMMBUFFER];
+    pthread_mutex_t mutex;
+};
+
 #endif //PROGETTOLSO202223_DEF_H
