@@ -18,7 +18,7 @@ add_executable(Server.out Server/src/MainServer.c
 add_executable(Client.out Client/src/MainClient.c
         Client/src/SocketUtilClient.c Client/include/SocketUtilClient.h
         Client/src/CommUtilClient.c Client/include/CommUtilClient.h
-        Client/src/ThreadPrompt.c Client/include/ThreadPrompt.h
+        Client/src/Prompt.c Client/include/ThreadPrompt.h
         Client/src/ConsoleLayouts.c Client/include/ConsoleLayouts.h
         Client/include/Def.h
         Client/src/PollSwitches.c Client/include/PollSwitches.h)
