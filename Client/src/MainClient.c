@@ -20,16 +20,27 @@
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"
 #include "../include/ThreadPrompt.h"
-#include "../include/ConsoleLayouts.h"
 #include "../include/PollSwitches.h"
 #include "../../Server/include/Def.h"
 
 int main() {
-    int localsocket, prompt_socket, signal_num;
+    // Dichiarazioni per la connessione
+    int localsocket, prompt_socket;
     struct sockaddr_un localsocket_addr;
     socklen_t local_len;
+
+    // Dichiarazioni per le comunicazioni.
+    int signal_num;
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER];
 
+    // Dichiarazioni per la poll
+    struct pollfd fds[CLIENTPOLLINGCONST];
+    char buffer[MAXCOMMBUFFER];
+    int timeout, rc = 0;
+    int num_fds, new_local_sd, usr_sd, current_size, i, j, signal_code;
+    int end_loop, close_conn;
+
+    // Dichiarazione della struttura che conterrà le informazioni relative alla connessione.
     struct server_connection server;
 
     // Inizializzazione della current line e del suo mutex
@@ -41,39 +52,31 @@ int main() {
     }
     pthread_mutex_init(&prompt_line->mutex, NULL);
 
-    // Inizializzazione altri thread
-    signal_num = 2;
+    // Inizializzazione della socket locale e del thread per il PROMPT
     localsocket = localSocketInit(&localsocket_addr, &local_len);
-
     createPrompt(localsocket, &prompt_socket, prompt_line);
 
-    //              MAIN CLIENT LOOP                //
-
-    struct pollfd fds[CLIENTPOLLINGCONST];
-    char buffer[MAXCOMMBUFFER];
-    int timeout, rc = 0;
-    int num_fds, new_local_sd, usr_sd, current_size, i, j, signal_code;
-    int end_loop = 0, close_conn;
-
-    // Inizializzazioni
+    // Inizializzazioni poll
+    end_loop = 0;
     current_size = 0;
+    signal_num = 2;
 
     memset(fds, 0 ,sizeof(fds));
-    fds[0].fd = prompt_socket;                     // Socket riservata alla connessione col server
-    fds[0].events = POLLIN;                        // Inizialmente settata a -1 per essere ignorata.
-    fds[1].fd = -1;
-    fds[1].events = POLLIN;
+    fds[0].fd = prompt_socket;
+    fds[0].events = POLLIN;
+    fds[1].fd = -1;                                 // Socket riservata alla connessione col server
+    fds[1].events = POLLIN;                         // Inizialmente settata a -1 per essere ignorata.
     num_fds = 2;
 
-    timeout = ( 3 * 60 * 99999000 );
+    timeout = ( 10 * 60 * 1000 );
 
+    // Via libera al prompt. La socket viene impostata su non bloccante e salvata  all'interno della
+    // struttura per la connessione.
+    writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+    fcntl(prompt_socket, F_SETFL, fcntl(prompt_socket, F_GETFL, 0) | O_NONBLOCK);
     server.sd = &fds[1].fd;
 
-    // Rendering della schermata iniziale.
-    // Via libera al prompt.
-    writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
-    // La socket viene impostata su non bloccante.
-    fcntl(prompt_socket, F_SETFL, fcntl(prompt_socket, F_GETFL, 0) | O_NONBLOCK);
+    //              MAIN CLIENT LOOP                //
 
     do {
         printf("MAIN: Waiting on poll function...\n");
@@ -95,12 +98,13 @@ int main() {
             break;
         }
         for(i = 0; i < num_fds; i++){
+            // Socket dormiente
             if(fds[i].revents == 0){
                 printf("MAIN: poll continued.\n");
                 continue;
             }
+            // Valore non atteso.
             if(fds[i].revents != POLLIN){
-                //unexpected behaviour
                 fprintf(stderr, ":REVENTS ERROR: fds[%d].revents = %d\n", i, fds[i].revents);
                 end_loop = 1;
                 break;
@@ -111,7 +115,7 @@ int main() {
                 printf("MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
                 end_loop = switchPrompt(&server, prompt_socket, signal_num, incoming);
             }
-            // Socket del giocatore
+            // Socket del server
             else {
                 signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
                 printf("MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);

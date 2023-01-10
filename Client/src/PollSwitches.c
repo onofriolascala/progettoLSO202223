@@ -10,9 +10,17 @@ int switchServer(struct server_connection *server, int prompt_socket, int signal
     end_loop = 0;
 
     switch (signal_num) {
-        case -1: case -2: case -3:
+        case -1:
+            // EWOULDBLOCK ERROR
+            end_loop = 0;
+            break;
+        case -2: case -3:
             // ERROR DIFFERENT FROM EWOULDBLOCK
             end_loop = 1;
+            break;
+        case S_DISCONNECT_ABRUPT:
+            // La lettura della socket ha restituito 0, indicando una chiusura inaspettata da parte del server.
+            // Il client ritornerà alla schermata di connessione.
             break;
         case S_DISCONNECT:
             printf("\t\tSERVER_SWITCH: <Server Disconnected> %d:%s\n", signal_num, incoming);
@@ -47,46 +55,75 @@ int switchServer(struct server_connection *server, int prompt_socket, int signal
 
 int switchPrompt(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]) {
     int end_loop;
+    int visited;
+
+    char *ip, *port, *saveptr;
 
     end_loop = 0;
 
-    switch (signal_num) {
-        case -1: case -2: case -3:
-            // ERROR DIFFERENT FROM EWOULDBLOCK
-            end_loop = 1;
-            break;
-        case S_DISCONNECT_ABRUPT:
-            //lock mutex
-            //printf("\t\tPROMPT_SWITCH: <Exit> %d:%s\n", signal_num, incoming);
-            end_loop = 1;
-            break;
-        case S_DISCONNECT:
-            //printf("\t\tPROMPT_SWITCH: <Disconnection> %d:%s\n", signal_num, incoming);
-            writeToServer(*(server->sd), signal_num, incoming);
-            close(*(server->sd));
-            *(server->sd) = -1;
-            writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
-            break;
-        case C_CONNECTION:
-            printf("\t\tPROMPT_SWITCH: <Connection> %d:%s\n", signal_num, incoming);
+    do {
+        visited = 0;
+        switch (signal_num) {
+            case -1:
+                // EWOULDBLOCK ERROR
+                end_loop = 0;
+                break;
+            case -2:
+            case -3:
+                // ERROR DIFFERENT FROM EWOULDBLOCK
+                end_loop = 1;
+                break;
+            case S_DISCONNECT_ABRUPT:
+                // La lettura della socket locale ha restituito 0, indicando una chiusura inattesa.
+                // Un simile comportamento non è previsto dal programma, che per tanto procederà a chiudersi.
+                fprintf(stderr, ":SWITCH PROMPT ERROR: prompt socket read ha returned 0. Closing program.\n");
+                end_loop = 1;
+                break;
+            case S_DISCONNECT:
+                // Il prompt ha inviato un segnale di disconnessione dal server a cui il client è connesso in quel
+                // momento. Il client si disconnetterà dal server, ripulirà la struttura della connessione ed infine
+                // mostrerà la schermata di connessione.
 
-            char *ip, *port, *saveptr;
-
-            ip = strtok_r(incoming, "-", &saveptr);
-            port = strtok_r(NULL, "\0", &saveptr);
-
-            strcpy(server->ip, ip);
-            server->port = atoi(port);
-
-            if((*(server->sd) = socketInit(&server->addr, &server->len, server->ip, server->port)) < 4) {
-                //fprintf(stderr,"Apertura della socket non riuscita correttamente. Chiusura applicazione.\n\n");
+                //printf("\t\tPROMPT_SWITCH: <Disconnection> %d:%s\n", signal_num, incoming);
+                writeToServer(*(server->sd), signal_num, incoming);
+                close(*(server->sd));
                 *(server->sd) = -1;
+                memset(server->ip, '\0', sizeof(server->ip));
                 writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
-            }
-            break;
-        default:
-            printf("\t\tPROMPT_SWITCH: <Default> %d:%s\n", signal_num, incoming);
-            writeToServer(*(server->sd), signal_num, incoming);
-    }
+                break;
+            case C_CONNECTION:
+                // Il prompt desidera connettersi al processo server identificato da indirizzo IPv4 e porta forniti.
+                // I valori saranno esaminati perché rispettino i requisiti non funzionali. In caso di successo saranno
+                // inviati al server, altrimenti saranno richiesti nuovamente.
+                printf("\t\tPROMPT_SWITCH: <Connection> %d:%s\n", signal_num, incoming);
+
+                if (visited == 0) {
+                    emptyConsole();
+                    renderConnection();
+                    visited = 1;
+                }
+
+                ip = parserIp(&incoming);
+                port = parserPort(&incoming);
+
+                /*ip = strtok_r(incoming, "-", &saveptr);
+                port = strtok_r(NULL, "\0", &saveptr);
+
+                strcpy(server->ip, ip);
+                server->port = atoi(port);*/
+
+                if ((*(server->sd) = socketInit(&server->addr, &server->len, server->ip, server->port)) < 4) {
+                    fprintf(stderr,":SWITCH PROMPT ERROR: Apertura della server socket non riuscita correttamente. Riprovare.\n");
+                    *(server->sd) = -1;
+                    //writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+                    break;
+                }
+                visited = 0;
+                break;
+            default:
+                printf("\t\tPROMPT_SWITCH: <Default> %d:%s\n", signal_num, incoming);
+                writeToServer(*(server->sd), signal_num, incoming);
+        }
+    } while(visited != 0);
     return end_loop;
 }

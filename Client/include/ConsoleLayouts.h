@@ -24,16 +24,21 @@
 #include "../include/ConsoleLayouts.h"
 #include "../include/Def.h"
 
+// Funzione di pulizia della console. Da usare solo al passaggio da una schermata all'altra.
 void emptyConsole(void);
 
+// Funzioni di stampa dei vari input.
 void inputGeneric(void);
 void inputAddress(void);
 void inputPort(void);
 void inputUsername(void);
 void inputPassword(void);
 void inputRoom(void);
+void inputConfirmation(void);
 
+// Funzioni di stampa delle varie schermate del client.
 void renderConnection(void);
 void renderLogin(void);
+void renderHomepage(void);
 
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H

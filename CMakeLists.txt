@@ -21,4 +21,5 @@ add_executable(Client.out Client/src/MainClient.c
         Client/src/Prompt.c Client/include/ThreadPrompt.h
         Client/src/ConsoleLayouts.c Client/include/ConsoleLayouts.h
         Client/include/Def.h
+        Client/src/ParserClient.c Client/include/ParserClient.h
         Client/src/PollSwitches.c Client/include/PollSwitches.h)
