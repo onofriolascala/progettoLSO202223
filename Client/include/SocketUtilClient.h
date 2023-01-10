@@ -20,9 +20,16 @@
 
 #include "../include/Def.h"
 
+// Funzione di inizializzazione della connessione al server. Riceve l'indirizzo e la porta a cui si desidera
+// connettersi e restituisce il valore del socket descriptor su cui è stata stabilita la connessione.
 int socketInit(struct sockaddr_in *server_addr, socklen_t *len, char ip[], int port);
 
+// Funzione di inizializzazione della connessione locale con il thread del PROMPT. Riceve un indirizzo del
+// file system (una costante), e restituisce la listening socket della connessione.
 int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len);
+
+// Elimina in sicurezza la socket locale al momento della chiusura del main thread. Riceve una socket ed un
+// indirizzo di memoria su cui effettuare il CLOSE() e l'UNLINK().
 void deleteLocalSocket(int localsocket, char localsocket_path[]);
 
 #endif /* SOCKETUTILCLIENT_H */

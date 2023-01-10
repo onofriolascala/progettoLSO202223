@@ -4,6 +4,8 @@
 
 #include "../include/SocketUtilClient.h"
 
+// Funzione di inizializzazione della connessione al server. Riceve l'indirizzo e la porta a cui si desidera
+// connettersi e restituisce il valore del socket descriptor su cui è stata stabilita la connessione.
 int socketInit(struct sockaddr_in *addr, socklen_t *len, char ip[], int port){
     int sd1;
 
@@ -27,6 +29,8 @@ int socketInit(struct sockaddr_in *addr, socklen_t *len, char ip[], int port){
     return sd1;
 }
 
+// Funzione di inizializzazione della connessione locale con il thread del PROMPT. Riceve un indirizzo del
+// file system (una costante), e restituisce la listening socket della connessione.
 int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
     //printf("DEBUG: localSocketInit start.\n");
     int sd;
@@ -64,7 +68,8 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
     return sd;
 }
 
-// Elimina in sicurezza la socket locale al momento della chiusura del room thread.
+// Elimina in sicurezza la socket locale al momento della chiusura del main thread. Riceve una socket ed un
+// indirizzo di memoria su cui effettuare il CLOSE() e l'UNLINK().
 void deleteLocalSocket(int localsocket, char localsocket_path[]) {
     //if(!(strcmp(localsocket_path, ""))) {
     close(localsocket);

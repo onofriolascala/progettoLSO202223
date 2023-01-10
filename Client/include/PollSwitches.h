@@ -21,6 +21,7 @@
 
 #include "../include/CommUtilClient.h"
 #include "../include/ConsoleLayouts.h"
+#include "../include/ParserClient.h"
 #include "../include/Def.h"
 
 int switchServer(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]);

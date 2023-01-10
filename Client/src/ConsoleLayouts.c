@@ -4,6 +4,7 @@
 
 #include "../include/ConsoleLayouts.h"
 
+// Macro di manipolazione del cursore
 #define clearScreen()       printf("\033[2J")
 #define clearLine()         printf("\033[2K")
 #define carriageReturn()    printf("\r")
@@ -13,7 +14,7 @@
 #define right(x)            printf("\033[%dC", (x))
 #define left(x)             printf("\033[%dD", (x))
 
-// Formattazione
+// Macro di formattazione
 #define default()           printf("\033[0m")
 #define bold()              printf("\033[1m")
 #define red()               printf("\033[32m")
@@ -56,6 +57,11 @@ void inputRoom(void) {
     printf("ID della stanza: ");
     default();
 }
+void inputComfirmation(void) {
+    green();
+    printf("Confermare per procedere (Y/y): ");
+    default();
+}
 
 void renderConnection(void) {
     printf("\n"
@@ -71,16 +77,35 @@ void renderConnection(void) {
 
 void renderLogin(void) {
     printf("\n"
-           "\033[32m\033[1m+-----------------------------------------\033[34m SCHERMATA DI LOGIN \033[32m------------------------------------------+\n"
+           "\033[32m\033[1m+-----------------------------------------\033[34m L'IMPICCATO - LOGIN \033[32m-----------------------------------------+\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "|\033[0m\tConnessione al server riuscita. Effettuare l'accesso per iniziare a giocare. In assenza di\t\033[1m\033[32m|\n"
            "|\033[0m\tun account, registrarsi prima e poi provare ad accedere.\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "|\033[0m\tOpzioni disponibili:\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\033[0m\t\t0) Disconnessione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t0) Accesso\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t0) Registrazione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t1) Accesso\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t2) Registrazione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "+-------------------------------------------------------------------------------------------------------+\033[0m\n\n");
     fflush(stdout);
 }
+
+void renderHomepage(void) {
+    printf("\n"
+           "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - HOMEPAGE \033[32m----------------------------------------+\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\033[0m\tBenvenuto nella homepage del gioco. Da qui è possibile creare una stanza ed unirvisi come\t\033[1m\033[32m|\n"
+           "|\033[0m\tgiocatore, entrarne in una già esistente o vedere quali stanze sono state create sul\t\t\033[1m\033[32m|\n"
+           "|\033[0m\tserver. E' infine possibile effettuare il logout, e tornare alla schermata di login.\t\t\033[1m\033[32m|\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\033[0m\tOpzioni disponibili:\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t0) Logout\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t1) Crea una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t2) Entra in una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t3) Lista delle stanze\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "+-------------------------------------------------------------------------------------------------------+\033[0m\n\n");
+    fflush(stdout);
+}
+

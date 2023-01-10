@@ -1,7 +1,7 @@
 #include "../include/ParserClient.h"
 
-char* parserIp(char* incoming[]){
-    //Prende incoming come input, restituisce una stringa con il valore dell'ip in caso di successo, un -1 in caso di dimensioni errate, -2 in casi di caratteri alfanumerici nell'ip
+char* parserIp(char incoming[]){
+    //Prende incoming come input, restituisce una stringa con il valore dell'ip in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nell'ip
     //Data la tipologia di controlli fatti non è possibile accettare degli alias come ip
     char temp[MAXIP]="";
     char* ip;
@@ -47,7 +47,7 @@ char* parserIp(char* incoming[]){
 }
 
 char* parserPort(char incoming[]){
-    //Prende incoming come input, restituisce una stringa con il valore della porta in caso di successo, un -1 in caso di dimensioni errate, -2 in casi di caratteri alfanumerici nella porta
+    //Prende incoming come input, restituisce una stringa con il valore della porta in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nella porta
     char temp[MAXPORT];
     char* pr;
     char* saveptr;
@@ -69,6 +69,7 @@ char* parserPort(char incoming[]){
 }
 
 char* parserPassword(char incoming[]){
+    //Prende incoming come input, restituisce uno 0 in caso di password valida, un -1 in caso di dimensioni errate, -2 in caso di caratteri non accettati
     char temp[PASSWORDLENGTH];
     char* psw;
     char* saveptr;
@@ -90,6 +91,7 @@ char* parserPassword(char incoming[]){
 }
 
 char* parserUsername(char incoming[]) {
+    //Prende incoming come input, restituisce uno 0 in caso di username valido, un -1 in caso di dimensioni errate, -2 in caso di caratteri non accettati
     char temp[USERNAMELENGTH];
     char *user;
     char *saveptr;
@@ -105,6 +107,6 @@ char* parserUsername(char incoming[]) {
             return -2;
         }
     }
-    printf("%s", temp);
+    //printf("%s", temp);
     return 0;
 }

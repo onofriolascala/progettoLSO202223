@@ -16,4 +16,12 @@
 
 #include "../include/Def.h"
 
+char* parserIp(char* incoming[]);
+
+char* parserPort(char incoming[]);
+
+char* parserPassword(char incoming[]);
+
+char* parserUsername(char incoming[]);
+
 #endif //PROGETTOLSO202223_PARSERCLIENT_H
