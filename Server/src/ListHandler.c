@@ -128,6 +128,35 @@ struct player_node* getPlayer( struct player_node* playerlist_head, int target_s
     return target;
 }
 
+struct player_node* getPlayerByUsername( struct player_node* playerlist_head, char usr_target[]){
+    //printf("DEBUG_getplayernode:started\n");
+    struct player_node *target, *tmp;
+    if( playerlist_head != NULL){
+        if( strcmp(playerlist_head->username,usr_target) == 0) {
+            //printf("DEBUG_getplayernode:1\n");
+            target = playerlist_head;
+        }
+        else {
+            tmp = playerlist_head->next;
+            while( strcmp(tmp->username, usr_target) != 0 && tmp != playerlist_head ){
+                tmp = tmp->next;
+            }
+            if( tmp != playerlist_head ){
+                //hit
+                target = tmp;
+            }
+            else{
+                target = NULL;
+            }
+        }
+    }
+    else {
+        target = NULL;
+    }
+    //printf("DEBUG_getplayernode:completed\n");
+    return target;
+}
+
 // FUNZIONI DI GESTIONE STANZE //
 /* La funzione riceve la testa di una lista di stanze da cui calcolare l'ID del nuovo nodo. Restituisce
  * il nuovo nodo creato con tutte le variabili settate o a zero o a null.

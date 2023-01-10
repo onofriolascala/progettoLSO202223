@@ -21,6 +21,7 @@ struct player_node* removePlayerNode( struct player_node** player_list, int targ
 int destroyPlayerNode( struct player_node* player_node );
 
 struct player_node* getPlayer( struct player_node* player_list, int target_socket );
+struct player_node* getPlayerByUsername( struct player_node* playerlist_head, char usr_target[]);
 
 // Funzioni room_node //
 struct room_node* createNewRoomNode( struct room_node* list_head );
