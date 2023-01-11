@@ -2,8 +2,8 @@
 // Created by Mattia on 03/12/2022.
 //
 
-#ifndef PROGETTOLSO202223_THREADPROMPT_H
-#define PROGETTOLSO202223_THREADPROMPT_H
+#ifndef PROGETTOLSO202223_PROMPT_H
+#define PROGETTOLSO202223_PROMPT_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,11 +18,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <ctype.h>
 
+#include "../include/ConsoleLayouts.h"
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"
-#include "../include/ThreadPrompt.h"
-#include "../include/ConsoleLayouts.h"
+#include "../include/Prompt.h"
 #include "../include/Def.h"
 
 void* thrPrompt(void* arg);
@@ -30,6 +31,7 @@ void* thrPrompt(void* arg);
 pthread_t createPrompt(int localsocket, int *prompt_socket, struct current_line *prompt_line);
 
 void promptConnection(struct current_line *prompt_line, char outgoing[]);
+void promptLogin(struct current_line *prompt_line, char outgoing[]);
 void promptChar(struct current_line *prompt_line, char outgoing[], int max_len);
 
-#endif //PROGETTOLSO202223_THREADPROMPT_H
+#endif //PROGETTOLSO202223_PROMPT_H

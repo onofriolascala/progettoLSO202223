@@ -19,7 +19,7 @@
 
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"
-#include "../include/ThreadPrompt.h"
+#include "../include/Prompt.h"
 #include "../include/PollSwitches.h"
 #include "../../Server/include/Def.h"
 
@@ -75,6 +75,8 @@ int main() {
     writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
     fcntl(prompt_socket, F_SETFL, fcntl(prompt_socket, F_GETFL, 0) | O_NONBLOCK);
     server.sd = &fds[1].fd;
+
+    renderConnection();
 
     //              MAIN CLIENT LOOP                //
 
