@@ -49,7 +49,7 @@ void* thrRoom(void* arg) {
     int end_loop = 0, close_conn;
     char *saveptr = NULL;
     char *username_p, *fd_p;
-    struct player_node* new_player;
+    struct player_node* new_player, *player;
     int new_player_fd;
 
 
@@ -111,9 +111,6 @@ void* thrRoom(void* arg) {
                         break;
                     }
                     /*  new join routine   */
-                    printf("DEBUG: New connection to the room was accepted\n");
-                    fflush(stdout);
-
 
                     signal_num = readFromClient(new_local_sd, incoming, MAXCOMMBUFFER);
 
@@ -121,10 +118,9 @@ void* thrRoom(void* arg) {
                     fd_p = strtok_r(NULL, "\0", &saveptr);
                     new_player_fd = atoi(fd_p);
                     //check if the usr is already in the room
-                    new_player = getPlayer(this_room->player_list, new_player_fd);
+                    new_player = getPlayerByUsername(this_room->player_list, username_p);
 
                     if( new_player == NULL){
-
                         new_player = createNewPlayerNode(new_player_fd, username_p);
                         this_room->player_list = addPlayerToPlayerList(this_room->player_list, new_player);
 
@@ -133,6 +129,11 @@ void* thrRoom(void* arg) {
                         fds[nfds].fd = new_player_fd;
                         fds[nfds].events = POLLIN;
                         nfds++;
+                        this_room->player_num++;
+
+                        printf("DEBUG: New connection to the room was accepted\n");
+                        fflush(stdout);
+
                         /* game logic */
                         /* if no suzerain was chosen set new usr as the suzerain*/
                         if( suzerain == NULL){
@@ -149,6 +150,8 @@ void* thrRoom(void* arg) {
                         }
                     }
                     else{
+                        printf("DEBUG: New connection to the room was refused\t-- Player already in room --\n");
+                        fflush(stdout);
                         writeToClient(new_local_sd, S_USERINROOM, "userinroom");
                     }
 
@@ -157,6 +160,7 @@ void* thrRoom(void* arg) {
                     //not the listening socket, managing the players socket
                     close_conn = 0;
                     signal_num = readFromClient(fds[i].fd, incoming, MAXCOMMBUFFER);
+                    player = getPlayer(this_room->player_list, fds[i].fd);
                     switch (signal_num) {
                         case -1:
                             //EWOULDBLOCK ERROR
@@ -170,23 +174,30 @@ void* thrRoom(void* arg) {
                             break;
                         case S_DISCONNECT_ABRUPT:
                             printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
-                            //removePlayerNode();
-                            //destroyPlayerNode();
-                            //updatePlayerNum();
-                            //sender = getPlayerNodeByFD(playerlist, fds[i].fd) if( suzerain == sender ) , suzerain = suzerain->next
-                            //if( currentPlayer == sender) currentPlayer = current_player->next
-                            this_room->player_num -= 1;
+                            /* game logic */
+                            //if the player was the current player and disconnects we need to update assign a new player
+                            if( current_player == player ){
+                                current_player = current_player->next;
+                            }
+                            if( suzerain == player ){
+                                end_loop = 1;
+                                //gameOver?
+                            }
+                            destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
+                            this_room->player_num--;
                             close_conn = 1;
-                            //writeToClient(fds[i].fd, S_DISCONNECT, S_DISCONNECT_MSG);
                             break;
                         case S_DISCONNECT:
                             printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
-                            //removePlayerNode();
-                            //destroyPlayerNode();
-                            //updatePlayerNum();
-                            //sender = getPlayerNodeByFD(playerlist, fds[i].fd) if( suzerain == sender ) , suzerain = suzerain->next
-                            //if( currentPlayer == sender) currentPlayer = current_player->next
-                            this_room->player_num -= 1;
+                            if( current_player == player ){
+                                current_player = current_player->next;
+                            }
+                            if( suzerain == player ){
+                                end_loop = 1;
+                                //gameOver?
+                            }
+                            destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
+                            this_room->player_num--;
                             close_conn = 1;
                             writeToClient(fds[i].fd, S_DISCONNECT, S_DISCONNECT_MSG);
                             break;
@@ -219,14 +230,21 @@ void* thrRoom(void* arg) {
                             break;
                         case C_EXITROOM:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
-                            //removePlayerNode();
-                            //updatePlayerNum()
-                            this_room->player_num -= 1;
-                            close_conn = 1;
-                            //sender = getPlayerNodeByFD(playerlist, fds[i].fd) if( suzerain == sender ) , suzerain = suzerain->next
-                            //if( currentPlayer == sender) currentPlayer = current_player->next
+
                             // Riavvio del threadService
-                            rebuildService(this_room->player_list, room_list);
+                            rebuildService(player, room_list);
+
+                            if( current_player == player ){
+                                current_player = current_player->next;
+                            }
+                            if( suzerain == player ){
+                                end_loop = 1;
+                                //gameOver?
+                            }
+                            destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
+                            this_room->player_num--;
+                            close_conn = 1;
+
                             writeToClient(fds[i].fd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
                             break;
                         default:

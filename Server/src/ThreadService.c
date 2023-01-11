@@ -20,6 +20,9 @@ void* thrService(void* arg) {
     char username[USERNAMELENGTH + 1];
     int sd, service_sd, out_len, signal_num, room_ID;
     struct room_node** room_list;
+    /*debug*/ char deb[USERNAMELENGTH + 1];
+
+
 
     signal_num = 2;
 
@@ -69,8 +72,13 @@ void* thrService(void* arg) {
                     break;
                 case C_LOGIN:
                     //printf("\t\tDEBUG_SD%d: <Login>.\n", sd);
-                    strcpy(incoming, "debug1debug2debug3debug4debug5de-"
+                    /*strcpy(incoming, "debug1debug2debug3debug4debug5de-"
                                      "debug1debug2debu;");
+                                     */
+
+                    sprintf(deb,"debug%d-debug", sd);
+                    strcpy(incoming, deb);
+
                     signal_num = login(sd, incoming, username, outgoing);
                     //printf("\t\tDEBUG_SD%d: <Login as \"%s\">.\n", sd, username);
                     writeToClient(sd, signal_num, outgoing);
@@ -143,7 +151,7 @@ void* thrService(void* arg) {
                     room_ID = 1; //DEBUG
                     signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
                     writeToClient(sd, signal_num, outgoing);
-                    if(signal_num == S_OK) {
+                    if(signal_num == S_ROOMOK) {
                         pthread_exit(NULL);
                     }
                     break;
