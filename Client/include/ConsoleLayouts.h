@@ -20,7 +20,7 @@
 
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"
-#include "../include/ThreadPrompt.h"
+#include "../include/Prompt.h"
 #include "../include/ConsoleLayouts.h"
 #include "../include/Def.h"
 
@@ -34,7 +34,7 @@ void inputPort(void);
 void inputUsername(void);
 void inputPassword(void);
 void inputRoom(void);
-void inputConfirmation(void);
+int inputComfirmation(void);
 
 // Funzioni di stampa delle varie schermate del client.
 void renderConnection(void);

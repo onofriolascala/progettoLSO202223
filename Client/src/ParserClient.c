@@ -1,19 +1,22 @@
 #include "../include/ParserClient.h"
 
-char* parserIp(char incoming[]){
-    //Prende incoming come input, restituisce una stringa con il valore dell'ip in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nell'ip
+int parserIp(char incoming[], struct server_connection *server){
+    //Prende incoming come input, restituisce una stringa con il valore dell'ip e 0 in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nell'ip
     //Data la tipologia di controlli fatti non è possibile accettare degli alias come ip
+    char input[MAXCOMMBUFFER];
+    strcpy(input, incoming);
+
     char temp[MAXIP]="";
     char* ip;
     char* saveptr;
     int count=2;
     int len;
-    ip = strtok_r(incoming, ".", &saveptr);
+    ip = strtok_r(input, ".", &saveptr);
     len=strlen(ip);
     if ((len > 3) || (len < 1)) {
         return -1;
     }
-    strncat(temp, ip, len);
+    strncpy(temp, ip, len);
     while(count){
         ip = strtok_r(NULL, ".", &saveptr);
         len=strlen(ip);
@@ -41,13 +44,17 @@ char* parserIp(char incoming[]){
             return -2;
         }
     }
-    strncat(ip, temp, len);
+    //strncat(ip, temp, len);
     //printf("%s", temp);
-    return ip;
+    strcpy(server->ip, temp);
+    return 0;
 }
 
-char* parserPort(char incoming[]){
-    //Prende incoming come input, restituisce una stringa con il valore della porta in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nella porta
+int parserPort(char incoming[],struct server_connection *server){
+    //Prende incoming come input, restituisce una stringa con il valore della porta e 0 in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nella porta
+    char input[MAXCOMMBUFFER];
+    strcpy(input, incoming);
+
     char temp[MAXPORT];
     char* pr;
     char* saveptr;
@@ -65,10 +72,11 @@ char* parserPort(char incoming[]){
         }
     }
     //printf("%s", temp);
-    return pr;
+    server->port = atoi(temp);
+    return 0;
 }
 
-char* parserPassword(char incoming[]){
+int parserPassword(char incoming[]){
     //Prende incoming come input, restituisce uno 0 in caso di password valida, un -1 in caso di dimensioni errate, -2 in caso di caratteri non accettati
     char temp[PASSWORDLENGTH];
     char* psw;
@@ -90,7 +98,7 @@ char* parserPassword(char incoming[]){
     return 0;
 }
 
-char* parserUsername(char incoming[]) {
+int parserUsername(char incoming[]) {
     //Prende incoming come input, restituisce uno 0 in caso di username valido, un -1 in caso di dimensioni errate, -2 in caso di caratteri non accettati
     char temp[USERNAMELENGTH];
     char *user;

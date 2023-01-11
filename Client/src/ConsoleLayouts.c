@@ -15,7 +15,7 @@
 #define left(x)             printf("\033[%dD", (x))
 
 // Macro di formattazione
-#define default()           printf("\033[0m")
+#define defaultFormat()     printf("\033[0m")
 #define bold()              printf("\033[1m")
 #define red()               printf("\033[32m")
 #define green()             printf("\033[32m")
@@ -25,42 +25,57 @@
 
 void emptyConsole(void) {
     clearScreen();
+    fflush(stdout);
 }
 
 void inputGeneric(void) {
     green();
     printf("Input: ");
-    default();
+    defaultFormat();
+    fflush(stdout);
 }
 void inputAddress(void) {
     green();
     printf("Indirizzo IPv4: ");
-    default();
+    defaultFormat();
+    fflush(stdout);
 }
 void inputPort(void) {
     green();
     printf("Porta: ");
-    default();
+    defaultFormat();
+    fflush(stdout);
 }
 void inputUsername(void) {
     green();
     printf("Nome Utente: ");
-    default();
+    defaultFormat();
+    fflush(stdout);
 }
 void inputPassword(void) {
     green();
     printf("Password: ");
-    default();
+    defaultFormat();
+    fflush(stdout);
 }
 void inputRoom(void) {
     green();
     printf("ID della stanza: ");
-    default();
+    defaultFormat();
+    fflush(stdout);
 }
-void inputComfirmation(void) {
+// Ritorna la conferma dell'operazione per cui è stata richiesta.
+int inputComfirmation(void) {
+    int confirm;
     green();
     printf("Confermare per procedere (Y/y): ");
-    default();
+    defaultFormat();
+    fflush(stdout);
+
+    confirm = getchar();
+    if(confirm == 'Y' || confirm == 'y') confirm = 1;
+    else confirm = 0;
+    return confirm;
 }
 
 void renderConnection(void) {
