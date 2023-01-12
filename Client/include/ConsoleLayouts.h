@@ -24,6 +24,25 @@
 #include "../include/ConsoleLayouts.h"
 #include "../include/Def.h"
 
+// Macro di manipolazione del cursore
+#define clearScreen()       printf("\033[2J")
+#define clearLine()         printf("\033[2K")
+#define carriageReturn()    printf("\r")
+#define gotoxy(x,y)         printf("\033[%d;%dH", (y), (x))
+#define up(x)               printf("\033[%dA", (x))
+#define down(x)             printf("\033[%dB", (x))
+#define right(x)            printf("\033[%dC", (x))
+#define left(x)             printf("\033[%dD", (x))
+
+// Macro di formattazione
+#define defaultFormat()     printf("\033[0m")
+#define bold()              printf("\033[1m")
+#define red()               printf("\033[31m")
+#define green()             printf("\033[32m")
+#define yellow()             printf("\033[33m")
+#define blue()              printf("\033[34m")
+#define white()             printf("\033[37m")
+
 // Funzione di pulizia della console. Da usare solo al passaggio da una schermata all'altra.
 void emptyConsole(void);
 

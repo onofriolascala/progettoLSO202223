@@ -3,7 +3,7 @@
 int parserIp(char incoming[], struct server_connection *server){
     //Prende incoming come input, restituisce una stringa con il valore dell'ip e 0 in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nell'ip
     //Data la tipologia di controlli fatti non è possibile accettare degli alias come ip
-    char input[MAXCOMMBUFFER];
+    char input[MAXCOMMBUFFER] = "";
     strcpy(input, incoming);
 
     char temp[MAXIP]="";
@@ -12,6 +12,7 @@ int parserIp(char incoming[], struct server_connection *server){
     int count=2;
     int len;
     ip = strtok_r(input, ".", &saveptr);
+    if(ip[0] == 0) return -1;
     len=strlen(ip);
     if ((len > 3) || (len < 1)) {
         return -1;
@@ -19,6 +20,7 @@ int parserIp(char incoming[], struct server_connection *server){
     strncpy(temp, ip, len);
     while(count){
         ip = strtok_r(NULL, ".", &saveptr);
+        if(ip[0] == 0) return -1;
         len=strlen(ip);
         if ((len > 3) || (len < 1)) {
             return -1;
@@ -30,6 +32,7 @@ int parserIp(char incoming[], struct server_connection *server){
         count--;
     }
     ip = strtok_r(NULL, "-", &saveptr);
+    if(ip[0] == 0) return -1;
     len=strlen(ip);
     if ((len > 3) || (len < 1)) {
         return -1;
@@ -60,7 +63,8 @@ int parserPort(char incoming[],struct server_connection *server){
     char* saveptr;
     int len;
     strtok_r(incoming, "-", &saveptr);
-    pr = strtok_r(NULL, "\0", &saveptr);
+    pr = strtok_r(NULL, ";", &saveptr);
+    if(pr[0] == 0) return -1;
     len=strlen(pr);
     if ((len > MAXPORT) || (len < MINPORT)) {
         return -1;
@@ -78,12 +82,16 @@ int parserPort(char incoming[],struct server_connection *server){
 
 int parserPassword(char incoming[]){
     //Prende incoming come input, restituisce uno 0 in caso di password valida, un -1 in caso di dimensioni errate, -2 in caso di caratteri non accettati
+    char input[MAXCOMMBUFFER];
+    strcpy(input, incoming);
+
     char temp[PASSWORDLENGTH];
     char* psw;
     char* saveptr;
     int len;
-    strtok_r(incoming, "-", &saveptr);
+    strtok_r(input, "-", &saveptr);
     psw = strtok_r(NULL, "\0", &saveptr);
+    if(psw[0] == 0) return -1;
     len=strlen(psw);
     if ((len < PASSWORDMINLENGTH) || (len > PASSWORDLENGTH)) {
         return -1;
@@ -100,11 +108,15 @@ int parserPassword(char incoming[]){
 
 int parserUsername(char incoming[]) {
     //Prende incoming come input, restituisce uno 0 in caso di username valido, un -1 in caso di dimensioni errate, -2 in caso di caratteri non accettati
+    char input[MAXCOMMBUFFER];
+    strcpy(input, incoming);
+
     char temp[USERNAMELENGTH];
     char *user;
     char *saveptr;
     int len;
-    user = strtok_r(incoming, "-", &saveptr);
+    user = strtok_r(input, "-", &saveptr);
+    if(user[0] == 0) return -1;
     len = strlen(user);
     if ((len < USERNAMEMINLENGTH) || (len > USERNAMELENGTH)) {
         return -1;

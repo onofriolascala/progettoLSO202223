@@ -4,25 +4,6 @@
 
 #include "../include/ConsoleLayouts.h"
 
-// Macro di manipolazione del cursore
-#define clearScreen()       printf("\033[2J")
-#define clearLine()         printf("\033[2K")
-#define carriageReturn()    printf("\r")
-#define gotoxy(x,y)         printf("\033[%d;%dH", (y), (x))
-#define up(x)               printf("\033[%dA", (x))
-#define down(x)             printf("\033[%dB", (x))
-#define right(x)            printf("\033[%dC", (x))
-#define left(x)             printf("\033[%dD", (x))
-
-// Macro di formattazione
-#define defaultFormat()     printf("\033[0m")
-#define bold()              printf("\033[1m")
-#define red()               printf("\033[32m")
-#define green()             printf("\033[32m")
-#define blue()              printf("\033[34m")
-#define white()             printf("\033[37m")
-
-
 void emptyConsole(void) {
     clearScreen();
     fflush(stdout);
@@ -75,6 +56,7 @@ int inputComfirmation(void) {
     confirm = getchar();
     if(confirm == 'Y' || confirm == 'y') confirm = 1;
     else confirm = 0;
+    getchar();
     return confirm;
 }
 

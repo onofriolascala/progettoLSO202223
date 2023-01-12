@@ -25,7 +25,7 @@
 
 int main() {
     // Dichiarazioni per la connessione
-    int localsocket, prompt_socket;
+    int localsocket;
     struct sockaddr_un localsocket_addr;
     socklen_t local_len;
 
@@ -44,17 +44,13 @@ int main() {
     struct server_connection server;
 
     // Inizializzazione della current line e del suo mutex
-    struct current_line *prompt_line;
-    if((prompt_line = (struct current_line*)malloc(sizeof(struct current_line))) == NULL){
+    struct prompt_thread *prompt;
+    if((prompt = (struct prompt_thread*)malloc(sizeof(struct prompt_thread))) == NULL){
         //gestire errore malloc
-        fprintf(stderr, ":CURRENT LINE STRUCT MALLOC: prompt_line was initialized to NULL.");
+        fprintf(stderr, ":PROMPT STRUCT MALLOC: prompt was initialized to NULL.");
         exit(1);
     }
-    pthread_mutex_init(&prompt_line->mutex, NULL);
-
-    // Inizializzazione della socket locale e del thread per il PROMPT
-    localsocket = localSocketInit(&localsocket_addr, &local_len);
-    createPrompt(localsocket, &prompt_socket, prompt_line);
+    pthread_mutex_init(&prompt->mutex, NULL);
 
     // Inizializzazioni poll
     end_loop = 0;
@@ -62,18 +58,23 @@ int main() {
     signal_num = 2;
 
     memset(fds, 0 ,sizeof(fds));
-    fds[0].fd = prompt_socket;
+    fds[0].fd = 0;
     fds[0].events = POLLIN;
     fds[1].fd = -1;                                 // Socket riservata alla connessione col server
     fds[1].events = POLLIN;                         // Inizialmente settata a -1 per essere ignorata.
     num_fds = 2;
 
-    timeout = ( 10 * 60 * 1000 );
+    timeout = ( 1 * 60 * 1000 );
+
+    // Inizializzazione della socket locale e del thread per il PROMPT
+    localsocket = localSocketInit(&localsocket_addr, &local_len);
+    prompt->id = createPrompt(localsocket, &fds[0].fd, prompt);
+    prompt->sd = &fds[0].fd;
 
     // Via libera al prompt. La socket viene impostata su non bloccante e salvata  all'interno della
     // struttura per la connessione.
-    writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
-    fcntl(prompt_socket, F_SETFL, fcntl(prompt_socket, F_GETFL, 0) | O_NONBLOCK);
+    writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
+    fcntl(*prompt->sd, F_SETFL, fcntl(*prompt->sd, F_GETFL, 0) | O_NONBLOCK);
     server.sd = &fds[1].fd;
 
     renderConnection();
@@ -112,16 +113,16 @@ int main() {
                 break;
             }
             // Socket del prompt
-            if(fds[i].fd == prompt_socket) {
-                signal_num = readFromServer(prompt_socket, incoming, MAXCOMMBUFFER);
+            if(fds[i].fd == *prompt->sd) {
+                signal_num = readFromServer(*prompt->sd, incoming, MAXCOMMBUFFER);
                 printf("MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
-                end_loop = switchPrompt(&server, prompt_socket, signal_num, incoming);
+                end_loop = switchPrompt(&server, prompt, signal_num, incoming);
             }
             // Socket del server
             else {
                 signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
                 printf("MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);
-                end_loop = switchServer(&server, prompt_socket, signal_num, incoming);
+                end_loop = switchServer(&server, prompt, signal_num, incoming);
             }
         }
         // restart polling unless loop ended

@@ -28,10 +28,12 @@
 
 void* thrPrompt(void* arg);
 
-pthread_t createPrompt(int localsocket, int *prompt_socket, struct current_line *prompt_line);
+pthread_t createPrompt(int localsocket, int *prompt_socket, struct prompt_thread *prompt);
 
-void promptConnection(struct current_line *prompt_line, char outgoing[]);
-void promptLogin(struct current_line *prompt_line, char outgoing[]);
-void promptChar(struct current_line *prompt_line, char outgoing[], int max_len);
+int promptConnection(struct prompt_thread *prompt_line, char outgoing[]);
+int promptLogin(struct prompt_thread *prompt_line, char outgoing[]);
+int promptString(struct prompt_thread *prompt_line, char buffer[], int max_len);
+
+int promptSelection(struct prompt_thread *prompt_line, char max_selection);
 
 #endif //PROGETTOLSO202223_PROMPT_H

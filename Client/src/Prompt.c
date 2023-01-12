@@ -12,8 +12,8 @@ void* thrPrompt(void* arg) {
     localaddr.sun_family = PF_LOCAL;
     strcpy(localaddr.sun_path, CLIENTLOCALSOCKET);
 
-    struct current_line *prompt_line;
-    prompt_line = (struct current_line*)arg;
+    struct prompt_thread *prompt;
+    prompt = (struct prompt_thread*)arg;
 
     // Apertura socket su un indirizzo costante.
     if((main_socket = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
@@ -37,7 +37,7 @@ void* thrPrompt(void* arg) {
         usleep(REFRESHCONSTANT);
 
         memset(incoming, '\0', sizeof(incoming));
-        memset(outgoing, '\0', sizeof(incoming));
+        memset(outgoing, '\0', sizeof(outgoing));
 
         out_len = strlen(outgoing);
 
@@ -54,12 +54,27 @@ void* thrPrompt(void* arg) {
             case 0:
                 break;
             case C_CONNECTION:
-                promptConnection(prompt_line, outgoing);
+                promptConnection(prompt, outgoing);
                 writeToServer(main_socket, C_CONNECTION, outgoing);
                 break;
             case C_LOGIN:
-                promptLogin(prompt_line, outgoing);
-                writeToServer(main_socket, C_LOGIN, outgoing);
+                result = promptLogin(prompt, outgoing);
+                // Disconnessione
+                if(result == 0) {
+                    writeToServer(main_socket, S_DISCONNECT, S_DISCONNECT_MSG);
+                }
+                // Login
+                else if(result == 1) {
+                    writeToServer(main_socket, C_LOGIN, outgoing);
+                }
+                // Signin
+                else if(result == 2) {
+                    writeToServer(main_socket, C_SIGNIN, outgoing);
+                }
+                // Errore
+                else {
+                    writeToServer(main_socket, C_RETRY, outgoing);
+                }
                 break;
             default:
                 printf("\t\t\t\tPROMPT_THREAD: <DEBUG> signal number not recognized. Manual response enabled.\n");
@@ -79,11 +94,11 @@ void* thrPrompt(void* arg) {
     return 0;
 }
 
-pthread_t createPrompt(int localsocket, int *prompt_socket, struct current_line *prompt_line) {
+pthread_t createPrompt(int localsocket, int *prompt_socket, struct prompt_thread *prompt) {
     pthread_t tid;
 
     //printf("DEBUG: Creation of detatched thread...\n");
-    if (pthread_create(&tid, NULL, thrPrompt, prompt_line)) {
+    if (pthread_create(&tid, NULL, thrPrompt, prompt)) {
         fprintf(stderr, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
         deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
         exit(1);
@@ -103,124 +118,151 @@ pthread_t createPrompt(int localsocket, int *prompt_socket, struct current_line 
     return tid;
 }
 
-void promptConnection(struct current_line *prompt_line, char outgoing[]) {
-    char temp_buffer[MAXIP];
+int promptConnection(struct prompt_thread *prompt_line, char outgoing[]) {
+    char temp_buffer[MAXCOMMBUFFER] = "";
+    int result;
 
-    memset(prompt_line->input, '\0', sizeof(prompt_line->input));
-
-    printf("Attivare la connessione di debug?\n");
-
-    //strcpy(prompt_line->input, "Attivare modalità di debug? (Y/y) ");
-    //printf("%s", prompt_line->input);
-    //fflush(stdout);
-    //promptChar(prompt_line, temp_buffer, 2);
-
+    green();
+    printf("Attivare la connessione di debug? (25.72.233.6:5200)\n");
+    defaultFormat();
     if(inputComfirmation()) {
         printf("Connessione a "
                "25.72.233.6:5200\n");
-        strcpy(outgoing, "25.72.233.6-5200");
-        return;
+        strcpy(outgoing, "25.72.233.6-5200;");
+        return 0;
     }
     else {
         printf("\n");
     }
 
     inputAddress();
-    promptChar(prompt_line, temp_buffer, MAXIP);
+    if ((result = promptString(prompt_line, temp_buffer, MAXIP)) < 0) return result;
 
     strncat(outgoing, temp_buffer, MAXIP+1);
     strncat(outgoing, "-", 2);
 
+    memset(temp_buffer, '\0', sizeof(temp_buffer));
+
     inputPort();
-    promptChar(prompt_line, temp_buffer, MAXPORT);
+    if ((result = promptString(prompt_line, temp_buffer, MAXPORT)) < 0) return result;
 
     strncat(outgoing, temp_buffer, MAXPORT+1);
+    strncat(outgoing, ";", 2);
+    return 0;
 }
 
-void promptLogin(struct current_line *prompt_line, char outgoing[]) {
-    char temp_buffer[MAXIP];
-    int result, end_loop;
-
-    memset(prompt_line->input, '\0', sizeof(prompt_line->input));
+int promptLogin(struct prompt_thread *prompt_line, char outgoing[]) {
+    char temp_buffer[USERNAMELENGTH];
+    int result;
 
 
-    result = 4;
-    do {
-        inputGeneric();
-        promptChar(prompt_line, outgoing, 2);
-        if(!isdigit(outgoing)) {
-            printf("Inserire un numero.\n");
-        }
-        if((result = atoi(outgoing)) >= 4){
-            printf("Inserire una delle opzioni previste.\n");
-        }
-    } while(result >= 4);
 
-    printf("Attivare l'accesso di debug?\n");
+    //
+    result = promptSelection(prompt_line, '2');
 
-    if(inputComfirmation()) {
-        printf("Accesso come "
-               "pippo con password pippo.\n");
-        strcpy(outgoing, "pippo-pippo");
-        return;
+    switch(result) {
+        case 0:
+            result = 0;
+            break;
+        case 1:
+            green();
+            printf("Attivare l'accesso di debug?\n");
+            defaultFormat();
+            if (inputComfirmation()) {
+                printf("Accesso come "
+                       "\"pippo\" con password \"pippo\".\n");
+                strcpy(outgoing, "pippo-pippo;");
+                return 1;
+            } else {
+                printf("\n");
+            }
+
+            inputUsername();
+            if ((result = promptString(prompt_line, temp_buffer, USERNAMELENGTH)) < 0) return result;
+
+            strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
+            strncat(outgoing, "-", 2);
+
+            inputPassword();
+            if ((result = promptString(prompt_line, temp_buffer, PASSWORDLENGTH)) < 0) return result;
+
+            strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
+            strncat(outgoing, ";", 2);
+
+            result = 1;
+            break;
+        case 2:
+            inputUsername();
+            if ((result = promptString(prompt_line, temp_buffer, USERNAMELENGTH)) < 0) return result;
+
+            strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
+            strncat(outgoing, "-", 2);
+
+            inputPassword();
+            if ((result = promptString(prompt_line, temp_buffer, PASSWORDLENGTH)) < 0) return result;
+
+            strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
+            strncat(outgoing, ";", 2);
+
+            result = 2;
+            break;
+        default:
+            result = -1;
     }
-    else {
-        printf("\n");
-    }
-
-    inputUsername();
-    promptChar(prompt_line, temp_buffer, USERNAMELENGTH);
-
-    strncat(outgoing, temp_buffer, USERNAMELENGTH+1);
-    strncat(outgoing, "-", 2);
-
-    inputPassword();
-    promptChar(prompt_line, temp_buffer, PASSWORDLENGTH);
-
-    strncat(outgoing, temp_buffer, PASSWORDLENGTH+1);
+    return result;
 }
 
 // Riceve la struttura temporanea per il salvataggio della riga di comando, rigorosamente vuota, e restituisce per
 // riferimento il messaggio finale in uscita dal prompt.
-void promptChar(struct current_line *prompt_line, char outgoing[], int max_len) {
-    int line_len, c, count;
-
-    if(max_len <= 0) {
-        fprintf(stderr, "\t\tPROMPTCHAR: max_len cannot be less or equal to zero.\n");
-        return;
-    }
-
-    memset(prompt_line->line, '\0', sizeof(prompt_line->line));
-    line_len = 0;
-
-    // Elimina un \n residuo qualora sia rimasto.
-/*
-    do {
-        c = getchar();
-    } while (c != '\n' && c != EOF);
-*/
+int promptString(struct prompt_thread *prompt_line, char buffer[], int max_len) {
+    char temp_buffer[MAXCOMMBUFFER];
 
     do {
         if(pthread_mutex_trylock(&prompt_line->mutex) == 0) {
-            c = getchar();
-            if (c == '\n') {
-                prompt_line->line[line_len++] = '\0';
-                strcpy(outgoing, prompt_line->line);
-                memset(prompt_line->input, '\0', sizeof(prompt_line->input));
-                memset(prompt_line->line, '\0', sizeof(prompt_line->line));
-                pthread_mutex_unlock(&prompt_line->mutex);
-                break;
+            if(!fgets(temp_buffer, sizeof temp_buffer, stdin)) {
+                fprintf(stderr, ":INPUT READING ERROR: prompt has failed reading from input.\n");
+                return -1;
             }
-            if (line_len < max_len - 1) {
-                prompt_line->line[line_len++] = c;
-            }
-            else {
-                prompt_line->line[max_len - 1] = '\0';
-            }
+            temp_buffer[strcspn(temp_buffer, "\r\n")] = '\0';
             pthread_mutex_unlock(&prompt_line->mutex);
+            break;
         }
         else {
-            usleep(5000);
+            usleep(REFRESHCONSTANT);
         }
     } while(1);
+    strncat(buffer, temp_buffer, max_len);
+    return 0;
+}
+
+int promptSelection(struct prompt_thread *prompt_line, char max_select) {
+    char temp_buffer[MAXCOMMBUFFER];
+    char c = 3;
+    do {
+        memset(temp_buffer, '\0', sizeof(temp_buffer));
+        inputGeneric();
+        if(promptString(prompt_line, temp_buffer, USERNAMELENGTH) < 0) return -1;
+        if(temp_buffer[0] == 0) {
+            red();
+            printf("\tInserire un valore.\n");
+            defaultFormat();
+            continue;
+        }
+        sscanf(temp_buffer, "%c", &c);
+        if(!isdigit(c)) {
+            red();
+            printf("\tInserire un numero.\n");
+            defaultFormat();
+            continue;
+        }
+        if(c < '0' || c > max_select){
+            red();
+            printf("\tInserire una delle opzioni previste.\n");
+            defaultFormat();
+            continue;
+        }
+        break;
+    } while(1);
+
+    return c - '0';
 }

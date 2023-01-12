@@ -4,7 +4,7 @@
 
 #include "../include/PollSwitches.h"
 
-int switchServer(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]) {
+int switchServer(struct server_connection *server, struct prompt_thread *prompt, int signal_num, char incoming[]) {
     int end_loop;
 
     end_loop = 0;
@@ -28,7 +28,7 @@ int switchServer(struct server_connection *server, int prompt_socket, int signal
             sleep(5);
             emptyConsole();
             renderConnection();
-            writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+            writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
             break;
         case S_DISCONNECT:
             // Il server comunica di aver recepito l'intento di disconnessione. Il client provvederà a chiudere
@@ -42,13 +42,13 @@ int switchServer(struct server_connection *server, int prompt_socket, int signal
             sleep(5);
             emptyConsole();
             renderConnection();
-            writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+            writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
             break;
         case S_LOGINOK:
             // Il server comunica il via libera alla schermata di login. Il client provvederà ad attivare
             // il prompt associato.
             renderLogin();
-            writeToServer(prompt_socket, C_LOGIN, "C_LOGIN");
+            writeToServer(*prompt->sd, C_LOGIN, "C_LOGIN");
             // check login
             break;
         case S_HOMEPAGEOK:
@@ -56,7 +56,7 @@ int switchServer(struct server_connection *server, int prompt_socket, int signal
             // il prompt associato.
             printf("\t\tSERVER_SWITCH: <Login Successful> %d:%s\n", signal_num, incoming);
             renderHomepage();
-            writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+            writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
             break;
         default:
             fprintf(stderr, "SERVER_SWITCH: <ERROR> signal \"%d\" with message \"%s\" not recognized. Disconnecting in 3 seconds.\n", signal_num, incoming);
@@ -65,12 +65,12 @@ int switchServer(struct server_connection *server, int prompt_socket, int signal
             *(server->sd) = -1;
 
             sleep(3);
-            writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+            writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
     }
     return end_loop;
 }
 
-int switchPrompt(struct server_connection *server, int prompt_socket, int signal_num, char incoming[]) {
+int switchPrompt(struct server_connection *server, struct prompt_thread *prompt, int signal_num, char incoming[]) {
     int end_loop, parser_return;
 
     char *ip, *port, *saveptr;
@@ -97,7 +97,7 @@ int switchPrompt(struct server_connection *server, int prompt_socket, int signal
             // Il prompt ha inviato un segnale di disconnessione dal server a cui il client è connesso in quel
             // momento. Il client provvederà a trasferirlo al server.
             printf("\t\tPROMPT_SWITCH: <Disconnection> %d:%s\n", signal_num, incoming);
-            writeToServer(*(server->sd), signal_num, incoming);
+            writeToServer(*server->sd, signal_num, incoming);
             break;
         case C_CONNECTION:
             // Il prompt desidera connettersi al processo server identificato da indirizzo IPv4 e porta forniti.
@@ -127,21 +127,21 @@ int switchPrompt(struct server_connection *server, int prompt_socket, int signal
             if ((*(server->sd) = socketInit(&server->addr, &server->len, server->ip, server->port)) < 4) {
                 fprintf(stderr,":SWITCH PROMPT ERROR: Apertura della server socket non riuscita correttamente. Riprovare.\n");
                 *(server->sd) = -1;
-                writeToServer(prompt_socket, C_CONNECTION, "C_CONNECTION");
+                writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
                 break;
             }
             break;
         case C_LOGIN:
             printf("\t\tPROMPT_SWITCH: <Login> %d:%s\n", signal_num, incoming);
-            writeToServer(prompt_socket, 88, "C_CONNECTION");
+            writeToServer(*prompt->sd, 88, "C_CONNECTION");
             break;
         case C_SIGNIN:
             printf("\t\tPROMPT_SWITCH: <Signin> %d:%s\n", signal_num, incoming);
-            writeToServer(prompt_socket, 88, "C_CONNECTION");
+            writeToServer(*prompt->sd, 88, "C_CONNECTION");
             break;
         default:
             printf("\t\tPROMPT_SWITCH: <Default> %d:%s\n", signal_num, incoming);
-            writeToServer(*(server->sd), signal_num, incoming);
+            writeToServer(*server->sd, signal_num, incoming);
     }
     return end_loop;
 }

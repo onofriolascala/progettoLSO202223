@@ -114,6 +114,7 @@
 #define C_SELECTWORD 30     // Selezione della parola
 #define C_GUESSSKIP 31      // Guess o passo
 #define C_EXITROOM 32       // Uscita dalla stanza
+#define C_RETRY 40          // Un errore del prompt suggerisce un nuovo tentativo della scorsa operazione
 #define C_CLIENTERROR 49    // Generico errore lato client
 
 struct server_connection {
@@ -124,9 +125,9 @@ struct server_connection {
     int port;
 };
 
-struct current_line {
-    char input[MAXCOMMBUFFER];
-    char line[MAXCOMMBUFFER];
+struct prompt_thread {
+    int *sd;
+    pthread_t id;
     pthread_mutex_t mutex;
 };
 
