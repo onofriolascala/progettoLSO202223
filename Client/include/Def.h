@@ -14,7 +14,7 @@
 #define SERVERPORT 5200
 
 #define CLIENTLOCALSOCKET "/tmp/mainClient_socket_local"
-#define CLIENTPOLLINGCONST 3
+#define CLIENTPOLLINGCONST 2
 
 // Costanti per le comunicazioni.
 #define MAXCOMMBUFFER 1024
@@ -119,10 +119,12 @@
 
 struct server_connection {
     int *sd;
+    int *localsocket;
     struct sockaddr_in addr;
     socklen_t len;
     char ip[MAXCOMMBUFFER];
     int port;
+    char connected_user[USERNAMELENGTH];
 };
 
 struct prompt_thread {

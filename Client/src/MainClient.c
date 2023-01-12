@@ -64,18 +64,20 @@ int main() {
     fds[1].events = POLLIN;                         // Inizialmente settata a -1 per essere ignorata.
     num_fds = 2;
 
-    timeout = ( 1 * 60 * 1000 );
+    timeout = ( 10 * 60 * 1000 );
 
     // Inizializzazione della socket locale e del thread per il PROMPT
     localsocket = localSocketInit(&localsocket_addr, &local_len);
-    prompt->id = createPrompt(localsocket, &fds[0].fd, prompt);
     prompt->sd = &fds[0].fd;
+    prompt->id = createPrompt(localsocket, prompt);
 
     // Via libera al prompt. La socket viene impostata su non bloccante e salvata  all'interno della
     // struttura per la connessione.
+
     writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
     fcntl(*prompt->sd, F_SETFL, fcntl(*prompt->sd, F_GETFL, 0) | O_NONBLOCK);
     server.sd = &fds[1].fd;
+    server.localsocket = &localsocket;
 
     renderConnection();
 
@@ -97,8 +99,10 @@ int main() {
         }
         // Timeout
         if( rc == 0 ) {
-            printf("MAIN: poll timed out. Closing the logic loop\n");
-            break;
+            printf("MAIN: poll timed out. Restarting the logic loop\n");
+            // IMPLEMENTARE RIAVVIO CONNESSIONE
+            switchServer(&server, prompt, S_DISCONNECT, "C_DISCONNECT")
+            continue;
         }
         for(i = 0; i < num_fds; i++){
             // Socket dormiente

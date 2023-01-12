@@ -5,7 +5,7 @@
 #include "../include/Prompt.h"
 
 void* thrPrompt(void* arg) {
-    int main_socket, signal_num, prompt_mode, out_len, result;
+    int main_socket, signal_num, prompt_mode, last_mode, result;
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER], tempbuffer[MAXCOMMBUFFER];
 
     struct sockaddr_un localaddr;
@@ -39,8 +39,6 @@ void* thrPrompt(void* arg) {
         memset(incoming, '\0', sizeof(incoming));
         memset(outgoing, '\0', sizeof(outgoing));
 
-        out_len = strlen(outgoing);
-
         switch (prompt_mode) {
             case -1:
                 // EWOULDBLOCK ERROR
@@ -53,30 +51,60 @@ void* thrPrompt(void* arg) {
                 break;
             case 0:
                 break;
+            case C_RETRY:
+                prompt_mode = last_mode;
+                continue;
             case C_CONNECTION:
+                last_mode = prompt_mode;
                 promptConnection(prompt, outgoing);
                 writeToServer(main_socket, C_CONNECTION, outgoing);
                 break;
             case C_LOGIN:
+                last_mode = prompt_mode;
                 result = promptLogin(prompt, outgoing);
                 // Disconnessione
                 if(result == 0) {
                     writeToServer(main_socket, S_DISCONNECT, S_DISCONNECT_MSG);
                 }
-                // Login
+                    // Login
                 else if(result == 1) {
                     writeToServer(main_socket, C_LOGIN, outgoing);
                 }
-                // Signin
+                    // Signin
                 else if(result == 2) {
                     writeToServer(main_socket, C_SIGNIN, outgoing);
                 }
+                    // Errore
+                else {
+                    writeToServer(main_socket, C_RETRY, "C_RETRY");
+                }
+                break;
+            case C_CREATEROOM:
+                last_mode = prompt_mode;
+                result = promptLogin(prompt, outgoing);
+                // Loout
+                if(result == 0) {
+                    writeToServer(main_socket, C_LOGOUT, "C_LOGOUT");
+                }
+                // Create Room
+                else if(result == 1) {
+                    writeToServer(main_socket, C_CREATEROOM, "C_CREATEROOM");
+                }
+                // Join Room
+                else if(result == 2) {
+                    writeToServer(main_socket, C_JOINROOM, outgoing);
+                }
+                // List Rooms
+                else if(result == 3) {
+                    writeToServer(main_socket, C_LISTROOM, "C_LISTROOM");
+                }
                 // Errore
                 else {
-                    writeToServer(main_socket, C_RETRY, outgoing);
+                    writeToServer(main_socket, C_RETRY, "C_RETRY");
                 }
                 break;
             default:
+                last_mode = prompt_mode;
                 printf("\t\t\t\tPROMPT_THREAD: <DEBUG> signal number not recognized. Manual response enabled.\n");
                 printf("\t\t\t\tSignal Number: ");
                 fgets(outgoing, MAXCOMMBUFFER, stdin);
@@ -94,7 +122,7 @@ void* thrPrompt(void* arg) {
     return 0;
 }
 
-pthread_t createPrompt(int localsocket, int *prompt_socket, struct prompt_thread *prompt) {
+pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
     pthread_t tid;
 
     //printf("DEBUG: Creation of detatched thread...\n");
@@ -107,13 +135,13 @@ pthread_t createPrompt(int localsocket, int *prompt_socket, struct prompt_thread
     // Detatch necessario per far sì che le risorse del thread siano liberate senza un join.
     pthread_detach(tid);
 
-    if((*prompt_socket = accept(localsocket, NULL, NULL)) < 0) {
+    if((*prompt->sd = accept(localsocket, NULL, NULL)) < 0) {
         perror(":ACCEPT ERROR");
         deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
         exit(1);
     }
 
-    printf("MAIN: Prompt thread created with prompt_socket sd:%d.\n", *prompt_socket);
+    printf("MAIN: Prompt thread created with prompt_socket sd:%d.\n", *prompt->sd);
     fflush(stdout);
     return tid;
 }
@@ -132,7 +160,9 @@ int promptConnection(struct prompt_thread *prompt_line, char outgoing[]) {
         return 0;
     }
     else {
-        printf("\n");
+        up(1);
+        clearLine();
+        carriageReturn();
     }
 
     inputAddress();
@@ -151,64 +181,130 @@ int promptConnection(struct prompt_thread *prompt_line, char outgoing[]) {
     return 0;
 }
 
-int promptLogin(struct prompt_thread *prompt_line, char outgoing[]) {
+int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
     char temp_buffer[USERNAMELENGTH];
-    int result;
+    int result, end_loop;
 
+    do {
+        end_loop = 1;
+        //
+        result = promptSelection(prompt, '2');
 
+        switch (result) {
+            // Disconnessione
+            case 0:
+                if (inputComfirmation()) {
+                    result = 0;
+                } else {
+                    end_loop = 0;
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                }
+                break;
+                // Login
+            case 1:
+                green();
+                printf("Attivare l'accesso di debug?\n");
+                defaultFormat();
+                if (inputComfirmation()) {
+                    printf("Accesso come "
+                           "\"pippo\" con password \"pippo\".\n");
+                    strcpy(outgoing, "pippo-pippo;");
+                    return 1;
+                } else {
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                }
 
-    //
-    result = promptSelection(prompt_line, '2');
+                inputUsername();
+                if ((result = promptString(prompt, temp_buffer, USERNAMELENGTH)) < 0) return result;
 
-    switch(result) {
-        case 0:
-            result = 0;
-            break;
-        case 1:
-            green();
-            printf("Attivare l'accesso di debug?\n");
-            defaultFormat();
-            if (inputComfirmation()) {
-                printf("Accesso come "
-                       "\"pippo\" con password \"pippo\".\n");
-                strcpy(outgoing, "pippo-pippo;");
-                return 1;
-            } else {
+                strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
+                strncat(outgoing, "-", 2);
+
+                memset(temp_buffer, '\0', sizeof(temp_buffer));
+
+                inputPassword();
+                if ((result = promptString(prompt, temp_buffer, PASSWORDLENGTH)) < 0) return result;
+
+                strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
+                strncat(outgoing, ";", 2);
+
+                result = 1;
+                break;
+                // Signin
+            case 2:
                 printf("\n");
-            }
+                inputUsername();
+                if ((result = promptString(prompt, temp_buffer, USERNAMELENGTH)) < 0) return result;
 
-            inputUsername();
-            if ((result = promptString(prompt_line, temp_buffer, USERNAMELENGTH)) < 0) return result;
+                strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
+                strncat(outgoing, "-", 2);
 
-            strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
-            strncat(outgoing, "-", 2);
+                memset(temp_buffer, '\0', sizeof(temp_buffer));
 
-            inputPassword();
-            if ((result = promptString(prompt_line, temp_buffer, PASSWORDLENGTH)) < 0) return result;
+                inputPassword();
+                if ((result = promptString(prompt, temp_buffer, PASSWORDLENGTH)) < 0) return result;
 
-            strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
-            strncat(outgoing, ";", 2);
+                strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
+                strncat(outgoing, ";", 2);
 
-            result = 1;
-            break;
-        case 2:
-            inputUsername();
-            if ((result = promptString(prompt_line, temp_buffer, USERNAMELENGTH)) < 0) return result;
+                result = 2;
+                break;
+            default:
+                result = -1;
+        }
+    } while( !end_loop );
+    return result;
+}
 
-            strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
-            strncat(outgoing, "-", 2);
+int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
+    char temp_buffer[USERNAMELENGTH];
+    int result, end_loop;
 
-            inputPassword();
-            if ((result = promptString(prompt_line, temp_buffer, PASSWORDLENGTH)) < 0) return result;
+    do {
+        end_loop = 1;
 
-            strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
-            strncat(outgoing, ";", 2);
+        //
+        result = promptSelection(prompt, '3');
 
-            result = 2;
-            break;
-        default:
-            result = -1;
-    }
+        switch (result) {
+            // Logout
+            case 0:
+                if (inputComfirmation()) {
+                    result = 0;
+                } else {
+                    end_loop = 0;
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                }
+                break;
+                // Create Room
+            case 1:
+                printf("\n");
+
+                result = 1;
+                break;
+                // Join room
+            case 2:
+                printf("\n");
+
+
+                result = 2;
+                break;
+                // Room List
+            case 3:
+                result = 3;
+
+                break;
+            default:
+                result = -1;
+        }
+
+    } while ( !end_loop );
     return result;
 }
 
