@@ -44,8 +44,7 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
 // Funzione contenente il while infinito con annesso ascolto passivo.
 void acceptLoop(int sd1, struct room_node** room_list) {
     int sd2;
-    int count = 5;
-    while(count--){
+    while(1){
         // Loop di Accettazione
         if((sd2 = accept(sd1, NULL, NULL)) < 0) {
             perror(":ACCEPT ERROR");
