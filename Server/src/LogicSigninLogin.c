@@ -88,7 +88,7 @@ int login(int sd, char incoming[], char username[], char outgoing[]) {
     //if (selectQuery(LSO2223, username, password);) {
     if(1){
         //printf("\t\tDEBUG_loginSD%d: 1\n", sd);
-        strcpy(outgoing, "Homepage");
+        strcpy(outgoing, S_HOMEPAGEOK_MSG);
         //printf("\t\tDEBUG_login: nome utente \"%s\" con password \"%s\".\n", username, password);
         signal_num = S_HOMEPAGEOK;
     }
