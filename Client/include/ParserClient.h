@@ -22,6 +22,6 @@ int parserPort(char incoming[], struct server_connection *server);
 
 int parserPassword(char incoming[]);
 
-int parserUsername(char incoming[]);
+int parserUsername(char incoming[], struct server_connection *server);
 
 #endif //PROGETTOLSO202223_PARSERCLIENT_H

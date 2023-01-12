@@ -106,7 +106,7 @@ int parserPassword(char incoming[]){
     return 0;
 }
 
-int parserUsername(char incoming[]) {
+int parserUsername(char incoming[], struct server_connection *server) {
     //Prende incoming come input, restituisce uno 0 in caso di username valido, un -1 in caso di dimensioni errate, -2 in caso di caratteri non accettati
     char input[MAXCOMMBUFFER];
     strcpy(input, incoming);
@@ -128,5 +128,6 @@ int parserUsername(char incoming[]) {
         }
     }
     //printf("%s", temp);
+    strcpy(server->connected_user, temp);
     return 0;
 }

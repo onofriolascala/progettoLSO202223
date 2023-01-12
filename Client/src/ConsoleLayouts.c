@@ -29,13 +29,13 @@ void inputPort(void) {
 }
 void inputUsername(void) {
     green();
-    printf("Nome Utente: ");
+    printf("Nome Utente (6-32 caratteri ASCII): ");
     defaultFormat();
     fflush(stdout);
 }
 void inputPassword(void) {
     green();
-    printf("Password: ");
+    printf("Password (10-16 caratteri ASCII): ");
     defaultFormat();
     fflush(stdout);
 }
@@ -72,7 +72,7 @@ void renderConnection(void) {
     fflush(stdout);
 }
 
-void renderLogin(void) {
+void renderLogin(struct server_connection *server) {
     printf("\n"
            "\033[32m\033[1m+-----------------------------------------\033[34m L'IMPICCATO - LOGIN \033[32m-----------------------------------------+\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
@@ -84,11 +84,12 @@ void renderLogin(void) {
            "|\033[0m\t\t1) Accesso\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\033[0m\t\t2) Registrazione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "+-------------------------------------------------------------------------------------------------------+\033[0m\n\n");
+           "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
+    printf("\tServer: %s \t Port: %d\n\n", server->ip, server->port);
     fflush(stdout);
 }
 
-void renderHomepage(void) {
+void renderHomepage(struct server_connection *server) {
     printf("\n"
            "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - HOMEPAGE \033[32m----------------------------------------+\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
@@ -102,7 +103,8 @@ void renderHomepage(void) {
            "|\033[0m\t\t2) Entra in una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\033[0m\t\t3) Lista delle stanze\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "+-------------------------------------------------------------------------------------------------------+\033[0m\n\n");
+           "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
+    printf("\tServer IPv4: %s      Porta: %d      Username: %s\n\n", server->ip, server->port, server->connected_user);
     fflush(stdout);
 }
 

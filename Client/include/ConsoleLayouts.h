@@ -57,7 +57,7 @@ int inputComfirmation(void);
 
 // Funzioni di stampa delle varie schermate del client.
 void renderConnection(void);
-void renderLogin(void);
-void renderHomepage(void);
+void renderLogin(struct server_connection *server);
+void renderHomepage(struct server_connection *server);
 
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H
