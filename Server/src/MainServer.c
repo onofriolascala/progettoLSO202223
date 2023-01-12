@@ -21,6 +21,9 @@
 #include "../include/Def.h"
 //#include "../include/ThreadRoom.h"
 #include "../include/ListHandler.h"
+#include <signal.h>
+
+static void sigHandler(int signum);
 
 int main() {
     int sd1, sd2;
@@ -36,6 +39,17 @@ int main() {
     room_head = NULL;
     room_list = &room_head;
 
+    // Inizializzazione del signal handler
+    if(signal(SIGINT, sigHandler) == SIG_ERR){
+        printf("Errore nella creazione del sigHandler, impossibile intercettare SIGINT\n");
+    }
+    if(signal(SIGTERM, sigHandler) == SIG_ERR){
+        printf("Errore nella creazione del sigHandler, impossibile intercettare SIGTERM\n");
+    }
+    if(signal(SIGKILL, sigHandler) == SIG_ERR){
+        printf("Errore nella creazione del sigHandler, impossibile intercettare SIGKILL\n");
+    }
+
     // Inizializzazione della socket primaria d'ascolto: socket, bind e listen.
     sd1 = socketInit(&server_addr, &len);
 
@@ -45,4 +59,12 @@ int main() {
     close(sd1);
     printf("Terminazione processo server.\n");
     return 0;
+}
+
+static void sigHandler(int signum){
+    if(signum == SIGINT || signum == SIGTERM || signum == SIGKILL){
+        //closing routine
+        system("rm /tmp/thrRoom_socket_local_*");
+        exit(1);
+    }
 }
