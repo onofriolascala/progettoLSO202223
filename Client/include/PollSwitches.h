@@ -24,7 +24,7 @@
 #include "../include/ParserClient.h"
 #include "../include/Def.h"
 
-int switchServer(struct server_connection *server, struct prompt_thread *prompt, int signal_num, char incoming[]);
-int switchPrompt(struct server_connection *server, struct prompt_thread *prompt, int signal_num, char incoming[]);
+int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]);
+int switchPrompt(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]);
 
 #endif // POLLSWITCHES_H

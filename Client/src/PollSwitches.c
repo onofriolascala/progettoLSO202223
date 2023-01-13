@@ -4,8 +4,17 @@
 
 #include "../include/PollSwitches.h"
 
-int switchServer(struct server_connection *server, struct prompt_thread *prompt, int signal_num, char incoming[]) {
-    int end_loop;
+int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
+    int end_loop, same_signal;
+
+    if(server->last_signal != signal_num) {
+        emptyConsole();
+        server->last_signal == signal_num;
+        same_signal = 0;
+    }
+    else {
+        same_signal = 1;
+    }
 
     end_loop = 0;
 
@@ -31,17 +40,17 @@ int switchServer(struct server_connection *server, struct prompt_thread *prompt,
             prompt->id = createPrompt(*server->localsocket, prompt);
 
             sleep(5);
-            emptyConsole();
-            renderConnection();
+            if( !same_signal ) renderConnection();
             pthread_mutex_unlock(&prompt->mutex);
             writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
             break;
         case S_LOGINOK:
             // Il server comunica il via libera alla schermata di login. Il client provvederà ad attivare
             // il prompt associato.
+            printf("\t\tSERVER_SWITCH: <Connection Successful> %d:%s\n", signal_num, incoming);
             //emptyConsole();
-            renderLogin(server);
-            if(strcmp(incoming, S_LOGINOK_MSG)) printf("\t%s\n", incoming);
+            if( !same_signal ) renderLogin(server);
+            if(strcmp(incoming, S_LOGINOK_MSG) != 0) printf("\t%s\n", incoming);
             writeToServer(*prompt->sd, C_LOGIN, "C_LOGIN");
             // check login
             break;
@@ -49,12 +58,101 @@ int switchServer(struct server_connection *server, struct prompt_thread *prompt,
             // Il server comunica il via libera alla schermata di homepage. Il client provvederà ad attivare
             // il prompt associato.
             printf("\t\tSERVER_SWITCH: <Login Successful> %d:%s\n", signal_num, incoming);
-            //emptyConsole();
-            renderHomepage(server);
-            if(strcmp(incoming, S_HOMEPAGEOK_MSG)) printf("\t%s\n", incoming);
+            if( !same_signal ) renderHomepage(server);
+            if(strcmp(incoming, S_HOMEPAGEOK_MSG) != 0) printf("\t%s\n", incoming);
             writeToServer(*prompt->sd, C_CREATEROOM, "C_CREATEROOM");
             break;
+        case S_ROOMLISTOK:
+            // Il server comunica il via libera della stampa delle stanze esistenti sul server. Il client procede
+            // ad estrarle, formattarle ed infine riattivare il prompt.
+            printf("\t\tSERVER_SWITCH: <Join Successful> %d:%s\n", signal_num, incoming);
+            if( !same_signal ) renderRoom(server, room);
+            //if(strcmp(incoming, S_HOMEPAGEOK_MSG)) printf("\t%s\n", incoming);
+            writeToServer(*prompt->sd, C_CREATEROOM, "C_CREATEROOM");
+            break;
+        case S_ROOMOK:
+            // Il server comunica l'avvenuto accesso alla stanza. Verrà eseguita la prima stampa della stanza.
+            printf("\t\tSERVER_SWITCH: <Join Successful> %d:%s\n", signal_num, incoming);
+            emptyConsole();
+            renderRoom(server, room);
+            //if(strcmp(incoming, S_HOMEPAGEOK_MSG)) printf("\t%s\n", incoming);
+            writeToServer(*prompt->sd, C_GUESSSKIP, incoming);
+            break;
+        case S_MISSEDGUESS:
+            //
+            printf("\t\tSERVER_SWITCH: <Missed Guess> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_CREATEROOM, "C_CREATEROOM");
+            break;
+        case S_VICTORY:
+            //
+            printf("\t\tSERVER_SWITCH: <Victoryl> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_CREATEROOM, "C_CREATEROOM");
+            break;
+        case S_DEFEAT:
+            //
+            printf("\t\tSERVER_SWITCH: <Defeat> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_CREATEROOM, "C_CREATEROOM");
+            break;
+        case S_ENDOFTURN:
+            //
+            printf("\t\tSERVER_SWITCH: <End of Turn> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_CREATEROOM, "C_CREATEROOM");
+            break;
+        //          CASI DI ERRORE          //
+        case S_FULLROOM:
+            // La stanza è piena. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_ROOMNOTFOUND:
+            // La stanza non esiste. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_USERINROOM:
+            // L'utente è già connesso da un altro client. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_TURNTIMEOUT:
+            // L'utente non ha inviato per tempo il segnale.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_NOTYOURTURN:
+            // L'utente prova a comunicare col server quando non è il suo turno.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_SERVERERROR:
+            // Il server non è attualmente disponibile. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_LOGINERROR:
+            // Credenziali errate. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_SIGNINERROR:
+            // Username già esistente. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_NOPERMISSION:
+            // Il client non ha i permessi adeguati. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_UNKNOWNSIGNAL:
+            // Il server non ha riconosciuto il messaggio in entrata. Nuovo tentativo.
+            printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
+            writeToServer(*prompt->sd, C_RETRY, incoming);
+            break;
+        case S_COMMTIMOUT:
         default:
+            // Il server ha effettuato una comunicazione non riconosciuta. Per tanto, il client terminerà la connessione
+            // per prevenire problemi di gestione del segnale sconosciuto.
             fprintf(stderr, "SERVER_SWITCH: <ERROR> signal \"%d\" with message \"%s\" not recognized. Disconnecting in 3 seconds.\n", signal_num, incoming);
             writeToServer(*(server->sd), S_DISCONNECT, S_UNKNOWNSIGNAL_MSG);
             close(*(server->sd));
@@ -66,10 +164,8 @@ int switchServer(struct server_connection *server, struct prompt_thread *prompt,
     return end_loop;
 }
 
-int switchPrompt(struct server_connection *server, struct prompt_thread *prompt, int signal_num, char incoming[]) {
+int switchPrompt(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
     int end_loop, parser_return;
-
-    char *ip, *port, *saveptr;
 
     end_loop = 0;
 
@@ -211,6 +307,15 @@ int switchPrompt(struct server_connection *server, struct prompt_thread *prompt,
             writeToServer(*server->sd, signal_num, incoming);
             break;
         case C_LISTROOM:
+            writeToServer(*server->sd, signal_num, incoming);
+            break;
+        case C_EXITROOM:
+            writeToServer(*server->sd, signal_num, incoming);
+            break;
+        case C_GUESSSKIP:
+            writeToServer(*server->sd, signal_num, incoming);
+            break;
+        case C_CLIENTERROR:
             writeToServer(*server->sd, signal_num, incoming);
             break;
         default:

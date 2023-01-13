@@ -82,7 +82,7 @@ void* thrPrompt(void* arg) {
             case C_CREATEROOM:
                 last_mode = prompt_mode;
                 result = promptLogin(prompt, outgoing);
-                // Loout
+                // Logout
                 if(result == 0) {
                     writeToServer(main_socket, C_LOGOUT, "C_LOGOUT");
                 }
@@ -209,8 +209,8 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                 defaultFormat();
                 if (inputComfirmation()) {
                     printf("Accesso come "
-                           "\"pippo\" con password \"pippo\".\n");
-                    strcpy(outgoing, "pippo-pippo;");
+                           "\"pippopippopippo\" con password \"pippopippo\".\n");
+                    strcpy(outgoing, "pippopippo-pippopippo;");
                     return 1;
                 } else {
                     up(1);
@@ -262,7 +262,8 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
 
 int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
     char temp_buffer[USERNAMELENGTH];
-    int result, end_loop;
+    char *endp;
+    int result, end_loop, n;
 
     do {
         end_loop = 1;
@@ -282,23 +283,31 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
                     carriageReturn();
                 }
                 break;
-                // Create Room
+            // Create Room
             case 1:
                 printf("\n");
 
                 result = 1;
                 break;
-                // Join room
+            // Join room
             case 2:
                 printf("\n");
 
-
-                result = 2;
+                inputRoom();
+                result = promptInteger(prompt);
+                if (result == 0) {
+                    end_loop = 0;
+                }
+                else if (result > 0) {
+                    sprintf(outgoing, "%d;", result);
+                    result = 2;
+                }
                 break;
-                // Room List
+            // Room List
             case 3:
-                result = 3;
+                printf("\n");
 
+                result = 3;
                 break;
             default:
                 result = -1;
@@ -308,19 +317,21 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
     return result;
 }
 
-// Riceve la struttura temporanea per il salvataggio della riga di comando, rigorosamente vuota, e restituisce per
-// riferimento il messaggio finale in uscita dal prompt.
-int promptString(struct prompt_thread *prompt_line, char buffer[], int max_len) {
+// Principale funzione di ricezione della stringa. Tramite un mutex si assicura che non venga attivata la ricezione di
+// una stringa durante le altre operazioni di stampa. Riceve la struttura del prompt, un buffer in uscita ed una
+// lunghezza massima per la stringa da recepire (con massimo comunque MAXCOMMBUFFER).
+// Restituisce 0 in caso di successo, -1 in caso di errore di ricezione dell'input.
+int promptString(struct prompt_thread *prompt, char buffer[], int max_len) {
     char temp_buffer[MAXCOMMBUFFER];
 
     do {
-        if(pthread_mutex_trylock(&prompt_line->mutex) == 0) {
+        if(pthread_mutex_trylock(&prompt->mutex) == 0) {
             if(!fgets(temp_buffer, sizeof temp_buffer, stdin)) {
                 fprintf(stderr, ":INPUT READING ERROR: prompt has failed reading from input.\n");
                 return -1;
             }
             temp_buffer[strcspn(temp_buffer, "\r\n")] = '\0';
-            pthread_mutex_unlock(&prompt_line->mutex);
+            pthread_mutex_unlock(&prompt->mutex);
             break;
         }
         else {
@@ -331,13 +342,15 @@ int promptString(struct prompt_thread *prompt_line, char buffer[], int max_len) 
     return 0;
 }
 
-int promptSelection(struct prompt_thread *prompt_line, char max_select) {
+// Funzione di richiesta ed analisi di un intero tra 0 ed un massimo in entrata. Restituisce l'intero dopo
+// avergli rimosso il char offset o -1 in caso di errore di ricezione dell'input.
+int promptSelection(struct prompt_thread *prompt, char max_select) {
     char temp_buffer[MAXCOMMBUFFER];
     char c = 3;
     do {
         memset(temp_buffer, '\0', sizeof(temp_buffer));
-        inputGeneric();
-        if(promptString(prompt_line, temp_buffer, USERNAMELENGTH) < 0) return -1;
+        inputGeneric((max_select - '0') + 1);
+        if(promptString(prompt, temp_buffer, USERNAMELENGTH) < 0) return -1;
         if(temp_buffer[0] == 0) {
             red();
             printf("\tInserire un valore.\n");
@@ -347,7 +360,7 @@ int promptSelection(struct prompt_thread *prompt_line, char max_select) {
         sscanf(temp_buffer, "%c", &c);
         if(!isdigit(c)) {
             red();
-            printf("\tInserire un numero.\n");
+            printf("\tInserire un valore numerico.\n");
             defaultFormat();
             continue;
         }
@@ -361,4 +374,29 @@ int promptSelection(struct prompt_thread *prompt_line, char max_select) {
     } while(1);
 
     return c - '0';
+}
+
+// Funzione di richiesta ed analisi di un intero. Restituisce l'intero in caso di successo, 0 in caso di input
+// non corretto, -1 in caso di errore di ricezione dell'input.
+int promptInteger(struct prompt_thread *prompt) {
+    char temp_buffer[MAXCOMMBUFFER];
+    char *endp;
+    int result;
+
+    memset(temp_buffer, '\0', sizeof(temp_buffer));
+    if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return -1;
+    if(temp_buffer[0] == 0) {
+        red();
+        printf("\tInserire un valore. Reset Richiesta.\n");
+        defaultFormat();
+        return 0;
+    }
+    result = strtol(temp_buffer, &endp, 10);
+    if(temp_buffer == endp || *endp != '\n') {
+        red();
+        printf("\tInserire un valore numerico. Reset Richiesta.\n");
+        defaultFormat();
+        return 0;
+    }
+    return result;
 }

@@ -16,10 +16,6 @@
 #define CLIENTLOCALSOCKET "/tmp/mainClient_socket_local"
 #define CLIENTPOLLINGCONST 2
 
-// Costanti per le comunicazioni.
-#define MAXCOMMBUFFER 1024
-#define MAXSIGNALBUF 2
-
 // Costanti per le dimensioni dell'ip e delle porte
 #define MAXIP 15
 #define MAXPORT 4
@@ -31,6 +27,14 @@
 #define PASSWORDMINLENGTH 10
 #define PASSWORDLENGTH 16
 #define QUERYLENGTH 1024
+
+// Costanti per le comunicazioni.
+#define MAXCOMMBUFFER 1024
+#define MAXSIGNALBUF 2
+
+// Costanti per le strutture.
+#define MAXPLAYERS 8
+#define MAXWORDLENGHT 32
 
 // Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 5000
@@ -122,20 +126,21 @@ struct server_connection {
     int *localsocket;
     struct sockaddr_in addr;
     socklen_t len;
+    int last_signal;
     char ip[MAXCOMMBUFFER];
     int port;
     char connected_user[USERNAMELENGTH];
 };
 
+struct room_struct {
+    int ID;
+    char players[MAXPLAYERS][USERNAMELENGTH];
+    char secret_word[MAXWORDLENGHT];
+};
+
 struct prompt_thread {
     int *sd;
     pthread_t id;
-    pthread_mutex_t mutex;
-};
-
-struct display {
-    char input[MAXCOMMBUFFER];
-    char line[MAXCOMMBUFFER];
     pthread_mutex_t mutex;
 };
 

@@ -5,13 +5,15 @@
 #include "../include/ConsoleLayouts.h"
 
 void emptyConsole(void) {
-    clearScreen();
-    fflush(stdout);
+    system("clear");
 }
 
-void inputGeneric(void) {
+void inputGeneric(int input) {
     green();
-    printf("Input: ");
+    if(input > 0)
+        printf("Scegliere una delle %d opzioni: ", input);
+    else
+        printf("Input: ");
     defaultFormat();
     fflush(stdout);
 }
@@ -76,6 +78,14 @@ void renderLogin(struct server_connection *server) {
     printf("\n"
            "\033[32m\033[1m+-----------------------------------------\033[34m L'IMPICCATO - LOGIN \033[32m-----------------------------------------+\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
+    saveCursor();
+    up(1);
+    carriageReturn();
+    printf("\033[32m\033[1|\033[0m\t");
+    printf("Server IPv4: %s    Porta: %d", server->ip, server->port);
+    loadCursor();
+    printf("|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "|\033[0m\tConnessione al server riuscita. Effettuare l'accesso per iniziare a giocare. In assenza di\t\033[1m\033[32m|\n"
            "|\033[0m\tun account, registrarsi prima e poi provare ad accedere.\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
@@ -85,7 +95,7 @@ void renderLogin(struct server_connection *server) {
            "|\033[0m\t\t2) Registrazione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
-    printf("\tServer: %s \t Port: %d\n\n", server->ip, server->port);
+    //printf("\tServer: %s \t Port: %d\n\n", server->ip, server->port);
     fflush(stdout);
 }
 
@@ -93,6 +103,14 @@ void renderHomepage(struct server_connection *server) {
     printf("\n"
            "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - HOMEPAGE \033[32m----------------------------------------+\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
+    saveCursor();
+    up(1);
+    carriageReturn();
+    printf("\033[32m\033[1|\033[0m\t");
+    printf("Server IPv4: %s    Porta: %d    Username: %s", server->ip, server->port, server->connected_user);
+    loadCursor();
+    printf("|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "|\033[0m\tBenvenuto nella homepage del gioco. Da qui è possibile creare una stanza ed unirvisi come\t\033[1m\033[32m|\n"
            "|\033[0m\tgiocatore, entrarne in una già esistente o vedere quali stanze sono state create sul\t\t\033[1m\033[32m|\n"
            "|\033[0m\tserver. E' infine possibile effettuare il logout, e tornare alla schermata di login.\t\t\033[1m\033[32m|\n"
@@ -104,7 +122,34 @@ void renderHomepage(struct server_connection *server) {
            "|\033[0m\t\t3) Lista delle stanze\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
-    printf("\tServer IPv4: %s      Porta: %d      Username: %s\n\n", server->ip, server->port, server->connected_user);
+    //printf("\tServer IPv4: %s      Porta: %d      Username: %s\n\n", server->ip, server->port, server->connected_user);
+    fflush(stdout);
+}
+
+void renderRoom(struct server_connection *server, struct room_struct *room) {
+    printf("\n"
+           "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - HOMEPAGE \033[32m----------------------------------------+\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
+    saveCursor();
+    up(1);
+    carriageReturn();
+    printf("\033[32m\033[1|\033[0m\t");
+    printf("Server IPv4: %s    Porta: %d    Username: %s", server->ip, server->port, server->connected_user);
+    loadCursor();
+    printf("|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\033[0m\tBenvenuto nella homepage del gioco. Da qui è possibile creare una stanza ed unirvisi come\t\033[1m\033[32m|\n"
+           "|\033[0m\tgiocatore, entrarne in una già esistente o vedere quali stanze sono state create sul\t\t\033[1m\033[32m|\n"
+           "|\033[0m\tserver. E' infine possibile effettuare il logout, e tornare alla schermata di login.\t\t\033[1m\033[32m|\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\033[0m\tOpzioni disponibili:\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t0) Logout\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t1) Crea una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t2) Entra in una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\t3) Lista delle stanze\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
+    //printf("\tServer IPv4: %s      Porta: %d      Username: %s\n\n", server->ip, server->port, server->connected_user);
     fflush(stdout);
 }
 

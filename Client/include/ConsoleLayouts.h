@@ -33,6 +33,8 @@
 #define down(x)             printf("\033[%dB", (x))
 #define right(x)            printf("\033[%dC", (x))
 #define left(x)             printf("\033[%dD", (x))
+#define saveCursor()        printf("\033[s")
+#define loadCursor()        printf("\033[u")
 
 // Macro di formattazione
 #define defaultFormat()     printf("\033[0m")
@@ -47,7 +49,7 @@
 void emptyConsole(void);
 
 // Funzioni di stampa dei vari input.
-void inputGeneric(void);
+void inputGeneric(int input);
 void inputAddress(void);
 void inputPort(void);
 void inputUsername(void);
@@ -59,5 +61,6 @@ int inputComfirmation(void);
 void renderConnection(void);
 void renderLogin(struct server_connection *server);
 void renderHomepage(struct server_connection *server);
+void renderRoom(struct server_connection *server, struct room_struct *room);
 
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H

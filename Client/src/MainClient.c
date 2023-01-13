@@ -40,8 +40,9 @@ int main() {
     int num_fds, new_local_sd, usr_sd, current_size, i, j, signal_code;
     int end_loop, close_conn;
 
-    // Dichiarazione della struttura che conterrà le informazioni relative alla connessione.
+    // Dichiarazione delle strutture che conterranno le informazioni relative alla connessione ed alla stanza.
     struct server_connection server;
+    struct room_struct room;
 
     // Inizializzazione della current line e del suo mutex
     struct prompt_thread *prompt;
@@ -79,7 +80,10 @@ int main() {
     server.sd = &fds[1].fd;
     server.localsocket = &localsocket;
 
+    // Rendering Iniziale
+    emptyConsole();
     renderConnection();
+    server.last_signal = C_CONNECTION;
 
     //              MAIN CLIENT LOOP                //
 
@@ -101,7 +105,7 @@ int main() {
         if( rc == 0 ) {
             printf("MAIN: poll timed out. Restarting the logic loop\n");
             // IMPLEMENTARE RIAVVIO CONNESSIONE
-            switchServer(&server, prompt, S_DISCONNECT, "C_DISCONNECT")
+            switchServer(&server, &room, prompt, S_DISCONNECT, "C_DISCONNECT");
             continue;
         }
         for(i = 0; i < num_fds; i++){
@@ -120,13 +124,13 @@ int main() {
             if(fds[i].fd == *prompt->sd) {
                 signal_num = readFromServer(*prompt->sd, incoming, MAXCOMMBUFFER);
                 printf("MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
-                end_loop = switchPrompt(&server, prompt, signal_num, incoming);
+                end_loop = switchPrompt(&server, &room, prompt, signal_num, incoming);
             }
             // Socket del server
             else {
                 signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
                 printf("MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);
-                end_loop = switchServer(&server, prompt, signal_num, incoming);
+                end_loop = switchServer(&server, &room, prompt, signal_num, incoming);
             }
         }
         // restart polling unless loop ended
