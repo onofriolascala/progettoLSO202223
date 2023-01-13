@@ -17,6 +17,7 @@
 
 #include <poll.h>
 
+#include "../include/LogUtilClient.h"
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"
 #include "../include/Prompt.h"
@@ -44,7 +45,7 @@ int main() {
     struct server_connection server;
     struct room_struct room;
 
-    // Inizializzazione della current line e del suo mutex
+    // Inizializzazione della struttura per il prompt e del suo mutex
     struct prompt_thread *prompt;
     if((prompt = (struct prompt_thread*)malloc(sizeof(struct prompt_thread))) == NULL){
         //gestire errore malloc
@@ -52,6 +53,13 @@ int main() {
         exit(1);
     }
     pthread_mutex_init(&prompt->mutex, NULL);
+
+    if((prompt->log = (int*)malloc(sizeof(int))) == NULL){
+        //gestire errore malloc
+        fprintf(stderr, ":PROMPT STRUCT MALLOC: prompt was initialized to NULL.");
+        exit(1);
+    }
+    *prompt->log = createLog();
 
     // Inizializzazioni poll
     end_loop = 0;

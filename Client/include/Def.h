@@ -16,6 +16,8 @@
 #define CLIENTLOCALSOCKET "/tmp/mainClient_socket_local"
 #define CLIENTPOLLINGCONST 2
 
+#define CLIENTLOG "./clientlog.txt"
+
 // Costanti per le dimensioni dell'ip e delle porte
 #define MAXIP 15
 #define MAXPORT 4
@@ -139,6 +141,7 @@ struct room_struct {
 };
 
 struct prompt_thread {
+    int *log;
     int *sd;
     pthread_t id;
     pthread_mutex_t mutex;
