@@ -17,6 +17,8 @@
 #define CLIENTPOLLINGCONST 2
 
 #define CLIENTLOG "./clientlog.txt"
+#define MAXLOGBUFFER 2048
+#define MAXERRORBUFFER 1024
 
 // Costanti per le dimensioni dell'ip e delle porte
 #define MAXIP 15
@@ -145,6 +147,7 @@ struct prompt_thread {
     int *sd;
     pthread_t id;
     pthread_mutex_t mutex;
+    char log_str[MAXLOGBUFFER];
 };
 
 #endif //PROGETTOLSO202223_DEF_H

@@ -146,14 +146,15 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
     return tid;
 }
 
-int promptConnection(struct prompt_thread *prompt_line, char outgoing[]) {
+int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
     char temp_buffer[MAXCOMMBUFFER] = "";
     int result;
 
     green();
     printf("Attivare la connessione di debug? (25.72.233.6:5200)\n");
     defaultFormat();
-    if(inputComfirmation()) {
+    inputComfirmation();
+    if(promptConfirmation(prompt)) {
         printf("Connessione a "
                "25.72.233.6:5200\n");
         strcpy(outgoing, "25.72.233.6-5200;");
@@ -166,7 +167,7 @@ int promptConnection(struct prompt_thread *prompt_line, char outgoing[]) {
     }
 
     inputAddress();
-    if ((result = promptString(prompt_line, temp_buffer, MAXIP)) < 0) return result;
+    if ((result = promptString(prompt, temp_buffer, MAXIP)) < 0) return result;
 
     strncat(outgoing, temp_buffer, MAXIP+1);
     strncat(outgoing, "-", 2);
@@ -174,7 +175,7 @@ int promptConnection(struct prompt_thread *prompt_line, char outgoing[]) {
     memset(temp_buffer, '\0', sizeof(temp_buffer));
 
     inputPort();
-    if ((result = promptString(prompt_line, temp_buffer, MAXPORT)) < 0) return result;
+    if ((result = promptString(prompt, temp_buffer, MAXPORT)) < 0) return result;
 
     strncat(outgoing, temp_buffer, MAXPORT+1);
     strncat(outgoing, ";", 2);
@@ -193,7 +194,8 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
         switch (result) {
             // Disconnessione
             case 0:
-                if (inputComfirmation()) {
+                inputComfirmation();
+                if (promptConfirmation(prompt)) {
                     result = 0;
                 } else {
                     end_loop = 0;
@@ -207,7 +209,8 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                 green();
                 printf("Attivare l'accesso di debug?\n");
                 defaultFormat();
-                if (inputComfirmation()) {
+                inputComfirmation();
+                if (promptConfirmation(prompt)) {
                     printf("Accesso come "
                            "\"pippopippopippo\" con password \"pippopippo\".\n");
                     strcpy(outgoing, "pippopippo-pippopippo;");
@@ -274,7 +277,8 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
         switch (result) {
             // Logout
             case 0:
-                if (inputComfirmation()) {
+                inputComfirmation();
+                if (promptConfirmation(prompt)) {
                     result = 0;
                 } else {
                     end_loop = 0;
@@ -326,8 +330,10 @@ int promptString(struct prompt_thread *prompt, char buffer[], int max_len) {
 
     do {
         if(pthread_mutex_trylock(&prompt->mutex) == 0) {
+            //pthread_mutex_lock(&prompt->mutex);
             if(!fgets(temp_buffer, sizeof temp_buffer, stdin)) {
                 fprintf(stderr, ":INPUT READING ERROR: prompt has failed reading from input.\n");
+                pthread_mutex_unlock(&prompt->mutex);
                 return -1;
             }
             temp_buffer[strcspn(temp_buffer, "\r\n")] = '\0';
@@ -339,6 +345,7 @@ int promptString(struct prompt_thread *prompt, char buffer[], int max_len) {
         }
     } while(1);
     strncat(buffer, temp_buffer, max_len);
+    usleep(REFRESHCONSTANT);
     return 0;
 }
 
@@ -397,6 +404,25 @@ int promptInteger(struct prompt_thread *prompt) {
         printf("\tInserire un valore numerico. Reset Richiesta.\n");
         defaultFormat();
         return 0;
+    }
+    return result;
+}
+
+int promptConfirmation(struct prompt_thread *prompt) {
+    char temp_buffer[MAXCOMMBUFFER];
+    int result;
+
+    result = 0;
+
+    memset(temp_buffer, '\0', sizeof(temp_buffer));
+    if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
+    if(temp_buffer[0] == 'Y' || temp_buffer[0] == 'y') {
+        result = 1;
+    }
+    else {
+        red();
+        printf("\tInserire un valore. Reset Richiesta.\n");
+        defaultFormat();
     }
     return result;
 }

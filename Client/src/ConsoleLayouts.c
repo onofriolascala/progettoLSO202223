@@ -48,18 +48,11 @@ void inputRoom(void) {
     fflush(stdout);
 }
 // Ritorna la conferma dell'operazione per cui è stata richiesta.
-int inputComfirmation(void) {
-    int confirm;
+void inputComfirmation(void) {
     green();
     printf("Confermare per procedere (Y/y): ");
     defaultFormat();
     fflush(stdout);
-
-    confirm = getchar();
-    if(confirm == 'Y' || confirm == 'y') confirm = 1;
-    else confirm = 0;
-    getchar();
-    return confirm;
 }
 
 void renderConnection(void) {

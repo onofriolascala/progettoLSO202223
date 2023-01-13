@@ -19,6 +19,7 @@
 
 #include <poll.h>
 
+#include "../include/LogUtilClient.h"
 #include "../include/CommUtilClient.h"
 #include "../include/ConsoleLayouts.h"
 #include "../include/ParserClient.h"

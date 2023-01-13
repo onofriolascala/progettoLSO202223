@@ -80,6 +80,11 @@ int main() {
     prompt->sd = &fds[0].fd;
     prompt->id = createPrompt(localsocket, prompt);
 
+    // Rendering Iniziale
+    emptyConsole();
+    renderConnection();
+    server.last_signal = C_CONNECTION;
+
     // Via libera al prompt. La socket viene impostata su non bloccante e salvata  all'interno della
     // struttura per la connessione.
 
@@ -88,30 +93,26 @@ int main() {
     server.sd = &fds[1].fd;
     server.localsocket = &localsocket;
 
-    // Rendering Iniziale
-    emptyConsole();
-    renderConnection();
-    server.last_signal = C_CONNECTION;
-
     //              MAIN CLIENT LOOP                //
 
     do {
-        printf("MAIN: Waiting on poll function...\n");
+        writeToLog(*prompt->log, "MAIN: Waiting on poll function...\n");
         fflush(stdout);
 
         memset(incoming, '\0', sizeof(incoming));
         memset(outgoing, '\0', sizeof(outgoing));
+        memset(prompt->log_str, '\0', sizeof(prompt->log_str));
 
         rc = poll(fds, num_fds, timeout);
 
         // Errore del poll
         if( rc < 0 ) {
-            perror(":POLL ERROR");
+            printError(prompt, ":POLL ERROR", errno);
             break;
         }
         // Timeout
         if( rc == 0 ) {
-            printf("MAIN: poll timed out. Restarting the logic loop\n");
+            printWarning(prompt, "!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio...\n");
             // IMPLEMENTARE RIAVVIO CONNESSIONE
             switchServer(&server, &room, prompt, S_DISCONNECT, "C_DISCONNECT");
             continue;
@@ -119,31 +120,34 @@ int main() {
         for(i = 0; i < num_fds; i++){
             // Socket dormiente
             if(fds[i].revents == 0){
-                printf("MAIN: poll continued.\n");
+                writeToLog(*prompt->log, "MAIN: poll continued.\n");
                 continue;
             }
             // Valore non atteso.
             if(fds[i].revents != POLLIN){
-                fprintf(stderr, ":REVENTS ERROR: fds[%d].revents = %d\n", i, fds[i].revents);
+                sprintf(prompt->log_str, ":REVENTS ERROR: fds[%d].revents = %d\n", i, fds[i].revents);
+                printError(prompt, prompt->log_str, errno);
                 end_loop = 1;
                 break;
             }
             // Socket del prompt
             if(fds[i].fd == *prompt->sd) {
                 signal_num = readFromServer(*prompt->sd, incoming, MAXCOMMBUFFER);
-                printf("MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
+                sprintf(prompt->log_str, "MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
+                writeToLog(*prompt->log, prompt->log_str);
                 end_loop = switchPrompt(&server, &room, prompt, signal_num, incoming);
             }
             // Socket del server
             else {
                 signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
-                printf("MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);
+                sprintf(prompt->log_str, "MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);
+                writeToLog(*prompt->log, prompt->log_str);
                 end_loop = switchServer(&server, &room, prompt, signal_num, incoming);
             }
         }
         // restart polling unless loop ended
     } while( !end_loop );
 
-    printf("Terminazione processo client.\n");
+    writeToLog(*prompt->log, "Terminazione processo client.\n");
     return 0;
 }

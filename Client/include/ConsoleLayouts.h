@@ -41,7 +41,7 @@
 #define bold()              printf("\033[1m")
 #define red()               printf("\033[31m")
 #define green()             printf("\033[32m")
-#define yellow()             printf("\033[33m")
+#define yellow()            printf("\033[33m")
 #define blue()              printf("\033[34m")
 #define white()             printf("\033[37m")
 
@@ -55,7 +55,7 @@ void inputPort(void);
 void inputUsername(void);
 void inputPassword(void);
 void inputRoom(void);
-int inputComfirmation(void);
+void inputComfirmation(void);
 
 // Funzioni di stampa delle varie schermate del client.
 void renderConnection(void);
