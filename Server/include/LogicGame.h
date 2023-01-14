@@ -22,8 +22,12 @@
 
 #include "../include/Def.h"
 
-int* randomSCT(int [], int);
-void pick(char*, int);
-void randomWords(char*);
+void randomSCT(int [], int, int);
+void randomWords(char [3][20], char []);
+void pick(char[], int);
+void addLetter(char [],char [],int );
+
+void playedWord(char []);
+void parserChosenWord(char [3][20], char []);
 
 #endif //LOGICGAME_H

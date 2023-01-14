@@ -4,34 +4,79 @@
 
 #include "../include/LogicGame.h"
 
-int* randomSCT(int array[], int j){
-    char buf[MAXCOMMBUFFER]="";
-    int fd,k;
+
+
+void parserChosenWord(char words[3][20], char incoming[]){
+    char* num;
+    int con;
+    num=strtok(incoming, "-");
+    con=atoi(num);
+    playedWord(words[con]);
+    return;
+}
+
+void playedWord(char word[]){
+    int len;
+    char blank[]="___________________";
+    len=strlen(word);
+    blank[len]='\0';
+    printf("%s \n", blank);
+    addLetter(word, blank, len);
+    return;
+}
+
+void addLetter(char word[],char blank[],int len){
+    int letter[len];
+    randomSCT(letter, len, len);
+    for(int i=0; i<len; i++) {
+        blank[letter[i]] = word[letter[i]];
+        printf("%s \n", blank);
+    }
+    return;
+}
+
+void randomSCT(int array[], int j, int range){
+    char buf[30]="";
+    int fd, seed, count, i;
     if((fd=open("/dev/urandom",O_RDONLY))<0){
         perror(":OPEN ERROR:");
     }
     else {
-        while (j--) {
+        for(i=0; i<j; i++){
             read(fd, buf, 1);
-            k = *buf;
-            srand(k + j);
-            array[j] = rand() % 100;
-            if((j==1)&&(array[j]==array[j+1]))
-                j++;
-            if((j==0)&&((array[j]==array[j+1])||(array[j]==array[j+2])))
-                j++;
+            seed = *buf;
+            srand(seed + i);
+            array[i] =  rand() % range;
+            count=i;
+            while(count>0){
+                if(array[i]==array[--count]){
+                    i--;
+                    count=0;
+                }
+            }
         }
     }
-    return array;
+    close(fd);
+    return;
 }
 
-void randomWords(char outgoing[]){
-    int i=3;
-    //char outgoing[BUFFSIZE]="";
+void randomWords(char words[3][20], char outgoing[]){
+    int i=0;
     int array[3]={0};
-    randomSCT(array,i);
-    while (i>0){
-        pick(outgoing, array[--i]);
+    randomSCT(array, 3, 100);
+    char word[300];
+    while (i<3){
+        strcpy(word, "");
+        pick(word, array[i]);
+        strcpy(words[i],word);
+        strcat(outgoing, word);
+        i++;
+        if(i<3){
+            strcat(outgoing, "-");
+        }
+        else{
+            strcat(outgoing, "\0");
+        }
     }
     return;
 }
@@ -42,7 +87,7 @@ void pick(char buff[],int n){
     char* newline="\n";
     fflush(stdout);
     //char buff[BUFFSIZE]="";
-    if((fd = open("user.txt", O_RDONLY, NULL))<0) {
+    if((fd = open("words.txt", O_RDONLY, NULL))<0) {
         perror(":OPEN ERROR:");
     }
     while(n>=0){
@@ -50,7 +95,7 @@ void pick(char buff[],int n){
             read(fd, bufChar, 1);
             bufChar[1]='\0';
             if (bufChar[0] == *newline){
-                strcat(buff, bufChar);
+                //strcat(buff, "-");
                 n--;
             }
             else {
