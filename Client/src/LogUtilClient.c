@@ -48,28 +48,48 @@ int writeToLog(int fd, const char input_buf[]) {
     return result;
 }
 
-int printError(struct prompt_thread *prompt, char input_buf[], int error) {
+int printError(struct prompt_thread *prompt, char error_out[], char error_str[], int error_no) {
     char temp_buf[MAXERRORBUFFER];
     int result;
 
     result = 0;
 
-    sprintf(temp_buf, "%s%s\n", input_buf, strerror(error));
+    sprintf(temp_buf, "%s: %s\n", error_str, strerror(error_no));
 
+    bold();
+    red();
     if(pthread_mutex_trylock(&prompt->mutex) == 0) {
-        red();
-        printf("%s", temp_buf);
-        defaultFormat();
+        printf("%s", error_out);
         pthread_mutex_unlock(&prompt->mutex);
     }
     else {
-        saveCursor();
-        printf("\n");
-        red();
-        printf("%s", temp_buf);
-        defaultFormat();
-        loadCursor();
+        printf("\n%s(Premi invio per continuare)", error_out);
+        fflush(stdout);
     }
+    defaultFormat();
+    if(writeToLog(*prompt->log, temp_buf) < 0) result = -1;
+    return result;
+}
+
+int printErrorNoNumber(struct prompt_thread *prompt, char error_out[], char error_str[]) {
+    char temp_buf[MAXERRORBUFFER];
+    int result;
+
+    result = 0;
+
+    sprintf(temp_buf, "%s\n", error_str);
+
+    bold();
+    red();
+    if(pthread_mutex_trylock(&prompt->mutex) == 0) {
+        printf("%s", error_out);
+        pthread_mutex_unlock(&prompt->mutex);
+    }
+    else {
+        printf("\n%s(Premi invio per continuare)", error_out);
+        fflush(stdout);
+    }
+    defaultFormat();
     if(writeToLog(*prompt->log, temp_buf) < 0) result = -1;
     return result;
 }
@@ -82,11 +102,10 @@ int printWarning(struct prompt_thread *prompt, char input_buf[]) {
     bold();
     yellow();
     if(pthread_mutex_trylock(&prompt->mutex) == 0) {
-        printf("\n%s", input_buf);
+        printf("%s", input_buf);
         pthread_mutex_unlock(&prompt->mutex);
     }
     else {
-        printf("\n");
         printf("\n%s(Premi invio per continuare)", input_buf);
         fflush(stdout);
     }

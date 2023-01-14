@@ -33,6 +33,8 @@
 #define QUERYLENGTH 1024
 
 // Costanti per le comunicazioni.
+#define ECRITICALCLIENT "ERRORE CRITICO: Il client è incappato in un errore critico. Chiusura del processo.\n"
+
 #define MAXCOMMBUFFER 1024
 #define MAXSIGNALBUF 2
 

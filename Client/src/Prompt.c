@@ -127,7 +127,7 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
 
     //printf("DEBUG: Creation of detatched thread...\n");
     if (pthread_create(&tid, NULL, thrPrompt, prompt)) {
-        fprintf(stderr, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
+        printErrorNoNumber(prompt, ECRITICALCLIENT, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
         deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
         exit(1);
     }
@@ -136,13 +136,15 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
     pthread_detach(tid);
 
     if((*prompt->sd = accept(localsocket, NULL, NULL)) < 0) {
-        perror(":ACCEPT ERROR");
+        //perror(":ACCEPT ERROR");
+        printError(prompt, ECRITICALCLIENT, ":PROMPT CREATION SOCKET ACCEPT", errno);
         deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
         exit(1);
     }
 
-    printf("MAIN: Prompt thread created with prompt_socket sd:%d.\n", *prompt->sd);
-    fflush(stdout);
+    sprintf(prompt->log_str, "MAIN: Prompt thread created with prompt_socket sd:%d.\n", *prompt->sd);
+    writeToLog(*prompt->log, prompt->log_str);
+    memset(prompt->log_str, '\0', sizeof(prompt->log_str));
     return tid;
 }
 

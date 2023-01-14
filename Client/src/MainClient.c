@@ -54,6 +54,7 @@ int main() {
     }
     pthread_mutex_init(&prompt->mutex, NULL);
 
+    // Inizializzazione del file descriptor del log e del file stesso.
     if((prompt->log = (int*)malloc(sizeof(int))) == NULL){
         //gestire errore malloc
         fprintf(stderr, ":PROMPT STRUCT MALLOC: prompt was initialized to NULL.");
@@ -76,7 +77,16 @@ int main() {
     timeout = ( 10 * 60 * 1000 );
 
     // Inizializzazione della socket locale e del thread per il PROMPT
-    localsocket = localSocketInit(&localsocket_addr, &local_len);
+    if((localsocket = localSocketInit(&localsocket_addr, &local_len)) < 0) {
+        printError(prompt, "ERRORE: Prima creazione della socket locale fallita. Chiusura processo.\n",
+                   ":LOCAL SOCKET INIT", localsocket);
+        exit(1);
+    }
+    else {
+        sprintf(prompt->log, "MAIN: localSocketInit completed with value \"%d\".\n", localsocket);
+        writeToLog(*prompt->log, prompt->log);
+        memset(prompt->log_str, '\0', sizeof(prompt->log_str));
+    }
     prompt->sd = &fds[0].fd;
     prompt->id = createPrompt(localsocket, prompt);
 
@@ -92,6 +102,7 @@ int main() {
     fcntl(*prompt->sd, F_SETFL, fcntl(*prompt->sd, F_GETFL, 0) | O_NONBLOCK);
     server.sd = &fds[1].fd;
     server.localsocket = &localsocket;
+    memset(server.connected_user, '\0', sizeof(server.connected_user));
 
     //              MAIN CLIENT LOOP                //
 
@@ -107,13 +118,13 @@ int main() {
 
         // Errore del poll
         if( rc < 0 ) {
-            printError(prompt, ":POLL ERROR", errno);
+            printError(prompt, ECRITICALCLIENT, ":POLL ERROR", errno);
             break;
         }
         // Timeout
         if( rc == 0 ) {
-            printWarning(prompt, "!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio...\n");
-            // IMPLEMENTARE RIAVVIO CONNESSIONE
+            printWarning(prompt, "!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio.\n");
+            // RIAVVIO CONNESSIONE
             switchServer(&server, &room, prompt, S_DISCONNECT, "C_DISCONNECT");
             continue;
         }
@@ -126,7 +137,7 @@ int main() {
             // Valore non atteso.
             if(fds[i].revents != POLLIN){
                 sprintf(prompt->log_str, ":REVENTS ERROR: fds[%d].revents = %d\n", i, fds[i].revents);
-                printError(prompt, prompt->log_str, errno);
+                printError(prompt, ECRITICALCLIENT, prompt->log_str, errno);
                 end_loop = 1;
                 break;
             }
@@ -145,9 +156,8 @@ int main() {
                 end_loop = switchServer(&server, &room, prompt, signal_num, incoming);
             }
         }
-        // restart polling unless loop ended
     } while( !end_loop );
 
-    writeToLog(*prompt->log, "Terminazione processo client.\n");
+    writeToLog(*prompt->log, "Terminazione processo client.\n\n\t\t\t END CLIENT.\n");
     return 0;
 }

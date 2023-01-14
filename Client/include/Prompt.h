@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 
+#include "../include/LogUtilClient.h"
 #include "../include/ConsoleLayouts.h"
 #include "../include/SocketUtilClient.h"
 #include "../include/CommUtilClient.h"

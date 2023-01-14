@@ -90,13 +90,15 @@ int writeToServer(int sd, int signal_num, char outgoing[]) {
 
     if (signal_num < 10) {
         if (snprintf(finalmessage, MAXCOMMBUFFER, "0%d:%s;", signal_num, outgoing) < 0) {
-            perror(":COMPOSITION ERROR");
+            //perror(":COMPOSITION ERROR");
+            sprintf(outgoing, ":COMPOSITION ERROR: %s", strerror(errno));
             return -1;
         }
     }
     else {
         if (snprintf(finalmessage, MAXCOMMBUFFER, "%d:%s;", signal_num, outgoing) < 0) {
-            perror(":COMPOSITION ERROR");
+            //perror(":COMPOSITION ERROR");
+            sprintf(outgoing, ":COMPOSITION ERROR: %s", strerror(errno));
             return -1;
         }
     }
@@ -107,7 +109,8 @@ int writeToServer(int sd, int signal_num, char outgoing[]) {
         finalmessage[MAXCOMMBUFFER - 2] = ';';
         finalmessage[MAXCOMMBUFFER - 1] = '\0';
         if(write(sd, finalmessage, MAXCOMMBUFFER) < 0) {
-            perror(":WRITE ERROR");
+            //perror(":WRITE ERROR");
+            sprintf(outgoing, ":WRITE ERROR: %s", strerror(errno));
             return_value = -2;
         }
     }
@@ -115,7 +118,8 @@ int writeToServer(int sd, int signal_num, char outgoing[]) {
         finalmessage[len] = ';';
         finalmessage[len+1] = '\0';
         if(write(sd, finalmessage, len) < 0) {
-            perror(":WRITE ERROR");
+            //perror(":WRITE ERROR");
+            sprintf(outgoing, ":WRITE ERROR: %s", strerror(errno));
             return_value = -2;
         }
     }
@@ -140,14 +144,15 @@ int readFromServer(int sd, char incoming[], int max_len){
     {
         if (errno != EWOULDBLOCK)
         {
-            perror(":READ ERROR");
+            //perror(":READ ERROR");
+            sprintf(incoming, ":READ ERROR: %s", strerror(errno));
             return -3;
         }
         return -1;
     }
     else if(n_tmp == 0) {
-        fprintf(stderr, ":READ ERROR: Server socket has closed unexpectedly. Resetting Connection.\n");
-        return 1;
+        sprintf(incoming, ":READ ERROR: server socket has closed unexpectedly. Resetting Connection.\n");
+        return 0;
     }
 
     signal_p = strtok_r(incoming_buf, ":", &saveptr);
@@ -167,11 +172,13 @@ int readFromServer(int sd, char incoming[], int max_len){
             signal_num = atoi(signal_code);
         }
         else {
-            fprintf(stderr, ":READ ERROR: wrong length for signal or message arguments detected.\n");
+            sprintf(incoming, ":READ ERROR: wrong length for signal or message arguments detected.\n");
+            //fprintf(stderr, ":READ ERROR: wrong length for signal or message arguments detected.\n");
         }
     }
     else {
-        fprintf(stderr, ":READ ERROR: null signal or message arguments detected.\n");
+        sprintf(incoming, ":READ ERROR: null signal or message arguments detected.\n");
+        //fprintf(stderr, ":READ ERROR: null signal or message arguments detected.\n");
     }
 
     //printf("\t\tDEBUG_SD%d: reading endvalue %d %s\n", sd, signal_num, incoming);

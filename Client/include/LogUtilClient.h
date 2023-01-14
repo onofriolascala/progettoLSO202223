@@ -28,7 +28,8 @@
 
 int createLog(void);
 int writeToLog(int fd, const char input_buf[]);
-int printError(struct prompt_thread *prompt, char input_buf[], int error);
+int printError(struct prompt_thread *prompt, char error_out[], char error_str[], int error_no);
+int printErrorNoNumber(struct prompt_thread *prompt, char error_out[], char error_str[]);
 int printWarning(struct prompt_thread *prompt, char input_buf[]);
 
 #endif //PROGETTOLSO202223_LOGUTILCLIENT_H

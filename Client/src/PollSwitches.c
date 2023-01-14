@@ -26,10 +26,16 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             end_loop = 0;
             break;
         case -2: case -3:
-            //sprintf( prompt->log_str, "\tSERVER_SWITCH: <Disconnection> %d:%s.\n", signal_num, incoming);
             // ERROR DIFFERENT FROM EWOULDBLOCK
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <ERROR CASE 3>.\n");
+            printErrorNoNumber(prompt, ECRITICALCLIENT, incoming);
             end_loop = 1;
             break;
+        case S_DISCONNECT_ABRUPT:
+            writeToLog( *prompt->log, "\tSERVER_SWITCH: <Abrupt Disconnection>.\n");
+            printErrorNoNumber(prompt, "!Attenzione! Il server ha prematuramente terminato la connessione. Riavvio.\n", incoming);
+            switchServer(server, room, prompt, S_DISCONNECT, "S_DISCONNECT");
+            return 0;
         case S_DISCONNECT:
             // Il server comunica di aver recepito l'intento di disconnessione. Il client provvederà a chiudere
             // la connessione, e riportare la console alla schermata di connessione.
@@ -167,17 +173,15 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             printf("\t\tSERVER_SWITCH: <ERROR> %d:%s\n", signal_num, incoming);
             writeToServer(*prompt->sd, C_RETRY, incoming);
             break;
+        case S_COMMERROR:
         case S_COMMTIMOUT:
         default:
             // Il server ha effettuato una comunicazione non riconosciuta. Per tanto, il client terminerà la connessione
             // per prevenire problemi di gestione del segnale sconosciuto.
-            fprintf(stderr, "SERVER_SWITCH: <ERROR> signal \"%d\" with message \"%s\" not recognized. Disconnecting in 3 seconds.\n", signal_num, incoming);
-            writeToServer(*(server->sd), S_DISCONNECT, S_UNKNOWNSIGNAL_MSG);
-            close(*(server->sd));
-            *(server->sd) = -1;
-
-            sleep(3);
-            writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
+            writeToLog( *prompt->log, "\tSERVER_SWITCH: <Unknown Signal>.\n");
+            printErrorNoNumber(prompt, "!Attenzione! Il server ha inviato un codice di comunicazione non riconosciuto. Riavvio.\n", incoming);
+            switchServer(server, room, prompt, S_DISCONNECT, "S_DISCONNECT");
+            return 0;
     }
     writeToLog(*prompt->log, prompt->log_str);
     return end_loop;
@@ -196,10 +200,18 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
         case -2:
         case -3:
             // ERROR DIFFERENT FROM EWOULDBLOCK
+            sprintf( prompt->log_str, "\tPROMPT_SWITCH: <ERROR CASE 3>.\n");
+            printErrorNoNumber(prompt, ECRITICALCLIENT, incoming);
             end_loop = 1;
             break;
         case C_RETRY:
             writeToServer(*server->sd, C_RETRY, "C_RETRY");
+            break;
+        case S_DISCONNECT_ABRUPT:
+            // La socket del prompt si è chiusa inaspettatamente. Comportamento non definito, si procede a chiudere il
+            // processo.
+            printErrorNoNumber(prompt, ECRITICALCLIENT, incoming);
+            end_loop = 1;
             break;
         case S_DISCONNECT:
             // Il prompt ha inviato un segnale di disconnessione dal server a cui il client è connesso in quel
@@ -214,25 +226,17 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Connection> %d:%s.\n", signal_num, incoming);
             parser_return = parserIp(incoming, server);
             if(parser_return == -1) {
-                red();
-                printf("L'indirizzo IPv4 fornito non è della lunghezza corretta. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "L'indirizzo IPv4 fornito non è della lunghezza corretta. Riprovare.\n");
             }
             else if(parser_return == -2) {
-                red();
-                printf("L'indirizzo IPv4 può contenere solo caratteri numerici. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "L'indirizzo IPv4 può contenere solo caratteri numerici. Riprovare.\n");
             }
             parser_return = parserPort(incoming, server);
             if(parser_return == -1) {
-                red();
-                printf("La porta fornita non è della lunghezza corretta. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "La porta fornita non è della lunghezza corretta. Riprovare.\n");
             }
             else if(parser_return == -2) {
-                red();
-                printf("La porta può contenere solo caratteri numerici. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "La porta può contenere solo caratteri numerici. Riprovare.\n");
             }
 
             if (parser_return < 0) {
@@ -252,25 +256,19 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Login> %d:%s.\n", signal_num, incoming);
             parser_return = parserUsername(incoming, server);
             if(parser_return == -1) {
-                red();
-                printf("Il nome fornito non è della lunghezza corretta. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "Il nome fornito non è della lunghezza corretta. Riprovare.\n");
             }
             else if(parser_return == -2) {
-                red();
-                printf("Il nome può contenere solo caratteri ASCII. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "Il nome può contenere solo caratteri ASCII. Riprovare.\n");
             }
-            parser_return = parserPassword(incoming);
-            if(parser_return == -1) {
-                red();
-                printf("La password fornita non è della lunghezza corretta. Riprovare.\n");
-                defaultFormat();
-            }
-            else if(parser_return == -2) {
-                red();
-                printf("La password può contenere solo caratteri ASCII. Riprovare.\n");
-                defaultFormat();
+            if(parser_return >= 0) {
+                parser_return = parserPassword(incoming);
+                if(parser_return == -1) {
+                    printWarning(prompt, "La password fornita non è della lunghezza corretta. Riprovare.\n");
+                }
+                else if(parser_return == -2) {
+                    printWarning(prompt, "La password può contenere solo caratteri ASCII. Riprovare.\n");
+                }
             }
 
             if (parser_return < 0) {
@@ -285,25 +283,19 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Signin> %d:%s.\n", signal_num, incoming);
             parser_return = parserUsername(incoming, server);
             if(parser_return == -1) {
-                red();
-                printf("Il nome fornito non è della lunghezza corretta. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "Il nome fornito non è della lunghezza corretta. Riprovare.\n");
             }
             else if(parser_return == -2) {
-                red();
-                printf("Il nome può contenere solo caratteri ASCII. Riprovare.\n");
-                defaultFormat();
+                printWarning(prompt, "Il nome può contenere solo caratteri ASCII. Riprovare.\n");
             }
-            parser_return = parserPassword(incoming);
-            if(parser_return == -1) {
-                red();
-                printf("La password fornita non è della lunghezza corretta. Riprovare.\n");
-                defaultFormat();
-            }
-            else if(parser_return == -2) {
-                red();
-                printf("La password può contenere solo caratteri ASCII. Riprovare.\n");
-                defaultFormat();
+            if(parser_return >= 0) {
+                parser_return = parserPassword(incoming);
+                if(parser_return == -1) {
+                    printWarning(prompt, "La password fornita non è della lunghezza corretta. Riprovare.\n");
+                }
+                else if(parser_return == -2) {
+                    printWarning(prompt, "La password può contenere solo caratteri ASCII. Riprovare.\n");
+                }
             }
 
             if (parser_return < 0) {
@@ -311,42 +303,35 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
                 break;
             }
             else {
-                writeToServer(*server->sd, C_SIGNIN, incoming);
+                signal_num = C_SIGNIN;
             }
             break;
         case C_LOGOUT:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Logout> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
             memset(server->connected_user, '\0', sizeof(server->connected_user));
             break;
         case C_CREATEROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Create Room> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
             break;
         case C_JOINROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Join Room> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
             break;
         case C_LISTROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <List Room> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
             break;
         case C_EXITROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Exit Room> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
             break;
         case C_GUESSSKIP:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Guess> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
             break;
         case C_CLIENTERROR:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Client Error> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
             break;
         default:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Default> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
     }
+    if(writeToServer(*server->sd, signal_num, incoming) < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
     writeToLog(*prompt->log, prompt->log_str);
     return end_loop;
 }
