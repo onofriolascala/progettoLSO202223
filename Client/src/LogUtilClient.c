@@ -18,7 +18,6 @@ int createLog(void) {
             defaultFormat();
         }
     }
-
     if (( fd = open(CLIENTLOG, O_RDWR|O_CREAT, S_IRWXU)) < 0) {
         red();
         perror(":OPEN ERR");
@@ -27,7 +26,6 @@ int createLog(void) {
     }
 
     sprintf(temp_buffer, "\t\t\tCLIENT OPERATIONS LOG\n\nLog successfully created at \"%s\" with FD \"%d\".\n", CLIENTLOG, fd);
-
     if(writeToLog(fd, temp_buffer) < 0) exit(1);
 
     return fd;
@@ -105,42 +103,6 @@ int printWarning(struct prompt_thread *prompt, char input_buf[]) {
         if(write(prompt->log, input_buf, len) != len) {
             red();
             perror(":WRITE ERROR");
-            defaultFormat();
-        }
-        else {
-            result = 0;
-        }
-    }
-    return result;
-}
-
-int printWarning(struct prompt_thread *prompt, char input_buf[]) {
-    int len, result;
-
-    do {
-        if(pthread_mutex_lock(&prompt->mutex)) {
-            if(!fgets(temp_buffer, sizeof temp_buffer, stdin)) {
-                fprintf(stderr, ":INPUT READING ERROR: prompt has failed reading from input.\n");
-                return -1;
-            }
-            temp_buffer[strcspn(temp_buffer, "\r\n")] = '\0';
-            pthread_mutex_unlock(&prompt->mutex);
-            break;
-        }
-        else {
-            usleep(REFRESHCONSTANT);
-        }
-    } while(1);
-    strncat(buffer, temp_buffer, max_len);
-    return 0;
-
-
-    result  = -1;
-    if(input_buf != NULL && prompt->log > 2) {
-        len = strlen(input_buf);
-        if(write(prompt->log, input_buf, len) != len) {
-            yellow();
-            perror("%s");
             defaultFormat();
         }
         else {

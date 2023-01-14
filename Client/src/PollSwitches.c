@@ -13,6 +13,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
         same_signal = 0;
     }
     else {
+        server->last_signal = signal_num;
         same_signal = 1;
     }
 
@@ -34,6 +35,13 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // la connessione, e riportare la console alla schermata di connessione.
             do {
                 if(pthread_mutex_trylock(&prompt->mutex) == 0) {
+
+                    bold();
+                    yellow();
+                    printf("\nRiavvio in corso...\n");
+                    defaultFormat();
+                    fflush(stdout);
+
                     sprintf( prompt->log_str, "\tSERVER_SWITCH: <Disconnection> %d:%s.\n", signal_num, incoming);
                     close(*server->sd);
                     *server->sd = -1;
@@ -42,7 +50,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     close(*prompt->sd);
                     prompt->id = createPrompt(*server->localsocket, prompt);
 
-                    sleep(2);
+                    sleep(3);
                     emptyConsole();
                     renderConnection();
                     pthread_mutex_unlock(&prompt->mutex);
