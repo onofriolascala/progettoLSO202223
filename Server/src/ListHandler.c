@@ -309,4 +309,51 @@ struct room_node* getRoom( struct room_node* room_list, int target_id ){
     //printf("DEBUG_getroomnode:completed\n");
     return target;
 }
+/* La funzione riceve la testa della lista di stanze, una stringa di output e la lunghezza massima della stringa di output.
+ * Scrive nella stringa di output la lista di stanze con formattazione [id_stanza]: [num_giocatori_stanza]/[max_num_giocatori][- || ;]
+ * Non presenta criticità che richiedano un mutex. */
+struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int max_out){
+    struct room_node* tmp;
+    int curr_lenght = 0;
+    char room[20];
+    int timeout = 0, try = 0;
 
+    if(room_list == NULL){
+        memset(outgoing, 0, max_out);
+        tmp = room_list;
+    }
+    else{
+
+        tmp = room_list;
+        while(pthread_mutex_trylock(&tmp->roomnode_mutex) != 0){
+            if(++try == MAXREFRESHCONSTANT){
+                memset(outgoing, 0, max_out);
+                return tmp;
+            }
+            usleep(REFRESHCONSTANT);
+        }
+        sprintf(outgoing,"%d: %d/8", tmp->id, tmp->player_num);
+        curr_lenght += strlen(outgoing);
+        while( tmp->next != NULL && curr_lenght < max_out){
+            pthread_mutex_unlock(&tmp->roomnode_mutex);
+            tmp = tmp->next;
+            try = 0;
+            while(pthread_mutex_trylock(&tmp->roomnode_mutex) != 0){
+                if(++try == MAXREFRESHCONSTANT){
+                    return tmp;
+                }
+                usleep(REFRESHCONSTANT);
+            }
+            strcat(outgoing,"-");
+            curr_lenght++;
+            sprintf(room,"%d: %d/8", tmp->id, tmp->player_num);
+            strcat(outgoing, room);
+            curr_lenght += strlen(room);
+        }
+        pthread_mutex_unlock(&tmp->roomnode_mutex);
+        if( curr_lenght < max_out){
+            strcat(outgoing, ";");
+        }
+    }
+    return tmp;
+}

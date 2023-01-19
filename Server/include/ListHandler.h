@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "../include/ListHandler.h"
 #include "../include/Def.h"
