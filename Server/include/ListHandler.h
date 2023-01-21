@@ -32,7 +32,7 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer );
 void removeAndDestroyRoomNode(struct room_node** list_head, int target_id );
 
 struct room_node* getRoom( struct room_node* room_list, int target_id );
-
+int lockRoomNode(struct room_node* room);
 
 
 #endif //PROGETTOLSO202223_LISTHANDLER_H
