@@ -17,13 +17,13 @@ int socketInit(struct sockaddr_in *addr, socklen_t *len, char ip[], int port){
     if((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         //perror(":SOCKET ERROR");
         //exit(1);
-        sd = errno;
+        sd = -errno;
         return sd;
     }
     if(connect(sd, (struct sockaddr*)addr, *len) < 0) {
         //perror(":CONNECT ERROR");
         close(sd);
-        sd = errno;
+        sd = -errno;
     }
     //printf("DEBUG: socketInit completed.\n");
     //fflush(stdout);
@@ -49,7 +49,7 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
     // Apertura del socket lato threadRoom.
     if ((sd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
         //perror(":SOCKET ERROR");
-        sd = errno;
+        sd = -errno;
         return sd;
         //exit(1);
     }
@@ -57,7 +57,7 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
     if(bind(sd, (struct sockaddr*)localsocket_addr, *len) < 0){
         //perror(":BIND ERROR");
         close(sd);
-        sd = errno;
+        sd = -errno;
         return sd;
         //exit(1);
     }
@@ -66,7 +66,7 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
         //perror(":LISTEN ERROR");
         close(sd);
         unlink(CLIENTLOCALSOCKET);
-        sd = errno;
+        sd = -errno;
         return sd;
         //exit(1);
     }

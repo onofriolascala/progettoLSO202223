@@ -121,25 +121,40 @@ void renderHomepage(struct server_connection *server) {
 
 void renderRoom(struct server_connection *server, struct room_struct *room) {
     printf("\n"
-           "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - HOMEPAGE \033[32m----------------------------------------+\n"
+           "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - ROOM ID \033[32m-----------------------------------------+\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
+           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
     saveCursor();
-    up(1);
+    gotoxyCursor(2, 64);
+    printf("\033[34m\033[1m%d \033[0m", room->ID);
+    loadCursor();
+
+    saveCursor();
+    up(4);
     carriageReturn();
     printf("\033[32m\033[1|\033[0m\t");
     printf("Server IPv4: %s    Porta: %d    Username: %s", server->ip, server->port, server->connected_user);
     loadCursor();
+
+    saveCursor();
+    up(2);
+    carriageReturn();
+    printf("\033[32m\033[1|\033[0m\t");
+    printf("Suzerain: %s", server->connected_user);
+    loadCursor();
+
+    saveCursor();
+    up(1);
+    carriageReturn();
+    printf("\033[32m\033[1|\033[0m\t");
+    printf("Giocatori(%d/8): %s", room->player_num, server->connected_user);
+    loadCursor();
+
     printf("|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\tBenvenuto nella homepage del gioco. Da qui è possibile creare una stanza ed unirvisi come\t\033[1m\033[32m|\n"
-           "|\033[0m\tgiocatore, entrarne in una già esistente o vedere quali stanze sono state create sul\t\t\033[1m\033[32m|\n"
-           "|\033[0m\tserver. E' infine possibile effettuare il logout, e tornare alla schermata di login.\t\t\033[1m\033[32m|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\tOpzioni disponibili:\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t0) Logout\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t1) Crea una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t2) Entra in una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t3) Lista delle stanze\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
+           "|\033[0m\t\033[1m\033[37mParola: In attesa di una parola...\t\t\t\t\t\t\t\t\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
     //printf("\tServer IPv4: %s      Porta: %d      Username: %s\n\n", server->ip, server->port, server->connected_user);

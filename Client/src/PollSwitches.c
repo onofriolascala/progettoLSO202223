@@ -5,7 +5,7 @@
 #include "../include/PollSwitches.h"
 
 int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
-    int end_loop, same_signal;
+    int end_loop, same_signal, contacted_sd;
 
     if(server->last_signal != signal_num && signal_num != S_DISCONNECT) {
         emptyConsole();
@@ -102,6 +102,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             //if(strcmp(incoming, S_HOMEPAGEOK_MSG)) printf("\t%s\n", incoming);
             writeToServer(*prompt->sd, C_GUESSSKIP, incoming);
             break;
+        //          GAME LOGIC          //
         case S_MISSEDGUESS:
             //
             printf("\t\tSERVER_SWITCH: <Missed Guess> %d:%s\n", signal_num, incoming);
@@ -188,7 +189,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
 }
 
 int switchPrompt(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
-    int end_loop, parser_return;
+    int end_loop, parser_return, contacted_sd;
 
     end_loop = 0;
 
@@ -205,7 +206,9 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             end_loop = 1;
             break;
         case C_RETRY:
-            writeToServer(*server->sd, C_RETRY, "C_RETRY");
+            contacted_sd = *prompt->sd;
+            signal_num = C_RETRY;
+            strcpy(incoming, "C_RETRY");
             break;
         case S_DISCONNECT_ABRUPT:
             // La socket del prompt si è chiusa inaspettatamente. Comportamento non definito, si procede a chiudere il
@@ -217,7 +220,7 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             // Il prompt ha inviato un segnale di disconnessione dal server a cui il client è connesso in quel
             // momento. Il client provvederà a trasferirlo al server.
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Disconnection> %d:%s.\n", signal_num, incoming);
-            writeToServer(*server->sd, signal_num, incoming);
+            contacted_sd = *server->sd;
             break;
         case C_CONNECTION:
             // Il prompt desidera connettersi al processo server identificato da indirizzo IPv4 e porta forniti.
@@ -231,24 +234,35 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             else if(parser_return == -2) {
                 printWarning(prompt, "L'indirizzo IPv4 può contenere solo caratteri numerici. Riprovare.\n");
             }
-            parser_return = parserPort(incoming, server);
-            if(parser_return == -1) {
-                printWarning(prompt, "La porta fornita non è della lunghezza corretta. Riprovare.\n");
-            }
-            else if(parser_return == -2) {
-                printWarning(prompt, "La porta può contenere solo caratteri numerici. Riprovare.\n");
+
+            if(parser_return >= 0) {
+                parser_return = parserPort(incoming, server);
+                if(parser_return == -1) {
+                    printWarning(prompt, "La porta fornita non è della lunghezza corretta. Riprovare.\n");
+                }
+                else if(parser_return == -2) {
+                    printWarning(prompt, "La porta può contenere solo caratteri numerici. Riprovare.\n");
+                }
             }
 
             if (parser_return < 0) {
-                writeToServer(*prompt->sd, C_RETRY, "C_RETRY");
+                contacted_sd = *prompt->sd;
+                signal_num = C_RETRY;
+                strcpy(incoming, "C_RETRY");
                 break;
             }
             else {
-                if ((*(server->sd) = socketInit(&server->addr, &server->len, server->ip, server->port)) < 4) {
-                    fprintf(stderr,":SWITCH PROMPT ERROR: Apertura della server socket non riuscita correttamente. Riprovare.\n");
-                    *(server->sd) = -1;
-                    writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION");
+                if ((signal_num = socketInit(&server->addr, &server->len, server->ip, server->port)) < 4) {
+                    printError(prompt, "Errore nell'apertura della connessione con il server. Riprovare.\n",
+                                       ":SWITCH PROMPT ERROR", -signal_num);
+                    contacted_sd = *prompt->sd;
+                    signal_num = C_CONNECTION;
+                    strcpy(incoming, "C_CONNECTION");
                     break;
+                }
+                else {
+                    *(server->sd) = signal_num;
+                    signal_num = 0;
                 }
             }
             break;
@@ -272,11 +286,16 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             }
 
             if (parser_return < 0) {
-                writeToServer(*prompt->sd, C_RETRY, "C_RETRY");
+                contacted_sd = *prompt->sd;
+                signal_num = C_RETRY;
+                strcpy(incoming, "C_RETRY");
+                //writeToServer(*prompt->sd, C_RETRY, "C_RETRY");
                 break;
             }
             else {
-                writeToServer(*server->sd, C_LOGIN, incoming);
+                contacted_sd = *server->sd;
+                signal_num = C_LOGIN;
+                //writeToServer(*server->sd, C_LOGIN, incoming);
             }
             break;
         case C_SIGNIN:
@@ -299,39 +318,54 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             }
 
             if (parser_return < 0) {
-                writeToServer(*prompt->sd, C_RETRY, "C_RETRY");
+                contacted_sd = *prompt->sd;
+                signal_num = C_RETRY;
+                strcpy(incoming, "C_RETRY");
+                //writeToServer(*prompt->sd, C_RETRY, "C_RETRY");
                 break;
             }
             else {
+                contacted_sd = *server->sd;
                 signal_num = C_SIGNIN;
+                //writeToServer(*server->sd, C_SIGNIN, incoming);
             }
             break;
         case C_LOGOUT:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Logout> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
             memset(server->connected_user, '\0', sizeof(server->connected_user));
             break;
         case C_CREATEROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Create Room> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
             break;
         case C_JOINROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Join Room> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
             break;
         case C_LISTROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <List Room> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
             break;
         case C_EXITROOM:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Exit Room> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
             break;
         case C_GUESSSKIP:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Guess> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
             break;
         case C_CLIENTERROR:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Client Error> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
             break;
         default:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Default> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
     }
-    if(writeToServer(*server->sd, signal_num, incoming) < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
     writeToLog(*prompt->log, prompt->log_str);
+    if (signal_num > 0) {
+        if(writeToServer(contacted_sd, signal_num, incoming) < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
+    }
     return end_loop;
 }

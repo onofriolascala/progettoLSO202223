@@ -83,8 +83,8 @@ int main() {
         exit(1);
     }
     else {
-        sprintf(prompt->log, "MAIN: localSocketInit completed with value \"%d\".\n", localsocket);
-        writeToLog(*prompt->log, prompt->log);
+        sprintf(prompt->log_str, "MAIN: localSocketInit completed with value \"%d\".\n", localsocket);
+        writeToLog(*prompt->log, prompt->log_str);
         memset(prompt->log_str, '\0', sizeof(prompt->log_str));
     }
     prompt->sd = &fds[0].fd;

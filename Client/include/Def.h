@@ -43,7 +43,7 @@
 #define MAXWORDLENGHT 32
 
 // Numero di microsecondi degli usleep().
-#define REFRESHCONSTANT 5000
+#define REFRESHCONSTANT 30000
 
 // Segnali di comunicazione lato Server.
 #define S_DISCONNECT_ABRUPT 0      // Disconnessione improvvisa
@@ -135,12 +135,14 @@ struct server_connection {
     int last_signal;
     char ip[MAXCOMMBUFFER];
     int port;
-    char connected_user[USERNAMELENGTH];
+    char connected_user[USERNAMELENGTH+1];
+    char past_comms[10][MAXCOMMBUFFER];
 };
 
 struct room_struct {
     int ID;
-    char players[MAXPLAYERS][USERNAMELENGTH];
+    int player_num;
+    char players[MAXPLAYERS][USERNAMELENGTH+1];
     char secret_word[MAXWORDLENGHT];
 };
 

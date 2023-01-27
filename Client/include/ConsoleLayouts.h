@@ -28,7 +28,7 @@
 #define clearScreen()       printf("\033[2J")
 #define clearLine()         printf("\033[2K")
 #define carriageReturn()    printf("\r")
-#define gotoxy(x,y)         printf("\033[%d;%dH", (y), (x))
+#define gotoxyCursor(x,y)   printf("\033[%d;%dH", (x), (y))
 #define up(x)               printf("\033[%dA", (x))
 #define down(x)             printf("\033[%dB", (x))
 #define right(x)            printf("\033[%dC", (x))

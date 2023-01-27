@@ -6,7 +6,8 @@ int parserIp(char incoming[], struct server_connection *server){
     char input[MAXCOMMBUFFER] = "";
     strcpy(input, incoming);
 
-    char temp[MAXIP]="";
+    char temp[MAXIP+1]="";
+    temp[MAXIP] = '\0';
     char* ip;
     char* saveptr;
     int count=2;
@@ -58,7 +59,8 @@ int parserPort(char incoming[],struct server_connection *server){
     char input[MAXCOMMBUFFER];
     strcpy(input, incoming);
 
-    char temp[MAXPORT];
+    char temp[MAXPORT+1];
+    temp[MAXPORT] = '\0';
     char* pr;
     char* saveptr;
     int len;
@@ -85,7 +87,8 @@ int parserPassword(char incoming[]){
     char input[MAXCOMMBUFFER];
     strcpy(input, incoming);
 
-    char temp[PASSWORDLENGTH];
+    char temp[PASSWORDLENGTH+1];
+    temp[PASSWORDLENGTH] = '\0';
     char* psw;
     char* saveptr;
     int len;
@@ -111,7 +114,8 @@ int parserUsername(char incoming[], struct server_connection *server) {
     char input[MAXCOMMBUFFER];
     strcpy(input, incoming);
 
-    char temp[USERNAMELENGTH];
+    char temp[USERNAMELENGTH+1];
+    temp[USERNAMELENGTH] = '\0';
     char *user;
     char *saveptr;
     int len;
@@ -128,6 +132,7 @@ int parserUsername(char incoming[], struct server_connection *server) {
         }
     }
     //printf("%s", temp);
-    strcpy(server->connected_user, temp);
+    strncpy(server->connected_user, temp, USERNAMELENGTH);
+    server->connected_user[USERNAMELENGTH] = '\0';
     return 0;
 }

@@ -17,12 +17,12 @@ void* thrPrompt(void* arg) {
 
     // Apertura socket su un indirizzo costante.
     if((main_socket = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
-        perror(":PROMPT SOCKET CREATION");
+        printError(prompt, ECRITICALCLIENT, "PROMPT SOCKET CREATION", result);
         exit(1);
     }
     // Connessione...
-    if(connect(main_socket, (struct sockaddr*)&localaddr, sizeof(localaddr)) < 0) {
-        perror(":PROMPT SOCKET CONNECT");
+    if((result = connect(main_socket, (struct sockaddr*)&localaddr, sizeof(localaddr))) < 0) {
+        printError(prompt, ECRITICALCLIENT, "PROMPT SOCKET CONNECT", result);
         exit(1);
     }
 
@@ -81,7 +81,7 @@ void* thrPrompt(void* arg) {
                 break;
             case C_CREATEROOM:
                 last_mode = prompt_mode;
-                result = promptLogin(prompt, outgoing);
+                result = promptHomepage(prompt, outgoing);
                 // Logout
                 if(result == 0) {
                     writeToServer(main_socket, C_LOGOUT, "C_LOGOUT");
@@ -166,6 +166,10 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
         up(1);
         clearLine();
         carriageReturn();
+        up(1);
+        clearLine();
+        carriageReturn();
+        fflush(stdout);
     }
 
     inputAddress();
@@ -204,6 +208,10 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                     up(1);
                     clearLine();
                     carriageReturn();
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                    fflush(stdout);
                 }
                 break;
                 // Login
@@ -221,6 +229,10 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                     up(1);
                     clearLine();
                     carriageReturn();
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                    fflush(stdout);
                 }
 
                 inputUsername();
@@ -274,7 +286,7 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
         end_loop = 1;
 
         //
-        result = promptSelection(prompt, '3');
+        result = promptSelection(prompt, '4');
 
         switch (result) {
             // Logout
@@ -334,7 +346,7 @@ int promptString(struct prompt_thread *prompt, char buffer[], int max_len) {
         if(pthread_mutex_trylock(&prompt->mutex) == 0) {
             //pthread_mutex_lock(&prompt->mutex);
             if(!fgets(temp_buffer, sizeof temp_buffer, stdin)) {
-                fprintf(stderr, ":INPUT READING ERROR: prompt has failed reading from input.\n");
+                printErrorNoNumber(prompt, "Errore durante la ricezione dell'input. Riprovare.", ":INPUT READING ERROR: prompt has failed reading from input.\n");
                 pthread_mutex_unlock(&prompt->mutex);
                 return -1;
             }
@@ -361,22 +373,17 @@ int promptSelection(struct prompt_thread *prompt, char max_select) {
         inputGeneric((max_select - '0') + 1);
         if(promptString(prompt, temp_buffer, USERNAMELENGTH) < 0) return -1;
         if(temp_buffer[0] == 0) {
-            red();
-            printf("\tInserire un valore.\n");
-            defaultFormat();
+            printWarning(prompt, "Inserire un valore.\n");
             continue;
         }
         sscanf(temp_buffer, "%c", &c);
         if(!isdigit(c)) {
-            red();
-            printf("\tInserire un valore numerico.\n");
-            defaultFormat();
+            printWarning(prompt, "Inserire un valore numerico.\n");
             continue;
         }
         if(c < '0' || c > max_select){
-            red();
-            printf("\tInserire una delle opzioni previste.\n");
-            defaultFormat();
+
+            printWarning(prompt, "Inserire una delle opzioni previste.\n");
             continue;
         }
         break;
@@ -395,16 +402,12 @@ int promptInteger(struct prompt_thread *prompt) {
     memset(temp_buffer, '\0', sizeof(temp_buffer));
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return -1;
     if(temp_buffer[0] == 0) {
-        red();
-        printf("\tInserire un valore. Reset Richiesta.\n");
-        defaultFormat();
+        printWarning(prompt, "Inserire un valore.\n");
         return 0;
     }
     result = strtol(temp_buffer, &endp, 10);
     if(temp_buffer == endp || *endp != '\n') {
-        red();
-        printf("\tInserire un valore numerico. Reset Richiesta.\n");
-        defaultFormat();
+        printWarning(prompt, "Inserire un valore numerico.\n");
         return 0;
     }
     return result;
@@ -421,10 +424,6 @@ int promptConfirmation(struct prompt_thread *prompt) {
     if(temp_buffer[0] == 'Y' || temp_buffer[0] == 'y') {
         result = 1;
     }
-    else {
-        red();
-        printf("\tInserire un valore. Reset Richiesta.\n");
-        defaultFormat();
-    }
+
     return result;
 }
