@@ -31,6 +31,9 @@
 #define PASSWORDLENGTH 16
 #define QUERYLENGTH 1024
 
+// Numero di refresh massimi consentiti
+#define MAXREFRESHCONSTANT 100
+
 // Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 5000
 
