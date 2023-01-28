@@ -5,7 +5,9 @@
 #include "../include/ConsoleLayouts.h"
 
 void emptyConsole(void) {
-    system("clear");
+    //system("clear");
+    clearScreen();
+    gotoxyCursor(0,0);
 }
 
 void inputGeneric(int input) {

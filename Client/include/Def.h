@@ -16,7 +16,6 @@
 #define CLIENTLOCALSOCKET "/tmp/mainClient_socket_local"
 #define CLIENTPOLLINGCONST 2
 
-#define CLIENTLOG "./clientlog.txt"
 #define MAXLOGBUFFER 2048
 #define MAXERRORBUFFER 1024
 

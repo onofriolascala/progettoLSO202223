@@ -189,7 +189,7 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
 }
 
 int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
-    char temp_buffer[USERNAMELENGTH];
+    char temp_buffer[USERNAMELENGTH] = "";
     int result, end_loop;
 
     do {
@@ -286,7 +286,7 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
         end_loop = 1;
 
         //
-        result = promptSelection(prompt, '4');
+        result = promptSelection(prompt, '3');
 
         switch (result) {
             // Logout
@@ -406,7 +406,7 @@ int promptInteger(struct prompt_thread *prompt) {
         return 0;
     }
     result = strtol(temp_buffer, &endp, 10);
-    if(temp_buffer == endp || *endp != '\n') {
+    if(temp_buffer == endp || *endp != '\0') {
         printWarning(prompt, "Inserire un valore numerico.\n");
         return 0;
     }

@@ -8,9 +8,13 @@
 // l'inizializzazione di questa risorsa è critica
 int createLog(void) {
     char temp_buffer[MAXERRORBUFFER];
+    char log_path[MAXERRORBUFFER];
     int fd;
+    pid_t pid = getpid();
 
-    if(unlink(CLIENTLOG) < 0) {
+    sprintf(log_path, "./clientlog_%d.txt", pid);
+
+    if(unlink(log_path) < 0) {
         if (errno != ENOENT)
         {
             yellow();
@@ -18,14 +22,14 @@ int createLog(void) {
             defaultFormat();
         }
     }
-    if (( fd = open(CLIENTLOG, O_RDWR|O_CREAT, S_IRWXU)) < 0) {
+    if (( fd = open(log_path, O_RDWR|O_CREAT, S_IRWXU)) < 0) {
         red();
         perror(":OPEN ERR");
         defaultFormat();
         exit(1);
     }
 
-    sprintf(temp_buffer, "\t\t\tCLIENT OPERATIONS LOG\n\nLog successfully created at \"%s\" with FD \"%d\".\n", CLIENTLOG, fd);
+    sprintf(temp_buffer, "\t\t\tCLIENT OPERATIONS LOG\n\nLog successfully created at \"%s\" with FD \"%d\".\n", log_path, fd);
     if(writeToLog(fd, temp_buffer) < 0) exit(1);
 
     return fd;
