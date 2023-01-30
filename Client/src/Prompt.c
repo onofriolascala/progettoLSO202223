@@ -105,12 +105,12 @@ void* thrPrompt(void* arg) {
                 break;
             default:
                 last_mode = prompt_mode;
-                printf("\t\t\t\tPROMPT_THREAD: <DEBUG> signal number not recognized. Manual response enabled.\n");
-                printf("\t\t\t\tSignal Number: ");
+                printf("PROMPT_THREAD: <DEBUG> signal number not recognized. Manual response enabled.\n");
+                printf("Signal Number: ");
                 fgets(outgoing, MAXCOMMBUFFER, stdin);
                 outgoing[strcspn(outgoing, "\n")] = '\0';
                 signal_num = atoi(outgoing);
-                printf("\t\t\t\tMessage: ");
+                printf("Message: ");
                 fgets(outgoing, MAXCOMMBUFFER, stdin);
                 outgoing[strcspn(outgoing, "\n")] = '\0';
                 writeToServer(main_socket, signal_num, outgoing);

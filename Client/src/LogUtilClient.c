@@ -29,7 +29,7 @@ int createLog(void) {
         exit(1);
     }
 
-    sprintf(temp_buffer, "\t\t\tCLIENT OPERATIONS LOG\n\nLog successfully created at \"%s\" with FD \"%d\".\n", log_path, fd);
+    sprintf(temp_buffer, "\t\t\tCLIENT OPERATIONS LOG\n\nLog successfully created at \"%s\" with FD \"%d\" for process ID \"%d\".\n", log_path, fd, pid);
     if(writeToLog(fd, temp_buffer) < 0) exit(1);
 
     return fd;
