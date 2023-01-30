@@ -74,7 +74,7 @@ int main() {
     fds[1].events = POLLIN;                         // Inizialmente settata a -1 per essere ignorata.
     num_fds = 2;
 
-    timeout = ( 1 * 15 * 1000 );
+    timeout = ( 5 * 60 * 1000 );
 
     // Inizializzazione della socket locale e del thread per il PROMPT
     if((localsocket = localSocketInit(&localsocket_addr, &local_len)) < 0) {

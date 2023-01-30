@@ -8,7 +8,7 @@
 // l'inizializzazione di questa risorsa è critica
 int createLog(void) {
     char temp_buffer[MAXERRORBUFFER];
-    char log_path[MAXERRORBUFFER];
+    char log_path[MAXERRORBUFFER-179];
     int fd;
     pid_t pid = getpid();
 

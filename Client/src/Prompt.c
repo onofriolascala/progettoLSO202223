@@ -222,8 +222,8 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                 inputComfirmation();
                 if (promptConfirmation(prompt)) {
                     printf("Accesso come "
-                           "\"pippopippopippo\" con password \"pippopippo\".\n");
-                    strcpy(outgoing, "pippopippo-pippopippo;");
+                           "\"pippopippopippo\" con password \"pippopippop\".\n");
+                    strcpy(outgoing, "pippopippopippo-pippopippop;");
                     return 1;
                 } else {
                     up(1);
