@@ -314,6 +314,7 @@ struct room_node* getRoom( struct room_node* room_list, int target_id ){
  * valori control flag:
  * 0: tutte le stanze lette e aggiunte al risultato
  * -1: non ci sono stanze da leggere
+ * -2: trylock error
  * 1: buffer pieno e mancano stanze da leggere
  * */
 
@@ -335,6 +336,7 @@ struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int
         tmp = room_list;
 
         if(!lockRoomNode(tmp)){
+            *control_flag = -2;
             return tmp;
         }
 
@@ -345,6 +347,7 @@ struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int
             tmp = tmp->next;
 
             if(!lockRoomNode(tmp)){
+                *control_flag = -2;
                 return tmp;
             }
 
@@ -377,7 +380,7 @@ int lockRoomNode(struct room_node* room){
     int result = 0;
     int try = 0;
     while(pthread_mutex_trylock(&room->roomnode_mutex) != 0){
-        if(++try == MAXREFRESHCONSTANT){
+        if(++try == (MAXREFRESHCONSTANT + 20)){
             return result;
         }
         usleep(REFRESHCONSTANT);
