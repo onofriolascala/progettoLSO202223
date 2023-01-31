@@ -167,7 +167,7 @@ void* thrService(void* arg) {
                     control_flag = 1;
                     tmp = *room_list;
                     while(control_flag == 1){
-                        tmp = getRoomList(tmp, outgoing, MAXCOMMBUFFER, &control_flag);
+                        tmp = getRoomList(tmp, outgoing, 16, &control_flag);
                         if(control_flag != -2){
                             writeToClient(sd, S_ROOMLISTOK, outgoing);
                         }
