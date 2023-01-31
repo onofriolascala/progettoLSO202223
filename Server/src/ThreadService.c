@@ -22,6 +22,9 @@ void* thrService(void* arg) {
     struct room_node** room_list;
     /*debug*/ char deb[USERNAMELENGTH + 1];
 
+    /* get room list utility*/
+    struct room_node* tmp;
+    int control_flag;
 
 
     signal_num = 2;
@@ -161,8 +164,12 @@ void* thrService(void* arg) {
                     break;
                 case C_LISTROOM:
                     //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);
-                    //getRoomList();
-                    writeToClient(sd, S_ROOMLISTOK, S_ROOMLISTOK_MSG);
+                    control_flag = 1;
+                    tmp = *room_list;
+                    while(control_flag != 1){
+                        tmp = getRoomList(tmp, outgoing, MAXCOMMBUFFER, &control_flag);
+                        writeToClient(sd, S_ROOMLISTOK, outgoing);
+                    }
                     break;
                 case C_LOGOUT:
                     printf("\t\tDEBUG_SD%d: <Logout>\n", sd);

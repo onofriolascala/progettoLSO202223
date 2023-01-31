@@ -311,15 +311,25 @@ struct room_node* getRoom( struct room_node* room_list, int target_id ){
 }
 /* La funzione riceve la testa della lista di stanze, una stringa di output e la lunghezza massima della stringa di output.
  * Scrive nella stringa di output la lista di stanze con formattazione [id_stanza]: [num_giocatori_stanza]/[max_num_giocatori][- || ;]
+ * valori control flag:
+ * 0: tutte le stanze lette e aggiunte al risultato
+ * -1: non ci sono stanze da leggere
+ * 1: buffer pieno e mancano stanze da leggere
  * */
-struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int max_out){
+
+struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int max_out, int* control_flag ){
     struct room_node* tmp;
     int curr_lenght = 0;
     char room[20];
+    int record_len = 12;
+
+    *control_flag = 0;
+
 
     if(room_list == NULL){
-        memset(outgoing, 0, max_out);
+        strcpy(outgoing, "Non esistono stanze.-;");
         tmp = room_list;
+        *control_flag = -1;
     }
     else{
         tmp = room_list;
@@ -330,7 +340,7 @@ struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int
 
         sprintf(outgoing,"%d: %d/8", tmp->id, tmp->player_num);
         curr_lenght += strlen(outgoing);
-        while( tmp->next != NULL && curr_lenght < max_out){
+        while( tmp->next != NULL && curr_lenght < (max_out - record_len)){
             pthread_mutex_unlock(&tmp->roomnode_mutex);
             tmp = tmp->next;
 
@@ -344,10 +354,21 @@ struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int
             strcat(outgoing, room);
             curr_lenght += strlen(room);
         }
-        pthread_mutex_unlock(&tmp->roomnode_mutex);
-        if( curr_lenght < max_out){
+
+        strcat(outgoing, "-");
+        if( curr_lenght < (max_out - record_len)){
             strcat(outgoing, ";");
         }
+        else{
+            if(tmp->next != NULL){
+                *control_flag = 1;
+                strcat(outgoing, "#-;");
+            }
+            else{
+                strcat(outgoing, ";");
+            }
+        }
+        pthread_mutex_unlock(&tmp->roomnode_mutex);
     }
     return tmp;
 }
