@@ -219,7 +219,7 @@ struct room_node* createAndAddNewRoom( struct room_node** head_pointer){
         new_room = createNewRoomNode(*head_pointer);
         addRoomToRoomList(head_pointer, new_room);
 
-        pthread_mutex_unlock(&(*head_pointer)->roomnode_mutex);
+        pthread_mutex_unlock(&(*head_pointer)->next->roomnode_mutex);
     }
     else {
         new_room = createNewRoomNode(*head_pointer);
