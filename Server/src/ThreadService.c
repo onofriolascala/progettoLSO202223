@@ -166,9 +166,14 @@ void* thrService(void* arg) {
                     //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);
                     control_flag = 1;
                     tmp = *room_list;
-                    while(control_flag != 1){
+                    while(control_flag == 1){
                         tmp = getRoomList(tmp, outgoing, MAXCOMMBUFFER, &control_flag);
-                        writeToClient(sd, S_ROOMLISTOK, outgoing);
+                        if(control_flag != -2){
+                            writeToClient(sd, S_ROOMLISTOK, outgoing);
+                        }
+                        else{
+                            writeToClient(sd, S_SERVERERROR, S_SERVERERROR_MSG);
+                        }
                     }
                     break;
                 case C_LOGOUT:
