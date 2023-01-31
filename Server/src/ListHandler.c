@@ -372,6 +372,7 @@ struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int
             }
         }
         pthread_mutex_unlock(&tmp->roomnode_mutex);
+        tmp = tmp->next;
     }
     return tmp;
 }
