@@ -14,6 +14,7 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include <poll.h>
 
@@ -23,6 +24,8 @@
 #include "../include/Prompt.h"
 #include "../include/PollSwitches.h"
 #include "../../Server/include/Def.h"
+
+static void sigHandler(int signum);
 
 int main() {
     // Dichiarazioni per la connessione
@@ -61,6 +64,17 @@ int main() {
         exit(1);
     }
     *prompt->log = createLog();
+
+    // Inizializzazione del signal handler
+    if(signal(SIGINT, sigHandler) == SIG_ERR){
+        //printf("Errore nella creazione del sigHandler, impossibile intercettare SIGINT\n");
+    }
+    if(signal(SIGTERM, sigHandler) == SIG_ERR){
+        //printf("Errore nella creazione del sigHandler, impossibile intercettare SIGTERM\n");
+    }
+    if(signal(SIGKILL, sigHandler) == SIG_ERR){
+        //printf("Errore nella creazione del sigHandler, impossibile intercettare SIGKILL\n");
+    }
 
     // Inizializzazioni poll
     end_loop = 0;
@@ -160,4 +174,15 @@ int main() {
 
     writeToLog(*prompt->log, "Terminazione processo client.\n\n\t\t\t END CLIENT.\n");
     return 0;
+}
+
+static void sigHandler(int signum){
+    char temp_buf[MAXCOMMBUFFER];
+    strcpy(temp_buf, "rm ");
+    strcat(temp_buf, CLIENTLOCALSOCKET);
+    if(signum == SIGINT || signum == SIGTERM || signum == SIGKILL){
+        //closing routine
+        system(temp_buf);
+        exit(1);
+    }
 }
