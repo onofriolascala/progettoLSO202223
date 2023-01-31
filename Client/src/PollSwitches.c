@@ -8,6 +8,8 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
     int end_loop, same_signal, contacted_sd;
     char temp_buffer[MAXCOMMBUFFER];
 
+    memset(temp_buffer, '\0', sizeof(temp_buffer));
+
     if(server->last_signal != signal_num && signal_num != S_DISCONNECT && signal_num <= S_FULLROOM) {
         emptyConsole();
         server->last_signal = signal_num;
@@ -57,6 +59,18 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
 
                     pthread_cancel(prompt->id);
                     deleteLocalSocket(prompt);
+
+                    /*if((prompt = localSocketInit(&localsocket_addr, &local_len, prompt)) < 0) {
+                        printError(prompt, "ERRORE: Ri-creazione della socket locale fallita. Chiusura processo.\n",
+                                   ":LOCAL SOCKET INIT", localsocket);
+                        exit(1);
+                    }
+                    else {
+                        sprintf(prompt->log_str, "MAIN: localSocketInit completed with value \"%d\".\n", localsocket);
+                        writeToLog(*prompt->log, prompt->log_str);
+                        memset(prompt->log_str, '\0', sizeof(prompt->log_str));
+                    }*/
+
                     prompt->id = createPrompt(*server->localsocket, prompt);
 
                     sleep(3);
@@ -106,6 +120,8 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     contacted_sd = *prompt->sd;
                     signal_num = C_RETRY;
                     strcpy(incoming, "C_RETRY");
+                    break;
+
                 } else if (signal_num > 0) {
                     signal_num = parserList(incoming, signal_num, temp_buffer);
                     printf("%s", temp_buffer);
@@ -115,8 +131,9 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     contacted_sd = *prompt->sd;
                     signal_num = C_RETRY;
                     strcpy(incoming, "C_RETRY");
+                    break;
                 }
-            } while(signal_num > 0);
+            } while(1);
             printf("\n");
             break;
         case S_ROOMOK:
