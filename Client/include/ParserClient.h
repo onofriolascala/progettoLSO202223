@@ -24,4 +24,6 @@ int parserPassword(char incoming[]);
 
 int parserUsername(char incoming[], struct server_connection *server);
 
+int parserList(char incoming[], int input_position, char print_buffer[]);
+
 #endif //PROGETTOLSO202223_PARSERCLIENT_H

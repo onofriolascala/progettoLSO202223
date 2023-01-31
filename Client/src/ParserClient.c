@@ -136,3 +136,48 @@ int parserUsername(char incoming[], struct server_connection *server) {
     server->connected_user[USERNAMELENGTH] = '\0';
     return 0;
 }
+
+// Parser della lista delle stanze. Opera in modo da rimanere in attesa delle stanze da scrivere qualora eccedano il buffer
+// Riceve in ingresso il messaggio in entrata, il contatore delle colonne scritte ed il puntatore del buffer di stampa
+// Restituisce 0 in caso di successo, -1 in caso di arrey mal inizializzati, -2 in caso di messaggio in input vuoto,
+// un numero positivo compreso tra 1-MAXLISTCOLUMNS in caso di attesa di una nuova comunicazione
+// per indicare l'attuale posizione del cursore delle colonne
+int parserList(char incoming[], int input_position, char print_buffer[]) {
+    int return_value, column_position;
+    char *saveptr;
+    char *room_p;
+    char temp_buf[MAXCOMMBUFFER];
+
+    saveptr = NULL;
+    return_value = 0;
+    column_position = input_position;
+
+    if (incoming == NULL || print_buffer == NULL) {
+        return_value = -1;
+    }
+    else {
+        strcpy(temp_buf, incoming);
+        for (room_p = strtok_r(temp_buf, "-", &saveptr);
+             room_p != NULL;
+             room_p = strtok_r(NULL, "-", &saveptr))
+        {
+            if(room_p[0] == '#') {
+                return_value = column_position;
+                break;
+            }
+            else {
+                strcat(print_buffer, room_p);
+                if(column_position <= MAXLISTCOLUMNS) {
+                    strcat(print_buffer, "\t");
+                    column_position++;
+                }
+                else {
+                    strcat(print_buffer, "\n");
+                    column_position = 1;
+                }
+            }
+        }
+    }
+
+    return return_value;
+}
