@@ -46,7 +46,7 @@ void* thrRoom(void* arg) {
     int timeout, rc = 0;
     //int localsocket;
     int nfds, new_local_sd, current_size = 0, i, j, signal_code;
-    int end_loop = 0, close_conn;
+    int next_turn = 0, close_conn;
     char *saveptr = NULL;
     char *username_p, *fd_p;
     struct player_node* new_player, *player;
@@ -58,6 +58,8 @@ void* thrRoom(void* arg) {
     struct player_node* current_player = NULL;
     struct player_node* suzerain = NULL;
     int close_room = 0, word_is_selected = 0;
+    clock_t start_t, end_t;
+    double total_t;
 
     //initializing the listening socket into the polling array
     memset(fds, 0 ,sizeof(fds));
@@ -65,11 +67,16 @@ void* thrRoom(void* arg) {
     fds[0].events = POLLIN;
     nfds = 1;
 
-    timeout = ( 3 * 60 * 1000);
+    timeout = ( 1 * 60 * 1000);
 
     while( !close_room ){
-        /* inizio di un nuovo round */
+        /* inizio di un nuovo turno*/
+
+        start_t = clock();
+        total_t = 0;
+        next_turn = 0;
         word_is_selected = 0;
+
         do{
             printf("DEBUG: Waiting on poll function...\n");
             fflush(stdout);
@@ -79,12 +86,13 @@ void* thrRoom(void* arg) {
             if( rc < 0 ){
                 //poll failed
                 perror("poll failed");
+                close_room = 1;
                 break;
             }
             if( rc == 0 ){
                 // timeout raggiunto
-                printf("DEBUG: poll timed out. Closing the logic loop\n");
-                break;
+                //printf("DEBUG: poll timed out. Closing the logic loop\n");
+                //break;
             }
             current_size = nfds;
             for(i = 0; i < current_size; i++){
@@ -94,7 +102,7 @@ void* thrRoom(void* arg) {
                 if(fds[i].revents != POLLIN){
                     //unexpected behaviour
                     printf("DEBUG: Error! fds[%d].revents = %d\n",i, fds[i].revents);
-                    end_loop = 1;
+                    next_turn = 1;
                     close_room = 1;
                     break;
                 }
@@ -105,7 +113,7 @@ void* thrRoom(void* arg) {
                     if (new_local_sd < 0){
                         if (errno != EWOULDBLOCK){
                             perror("  accept() failed");
-                            end_loop = 1;
+                            next_turn = 1;
                             close_room = 1;
                         }
                         break;
@@ -180,7 +188,7 @@ void* thrRoom(void* arg) {
                                 current_player = current_player->next;
                             }
                             if( suzerain == player ){
-                                end_loop = 1;
+                                next_turn = 1;
                                 //gameOver?
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
@@ -193,7 +201,7 @@ void* thrRoom(void* arg) {
                                 current_player = current_player->next;
                             }
                             if( suzerain == player ){
-                                end_loop = 1;
+                                next_turn = 1;
                                 //gameOver?
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
@@ -238,8 +246,8 @@ void* thrRoom(void* arg) {
                                 current_player = current_player->next;
                             }
                             if( suzerain == player ){
-                                end_loop = 1;
-                                //gameOver?
+                                next_turn = 1;
+                                //gameOver? yes
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
                             this_room->player_num--;
@@ -258,17 +266,30 @@ void* thrRoom(void* arg) {
                         }
                         nfds--;
                         /* check to see if the room is empty*/
-                        if ( nfds == 1 ){
+                        if ( nfds <= 1 ){
                             //room is empty
                             //closing room routine
-                            end_loop = 1;
+                            next_turn = 1;
                             close_room = 1;
                         }
                     }
                 }
             }
             // restart polling unless loop ended
-        }while(!end_loop);
+
+            end_t = clock();
+            total_t += (double) (end_t - start_t) / CLOCKS_PER_SEC;
+            if(total_t > 90){ //1 minute round timeout + 30 seconds for server-side delays
+                //round timeout routine
+                current_player = current_player->next;
+                if(current_player == suzerain){
+                    //addHint()
+                    current_player = current_player->next;
+                }
+                next_turn = 1;
+            }
+
+        }while(!next_turn);
     }
 
     // Chiusura della stanza.
