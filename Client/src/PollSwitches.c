@@ -6,6 +6,7 @@
 
 int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
     int end_loop, same_signal, contacted_sd;
+    char temp_buffer[MAXCOMMBUFFER];
 
     if(server->last_signal != signal_num && signal_num != S_DISCONNECT && signal_num <= S_FULLROOM) {
         emptyConsole();
@@ -97,10 +98,26 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // ad estrarle, formattarle ed infine riattivare il prompt.
             if( !same_signal ) renderHomepage(server);
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <List> %d:%s\n", signal_num, incoming);
-            printf("List: %s\n", incoming);
-            contacted_sd = *prompt->sd;
-            signal_num = C_CREATEROOM;
-            strcpy(incoming, "C_CREATEROOM");
+
+            do {
+                signal_num = parserList(incoming, 0, temp_buffer);
+                if (signal_num == 0) {
+                    printf("Lista delle stanze:\n%s", temp_buffer);
+                    contacted_sd = *prompt->sd;
+                    signal_num = C_RETRY;
+                    strcpy(incoming, "C_RETRY");
+                } else if (signal_num > 0) {
+                    signal_num = parserList(incoming, signal_num, temp_buffer);
+                    printf("%s", temp_buffer);
+                } else {
+                    sprintf(prompt->log_str, "\ttSERVER_SWITCH: <S_ROOMNOTFOUND> %d:%s\n", signal_num, incoming);
+                    printWarning(prompt, "Il client ha ricevuto una lista vuota. Riprovare.\n");
+                    contacted_sd = *prompt->sd;
+                    signal_num = C_RETRY;
+                    strcpy(incoming, "C_RETRY");
+                }
+            } while(signal_num > 0);
+            printf("\n");
             break;
         case S_ROOMOK:
             // Il server comunica l'avvenuto accesso alla stanza. Verrà eseguita la prima stampa della stanza.

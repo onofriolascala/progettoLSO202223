@@ -24,12 +24,13 @@
 #define MAXPORT 4
 #define MINPORT 1
 
-// Costanti per il Login/Signin/Logout.
+// Costanti per il Login/Signin/Logout/List.
 #define USERNAMEMINLENGTH 6
 #define USERNAMELENGTH 32
 #define PASSWORDMINLENGTH 10
 #define PASSWORDLENGTH 16
 #define QUERYLENGTH 1024
+#define MAXLISTCOLUMNS 5
 
 // Costanti per le comunicazioni.
 #define ECRITICALCLIENT "ERRORE CRITICO: Il client è incappato in un errore critico. Chiusura del processo.\n"
@@ -135,7 +136,6 @@ struct server_connection {
     char ip[MAXCOMMBUFFER];
     int port;
     char connected_user[USERNAMELENGTH+1];
-    char past_comms[10][MAXCOMMBUFFER];
 };
 
 struct room_struct {
