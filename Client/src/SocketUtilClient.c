@@ -32,15 +32,19 @@ int socketInit(struct sockaddr_in *addr, socklen_t *len, char ip[], int port){
 
 // Funzione di inizializzazione della connessione locale con il thread del PROMPT. Riceve un indirizzo del
 // file system (una costante), e restituisce la listening socket della connessione.
-int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
+int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len, struct prompt_thread *prompt) {
     //printf("DEBUG: localSocketInit start.\n");
     int sd;
 
+    pid_t pid = getpid();
+
+    sprintf(prompt->localsocket_path, "%s%d", CLIENTLOCALSOCKET, pid);
+
     (*localsocket_addr).sun_family = PF_LOCAL;
-    strcpy((*localsocket_addr).sun_path, CLIENTLOCALSOCKET);
+    strcpy((*localsocket_addr).sun_path, prompt->localsocket_path);
     *len = sizeof(*localsocket_addr);
 
-    if(unlink(CLIENTLOCALSOCKET) < 0) {
+    if(unlink(prompt->localsocket_path) < 0) {
         if (errno != ENOENT)
         {
             //perror(":UNLINK ERROR");
@@ -65,7 +69,7 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
     if(listen(sd, 1) < 0) {
         //perror(":LISTEN ERROR");
         close(sd);
-        unlink(CLIENTLOCALSOCKET);
+        unlink(prompt->localsocket_path);
         sd = -errno;
         return sd;
         //exit(1);
@@ -77,10 +81,10 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len) {
 
 // Elimina in sicurezza la socket locale al momento della chiusura del main thread. Riceve una socket ed un
 // indirizzo di memoria su cui effettuare il CLOSE() e l'UNLINK().
-void deleteLocalSocket(int localsocket, char localsocket_path[]) {
+void deleteLocalSocket(struct prompt_thread *prompt) {
     //if(!(strcmp(localsocket_path, ""))) {
-    close(localsocket);
-    unlink(localsocket_path);
+    close(prompt->sd);
+    unlink(prompt->localsocket_path);
     //}
     //else {
     //    fprintf(stderr, ":DELETE LOCALSOCKET: input string must be not be empty.\n");

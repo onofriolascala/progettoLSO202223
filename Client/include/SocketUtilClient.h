@@ -26,10 +26,10 @@ int socketInit(struct sockaddr_in *server_addr, socklen_t *len, char ip[], int p
 
 // Funzione di inizializzazione della connessione locale con il thread del PROMPT. Riceve un indirizzo del
 // file system (una costante), e restituisce la listening socket della connessione.
-int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len);
+int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len, struct prompt_thread *prompt);
 
 // Elimina in sicurezza la socket locale al momento della chiusura del main thread. Riceve una socket ed un
 // indirizzo di memoria su cui effettuare il CLOSE() e l'UNLINK().
-void deleteLocalSocket(int localsocket, char localsocket_path[]);
+void deleteLocalSocket(struct prompt_thread *prompt);
 
 #endif /* SOCKETUTILCLIENT_H */

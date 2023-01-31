@@ -6,7 +6,7 @@
 
 int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
     int end_loop, same_signal, contacted_sd;
-    char temp_buffer[MAXCOMMBUFFER] = "";
+    char temp_buffer[MAXCOMMBUFFER];
 
     if(server->last_signal != signal_num && signal_num != S_DISCONNECT && signal_num <= S_FULLROOM) {
         emptyConsole();
@@ -56,7 +56,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     *server->sd = -1;
 
                     pthread_cancel(prompt->id);
-                    close(*prompt->sd);
+                    deleteLocalSocket(prompt);
                     prompt->id = createPrompt(*server->localsocket, prompt);
 
                     sleep(3);
@@ -106,7 +106,6 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     contacted_sd = *prompt->sd;
                     signal_num = C_RETRY;
                     strcpy(incoming, "C_RETRY");
-                    break;
                 } else if (signal_num > 0) {
                     signal_num = parserList(incoming, signal_num, temp_buffer);
                     printf("%s", temp_buffer);
@@ -116,9 +115,8 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     contacted_sd = *prompt->sd;
                     signal_num = C_RETRY;
                     strcpy(incoming, "C_RETRY");
-                    break;
                 }
-            } while(1);
+            } while(signal_num > 0);
             printf("\n");
             break;
         case S_ROOMOK:

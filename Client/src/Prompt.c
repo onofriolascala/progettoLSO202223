@@ -8,12 +8,13 @@ void* thrPrompt(void* arg) {
     int main_socket, signal_num, prompt_mode, last_mode, result;
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER], tempbuffer[MAXCOMMBUFFER];
 
-    struct sockaddr_un localaddr;
-    localaddr.sun_family = PF_LOCAL;
-    strcpy(localaddr.sun_path, CLIENTLOCALSOCKET);
-
     struct prompt_thread *prompt;
     prompt = (struct prompt_thread*)arg;
+
+    struct sockaddr_un localaddr;
+    localaddr.sun_family = PF_LOCAL;
+    strcpy(localaddr.sun_path, prompt->localsocket_path);
+
 
     // Apertura socket su un indirizzo costante.
     if((main_socket = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
@@ -128,7 +129,7 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
     //printf("DEBUG: Creation of detatched thread...\n");
     if (pthread_create(&tid, NULL, thrPrompt, prompt)) {
         printErrorNoNumber(prompt, ECRITICALCLIENT, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
-        deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
+        deleteLocalSocket(prompt);
         exit(1);
     }
 
@@ -138,7 +139,7 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
     if((*prompt->sd = accept(localsocket, NULL, NULL)) < 0) {
         //perror(":ACCEPT ERROR");
         printError(prompt, ECRITICALCLIENT, ":PROMPT CREATION SOCKET ACCEPT", errno);
-        deleteLocalSocket(localsocket, CLIENTLOCALSOCKET);
+        deleteLocalSocket(prompt);
         exit(1);
     }
 

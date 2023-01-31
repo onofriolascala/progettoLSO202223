@@ -22,6 +22,7 @@
 #include "../include/LogUtilClient.h"
 #include "../include/CommUtilClient.h"
 #include "../include/ConsoleLayouts.h"
+#include "../include/SocketUtilClient.h"
 #include "../include/ParserClient.h"
 #include "../include/Def.h"
 

@@ -151,6 +151,7 @@ struct prompt_thread {
     pthread_t id;
     pthread_mutex_t mutex;
     char log_str[MAXLOGBUFFER];
+    char localsocket_path[MAXLOGBUFFER];
 };
 
 #endif //PROGETTOLSO202223_DEF_H

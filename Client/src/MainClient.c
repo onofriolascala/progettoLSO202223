@@ -91,7 +91,7 @@ int main() {
     timeout = ( 5 * 60 * 1000 );
 
     // Inizializzazione della socket locale e del thread per il PROMPT
-    if((localsocket = localSocketInit(&localsocket_addr, &local_len)) < 0) {
+    if((localsocket = localSocketInit(&localsocket_addr, &local_len, prompt)) < 0) {
         printError(prompt, "ERRORE: Prima creazione della socket locale fallita. Chiusura processo.\n",
                    ":LOCAL SOCKET INIT", localsocket);
         exit(1);
@@ -137,7 +137,7 @@ int main() {
         }
         // Timeout
         if( rc == 0 ) {
-            printWarning(prompt, "!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio.\n");
+            printWarning(prompt, "\n!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio.\n");
             // RIAVVIO CONNESSIONE
             switchServer(&server, &room, prompt, S_DISCONNECT, "C_DISCONNECT");
             continue;
@@ -173,16 +173,19 @@ int main() {
     } while( !end_loop );
 
     writeToLog(*prompt->log, "Terminazione processo client.\n\n\t\t\t END CLIENT.\n");
+
+    deleteLocalSocket(prompt);
     return 0;
 }
 
 static void sigHandler(int signum){
     char temp_buf[MAXCOMMBUFFER];
-    strcpy(temp_buf, "rm ");
-    strcat(temp_buf, CLIENTLOCALSOCKET);
+    pid_t pid = getpid();
+    sprintf(temp_buf, "%s%d", CLIENTLOCALSOCKET, pid);
     if(signum == SIGINT || signum == SIGTERM || signum == SIGKILL){
         //closing routine
-        system(temp_buf);
+        unlink(temp_buf);
+        printf("\n");
         exit(1);
     }
 }
