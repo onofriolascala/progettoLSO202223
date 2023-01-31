@@ -8,7 +8,7 @@
 // l'inizializzazione di questa risorsa è critica
 int createLog(void) {
     char temp_buffer[MAXERRORBUFFER];
-    char log_path[MAXERRORBUFFER];
+    char log_path[MAXERRORBUFFER-179];
     int fd;
     pid_t pid = getpid();
 
@@ -29,7 +29,7 @@ int createLog(void) {
         exit(1);
     }
 
-    sprintf(temp_buffer, "\t\t\tCLIENT OPERATIONS LOG\n\nLog successfully created at \"%s\" with FD \"%d\".\n", log_path, fd);
+    sprintf(temp_buffer, "\t\t\tCLIENT OPERATIONS LOG\n\nLog successfully created at \"%s\" with FD \"%d\" for process ID \"%d\".\n", log_path, fd, pid);
     if(writeToLog(fd, temp_buffer) < 0) exit(1);
 
     return fd;

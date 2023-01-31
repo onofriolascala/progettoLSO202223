@@ -39,7 +39,7 @@ void* thrRoom(void* arg) {
     memset(outgoing, '\0', sizeof(outgoing));
 
 
-    /*                 mainRoomLoop                   */
+    //                 mainRoomLoop init                   //
 
     struct pollfd fds[9];
     char buffer[MAXCOMMBUFFER];
@@ -68,6 +68,8 @@ void* thrRoom(void* arg) {
     nfds = 1;
 
     timeout = ( 1 * 60 * 1000);
+
+    //              MAIN GAME LOOP                //
 
     while( !close_room ){
         /* inizio di un nuovo turno*/

@@ -23,6 +23,7 @@
 #include "../include/CommUtilServer.h"
 #include "../include/ListHandler.h"
 #include "../include/LogicSigninLogin.h"
+#include "../include/ParserServer.h"
 #include "../include/Def.h"
 
 void* thrService(void* arg);

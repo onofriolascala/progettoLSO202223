@@ -122,16 +122,16 @@ int loginParser(char incoming[], char outgoing[], char username[], char password
         if (username_len >= USERNAMEMINLENGTH && username_len < USERNAMELENGTH
             && pswd_len >= PASSWORDMINLENGTH && pswd_len <= PASSWORDLENGTH)
         {
-            fprintf(stderr, ":LOGIN ERROR: wrong length username or password arguments detected.\n");
-            strcpy(outgoing, "Credenziali errate.");
-            return_value = S_LOGINERROR;
-        }
-        else {
             strncpy(username, username_p, username_len);
             username[username_len] = '\0';
             strncpy(password, password_p, pswd_len);
             password[pswd_len] = '\0';
             return_value = 0;
+        }
+        else {
+            fprintf(stderr, ":LOGIN ERROR: wrong length username or password arguments detected.\n");
+            strcpy(outgoing, "Credenziali errate.");
+            return_value = S_LOGINERROR;
         }
     }
     else {

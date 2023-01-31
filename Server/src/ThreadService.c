@@ -76,17 +76,16 @@ void* thrService(void* arg) {
                                      "debug1debug2debu;");
                                      */
 
-                    sprintf(deb,"debug%d-debug", sd);
-                    strcpy(incoming, deb);
+                    //sprintf(deb,"debug%d-debug", sd);
+                    //strcpy(incoming, deb);
 
                     signal_num = login(sd, incoming, username, outgoing);
-                    //printf("\t\tDEBUG_SD%d: <Login as \"%s\">.\n", sd, username);
+                    printf("\t\tDEBUG_SD%d: <Login as \"%s\">.\n", sd, username);
                     writeToClient(sd, signal_num, outgoing);
                     break;
                 case C_SIGNIN:
-                    printf("\t\tDEBUG_SD%d: <Signin>\n", sd);
-                    strcpy(incoming, "debug1debug2debug3debug4debug5de-"
-                                     "debug1debug2debu;");
+                    //printf("\t\tDEBUG_SD%d: <Signin>\n", sd);
+                    //strcpy(incoming, "debug1debug2debug3debug4debug5de-debug1debug2debu;");
                     signal_num = signin(incoming, username, outgoing);
                     printf("\t\tDEBUG_SD%d: <Signin as \"%s\">.\n", sd, username);
                     writeToClient(sd, signal_num, outgoing);
@@ -147,12 +146,17 @@ void* thrService(void* arg) {
                     // Chiusura del threadService in caso di successo
                     break;
                 case C_JOINROOM:
-                    printf("\t\tDEBUG_SD%d: <Entra stanza>\n", sd);
-                    room_ID = 1; //DEBUG
-                    signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
-                    writeToClient(sd, signal_num, outgoing);
-                    if(signal_num == S_ROOMOK) {
-                        pthread_exit(NULL);
+                    printf("\t\tDEBUG_SD%d: <Entra stanza> %d:%s\n", sd, signal_num, incoming);
+                    room_ID = parserInteger(incoming, outgoing);
+                    if(room_ID == S_NOPERMISSION) {
+                        writeToClient(sd, room_ID, outgoing);
+                    }
+                    else {
+                        signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
+                        writeToClient(sd, signal_num, outgoing);
+                        if(signal_num == S_ROOMOK) {
+                            pthread_exit(NULL);
+                        }
                     }
                     break;
                 case C_LISTROOM:

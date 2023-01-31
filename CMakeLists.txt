@@ -14,7 +14,7 @@ add_executable(Server.out Server/src/MainServer.c
         Server/src/LogicRoom.c Server/include/LogicRoom.h
         Server/src/ListHandler.c Server/include/ListHandler.h
         Server/src/LogicGame.c Server/include/LogicGame.h
-        Server/src/LogicRoom.c Server/include/LogicRoom.h)
+        Server/src/LogicRoom.c Server/include/LogicRoom.h Server/src/ParserServer.c)
 add_executable(Client.out Client/src/MainClient.c
         Client/include/Def.h
         Client/src/ConsoleLayouts.c Client/include/ConsoleLayouts.h
