@@ -140,9 +140,9 @@ int parserUsername(char incoming[], struct server_connection *server) {
 // Parser della lista delle stanze. Opera in modo da rimanere in attesa delle stanze da scrivere qualora eccedano il buffer
 // Riceve in ingresso il messaggio in entrata, il contatore delle colonne scritte ed il puntatore del buffer di stampa
 // Restituisce 0 in caso di successo, -1 in caso di arrey mal inizializzati, -2 in caso di messaggio in input vuoto,
-// un numero positivo compreso tra 1-MAXLISTCOLUMNS in caso di attesa di una nuova comunicazione
+// 1 in caso di attesa di una nuova comunicazione
 // per indicare l'attuale posizione del cursore delle colonne
-int parserList(char incoming[], int input_position, char print_buffer[]) {
+int parserList(char incoming[], char print_buffer[]) {
     int return_value, column_position;
     char *saveptr;
     char *room_p;
@@ -150,7 +150,7 @@ int parserList(char incoming[], int input_position, char print_buffer[]) {
 
     saveptr = NULL;
     return_value = 0;
-    column_position = input_position;
+    column_position = 0;
 
     if (incoming == NULL || print_buffer == NULL) {
         return_value = -1;
@@ -162,13 +162,14 @@ int parserList(char incoming[], int input_position, char print_buffer[]) {
              room_p = strtok_r(NULL, "-", &saveptr))
         {
             if(room_p[0] == '#') {
-                return_value = column_position;
+                return_value = 1;
                 break;
             }
             else {
+                if(isdigit(room_p[0])) strcat(print_buffer, "Stanza_");
                 strcat(print_buffer, room_p);
                 if(column_position <= MAXLISTCOLUMNS) {
-                    strcat(print_buffer, "\t");
+                    strcat(print_buffer, "\t\t");
                     column_position++;
                 }
                 else {

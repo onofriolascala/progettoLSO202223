@@ -44,6 +44,7 @@
 
 // Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 30000
+#define MAXREFRESHATTEMPT 20
 
 // Segnali di comunicazione lato Server.
 #define S_DISCONNECT_ABRUPT 0      // Disconnessione improvvisa
@@ -124,7 +125,8 @@
 #define C_SELECTWORD 30     // Selezione della parola
 #define C_GUESSSKIP 31      // Guess o passo
 #define C_EXITROOM 32       // Uscita dalla stanza
-#define C_RETRY 40          // Un errore del prompt suggerisce un nuovo tentativo della scorsa operazione
+#define C_RETRY 40          // Suggerisce un nuovo tentativo della scorsa operazione
+#define C_PAUSE 41          // L'operazione non è conclusa, per tanto non viene lanciata alcuna comunicazione
 #define C_CLIENTERROR 49    // Generico errore lato client
 
 struct server_connection {

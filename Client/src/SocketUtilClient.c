@@ -83,7 +83,7 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len, struct
 // indirizzo di memoria su cui effettuare il CLOSE() e l'UNLINK().
 void deleteLocalSocket(struct prompt_thread *prompt) {
     //if(!(strcmp(localsocket_path, ""))) {
-    close(prompt->sd);
+    close(*prompt->sd);
     unlink(prompt->localsocket_path);
     //}
     //else {

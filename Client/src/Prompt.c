@@ -19,12 +19,12 @@ void* thrPrompt(void* arg) {
     // Apertura socket su un indirizzo costante.
     if((main_socket = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
         printError(prompt, ECRITICALCLIENT, "PROMPT SOCKET CREATION", result);
-        exit(1);
+        raise(SIGTERM);
     }
     // Connessione...
     if((result = connect(main_socket, (struct sockaddr*)&localaddr, sizeof(localaddr))) < 0) {
         printError(prompt, ECRITICALCLIENT, "PROMPT SOCKET CONNECT", result);
-        exit(1);
+        raise(SIGTERM);
     }
 
     // Completamento inizializzazione lato MainThread.
@@ -51,6 +51,7 @@ void* thrPrompt(void* arg) {
                 // ERROR DIFFERENT FROM EWOULDBLOCK
                 break;
             case 0:
+                // Il MainThread ha richiesto la chiusura del prompt.
                 break;
             case C_RETRY:
                 prompt_mode = last_mode;
@@ -119,7 +120,11 @@ void* thrPrompt(void* arg) {
         prompt_mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
     } while (prompt_mode != 0);
 
-    printf("\tRENDER: Prompt thread closed.\n");
+    close(main_socket);
+
+    sprintf( prompt->log_str, "\tPROMPT: Prompt thread has closed.\n");
+    writeToLog(*prompt->log, prompt->log_str);
+    //printf("\tRENDER: Prompt thread closed.\n");
     return 0;
 }
 
@@ -130,7 +135,7 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
     if (pthread_create(&tid, NULL, thrPrompt, prompt)) {
         printErrorNoNumber(prompt, ECRITICALCLIENT, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
         deleteLocalSocket(prompt);
-        exit(1);
+        raise(SIGTERM);
     }
 
     // Detatch necessario per far sì che le risorse del thread siano liberate senza un join.
@@ -140,7 +145,7 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
         //perror(":ACCEPT ERROR");
         printError(prompt, ECRITICALCLIENT, ":PROMPT CREATION SOCKET ACCEPT", errno);
         deleteLocalSocket(prompt);
-        exit(1);
+        raise(SIGTERM);
     }
 
     sprintf(prompt->log_str, "MAIN: Prompt thread created with prompt_socket sd:%d.\n", *prompt->sd);

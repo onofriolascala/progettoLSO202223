@@ -19,6 +19,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <signal.h>
 
 #include "../include/LogUtilClient.h"
 #include "../include/ConsoleLayouts.h"

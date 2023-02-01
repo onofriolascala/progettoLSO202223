@@ -5,7 +5,7 @@
 #include "../include/PollSwitches.h"
 
 int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
-    int end_loop, same_signal, contacted_sd;
+    int end_loop, same_signal, contacted_sd, counter;
     char temp_buffer[MAXCOMMBUFFER];
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
@@ -57,19 +57,12 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     close(*server->sd);
                     *server->sd = -1;
 
-                    pthread_cancel(prompt->id);
-                    deleteLocalSocket(prompt);
+                    if(writeToServer(*prompt->sd, S_DISCONNECT_ABRUPT, "S_DISCONNECT_ABRUPT") < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
+                    usleep(REFRESHCONSTANT);
 
-                    /*if((prompt = localSocketInit(&localsocket_addr, &local_len, prompt)) < 0) {
-                        printError(prompt, "ERRORE: Ri-creazione della socket locale fallita. Chiusura processo.\n",
-                                   ":LOCAL SOCKET INIT", localsocket);
-                        exit(1);
-                    }
-                    else {
-                        sprintf(prompt->log_str, "MAIN: localSocketInit completed with value \"%d\".\n", localsocket);
-                        writeToLog(*prompt->log, prompt->log_str);
-                        memset(prompt->log_str, '\0', sizeof(prompt->log_str));
-                    }*/
+                    //pthread_cancel(prompt->id);
+                    //deleteLocalSocket(prompt);
+                    close(*prompt->sd);
 
                     prompt->id = createPrompt(*server->localsocket, prompt);
 
@@ -110,30 +103,32 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
         case S_ROOMLISTOK:
             // Il server comunica il via libera della stampa delle stanze esistenti sul server. Il client procede
             // ad estrarle, formattarle ed infine riattivare il prompt.
-            if( !same_signal ) renderHomepage(server);
+            if( !same_signal ) {
+                renderHomepage(server);
+                printf("Lista delle stanze:\n");
+            }
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <List> %d:%s\n", signal_num, incoming);
 
-            do {
-                signal_num = parserList(incoming, 0, temp_buffer);
-                if (signal_num == 0) {
-                    printf("Lista delle stanze:\n%s", temp_buffer);
-                    contacted_sd = *prompt->sd;
-                    signal_num = C_RETRY;
-                    strcpy(incoming, "C_RETRY");
-                    break;
+            signal_num = parserList(incoming, temp_buffer);
 
-                } else if (signal_num > 0) {
-                    signal_num = parserList(incoming, signal_num, temp_buffer);
-                    printf("%s", temp_buffer);
-                } else {
-                    sprintf(prompt->log_str, "\ttSERVER_SWITCH: <S_ROOMNOTFOUND> %d:%s\n", signal_num, incoming);
-                    printWarning(prompt, "Il client ha ricevuto una lista vuota. Riprovare.\n");
-                    contacted_sd = *prompt->sd;
-                    signal_num = C_RETRY;
-                    strcpy(incoming, "C_RETRY");
-                    break;
-                }
-            } while(1);
+            if (signal_num == 0) {
+                printf("%s\n", temp_buffer);
+                contacted_sd = *prompt->sd;
+                signal_num = C_RETRY;
+                strcpy(incoming, "C_RETRY");
+                break;
+            } else if (signal_num > 0) {
+                printf("%s\n", temp_buffer);
+                printf("In attesa della pagina successiva ...");
+                signal_num = C_PAUSE;
+            } else {
+                sprintf(prompt->log_str, "\ttSERVER_SWITCH: <List_Incomplete> %d:%s\n", signal_num, incoming);
+                printWarning(prompt, "Il client ha ricevuto una lista vuota. Riprovare.\n");
+                contacted_sd = *prompt->sd;
+                signal_num = C_RETRY;
+                strcpy(incoming, "C_RETRY");
+                break;
+            }
             printf("\n");
             break;
         case S_ROOMOK:
@@ -147,28 +142,28 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
         //          GAME LOGIC          //
         case S_MISSEDGUESS:
             //
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <Missed Guess> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Missed Guess> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_GUESSSKIP;
             strcpy(incoming, "C_GUESSSKIP");
             break;
         case S_VICTORY:
             //
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <Victory> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Victory> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_GUESSSKIP;
             strcpy(incoming, "C_GUESSSKIP");
             break;
         case S_DEFEAT:
             //
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <Defeat> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Defeat> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_GUESSSKIP;
             strcpy(incoming, "C_GUESSSKIP");
             break;
         case S_ENDOFTURN:
             //
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <End of Turn> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <End of Turn> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_GUESSSKIP;
             strcpy(incoming, "C_GUESSSKIP");
@@ -176,7 +171,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
         //          CASI DI ERRORE          //
         case S_FULLROOM:
             // La stanza è piena. Nuovo tentativo.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_FULLROOM> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_FULLROOM> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "La stanza è attualmente piena.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -184,7 +179,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_ROOMNOTFOUND:
             // La stanza non esiste. Nuovo tentativo.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_ROOMNOTFOUND> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_ROOMNOTFOUND> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "La stanza con l'ID inserito non esiste.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -192,7 +187,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_USERINROOM:
             // L'utente è già connesso da un altro client. Nuovo tentativo.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_USERINROOM> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_USERINROOM> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "L'utente è già connesso a questa stanza. Riprovare con un utente diverso.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -200,7 +195,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_TURNTIMEOUT:
             // L'utente non ha inviato per tempo il segnale.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_TURNTIMEOUT> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_TURNTIMEOUT> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "Tempo scaduto. Prossimo turno.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -208,7 +203,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_NOTYOURTURN:
             // L'utente prova a comunicare col server quando non è il suo turno.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_NOTYOURTURN> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_NOTYOURTURN> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "Attendere il proprio turno.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -216,15 +211,15 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_SERVERERROR:
             // Il server non è attualmente disponibile. Nuovo tentativo.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_SERVERERROR> %d:%s\n", signal_num, incoming);
-            printErrorNoNumber(prompt, "!Attenzione! Il server non è attualmente disponibile. Riprovare.\n", incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_SERVERERROR> %d:%s\n", signal_num, incoming);
+            printErrorNoNumber(prompt, "Il server non è attualmente disponibile. Riprovare a breve.\n", incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
             strcpy(incoming, "C_RETRY");
             break;
         case S_LOGINERROR:
             // Credenziali errate. Nuovo tentativo.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_LOGINERROR> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_LOGINERROR> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "Crendenziali inserite errate. Riprovare.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -232,7 +227,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_SIGNINERROR:
             // Username già esistente. Nuovo tentativo.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_SIGNINERROR> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_SIGNINERROR> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "!Esiste già un utente con l'username inserito. Riprovare.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -240,7 +235,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_NOPERMISSION:
             // Il client non ha i permessi adeguati. Nuovo tentativo.
-            sprintf( prompt->log_str, "\ttSERVER_SWITCH: <S_NOPERMISSION> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_NOPERMISSION> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "Il client non possiede i permessi adeguati. Riprovare.\n");
             contacted_sd = *prompt->sd;
             signal_num = C_RETRY;
@@ -265,7 +260,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             return 0;
     }
     writeToLog(*prompt->log, prompt->log_str);
-    if (signal_num > 0) {
+    if (signal_num > 0 && signal_num != C_PAUSE) {
         if(writeToServer(contacted_sd, signal_num, incoming) < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
     }
     return end_loop;

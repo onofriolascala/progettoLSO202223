@@ -28,6 +28,9 @@
 static void sigHandler(int signum);
 
 int main() {
+    // Salvataggio dello stato corrente del terminale
+    system("tput smcup");
+
     // Dichiarazioni per la connessione
     int localsocket;
     struct sockaddr_un localsocket_addr;
@@ -186,6 +189,7 @@ static void sigHandler(int signum){
         //closing routine
         unlink(temp_buf);
         printf("\n");
+        system("tput rmcup");
         exit(1);
     }
 }
