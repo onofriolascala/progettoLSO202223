@@ -169,11 +169,14 @@ void* thrService(void* arg) {
                     while(control_flag == 1){
                         tmp = getRoomList(tmp, outgoing, 16, &control_flag);
                         if(control_flag != -2){
+                            printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, S_ROOMLISTOK, outgoing);
                             writeToClient(sd, S_ROOMLISTOK, outgoing);
                         }
                         else{
+                            printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, S_SERVERERROR, S_SERVERERROR_MSG);
                             writeToClient(sd, S_SERVERERROR, S_SERVERERROR_MSG);
                         }
+                        usleep(REFRESHCONSTANT);
                     }
                     break;
                 case C_LOGOUT:
