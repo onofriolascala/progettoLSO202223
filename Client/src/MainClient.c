@@ -71,12 +71,18 @@ int main() {
     // Inizializzazione del signal handler
     if(signal(SIGINT, sigHandler) == SIG_ERR){
         //printf("Errore nella creazione del sigHandler, impossibile intercettare SIGINT\n");
+        printError(prompt, "Errore nella creazione del sigHandler, impossibile intercettare SIGINT\n",
+                   ":SIGINT HANDLING ERROR", errno);
     }
     if(signal(SIGTERM, sigHandler) == SIG_ERR){
         //printf("Errore nella creazione del sigHandler, impossibile intercettare SIGTERM\n");
+        printError(prompt, "Errore nella creazione del sigHandler, impossibile intercettare SIGTERM\n",
+                   ":SIGTERM HANDLING ERROR", errno);
     }
     if(signal(SIGKILL, sigHandler) == SIG_ERR){
         //printf("Errore nella creazione del sigHandler, impossibile intercettare SIGKILL\n");
+        printError(prompt, "Errore nella creazione del sigHandler, impossibile intercettare SIGKILL\n",
+                   ":SIGKILL HANDLING ERROR", errno);
     }
 
     // Inizializzazioni poll
