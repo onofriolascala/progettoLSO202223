@@ -53,7 +53,7 @@ void* thrRoom(void* arg) {
     int new_player_fd;
 
 
-    /*                gameLogic                                  */
+    /*                gameLogic                             */
 
     struct player_node* current_player = NULL;
     struct player_node* suzerain = NULL;
@@ -268,7 +268,7 @@ void* thrRoom(void* arg) {
                         }
                         nfds--;
                         /* check to see if the room is empty*/
-                        if ( nfds <= 1 ){
+                        if ( nfds == 1 ){
                             //room is empty
                             //closing room routine
                             next_turn = 1;
