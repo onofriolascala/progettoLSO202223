@@ -14,7 +14,7 @@ int createLog(void) {
 
     sprintf(log_path, "./clientlog_%d.txt", pid);
 
-    if(unlink(log_path) < 0) {
+    if( unlink(log_path) < 0) {
         if (errno != ENOENT)
         {
             yellow();

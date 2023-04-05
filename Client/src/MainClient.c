@@ -42,7 +42,7 @@ int main() {
 
     // Dichiarazioni per la poll
     struct pollfd fds[CLIENTPOLLINGCONST];
-    char buffer[MAXCOMMBUFFER];
+    char buffer[MAXCOMMBUFFER]; // ????
     int timeout, rc = 0;
     int num_fds, new_local_sd, usr_sd, current_size, i, j, signal_code;
     int end_loop, close_conn;
@@ -184,6 +184,7 @@ int main() {
     writeToLog(*prompt->log, "Terminazione processo client.\n\n\t\t\t END CLIENT.\n");
 
     deleteLocalSocket(prompt);
+    system("tput rmcup");
     return 0;
 }
 

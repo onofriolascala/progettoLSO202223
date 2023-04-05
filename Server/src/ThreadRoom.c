@@ -15,10 +15,10 @@ void* thrRoom(void* arg) {
     struct player_node *joining_player, *temp_player;
 
     struct sockaddr_un localsocket_addr;
+    socklen_t localsocket_len;
     struct room_arg temp;
 
     signal_num = 0;
-    socklen_t localsocket_len;
 
     // Copia i valori della struttura originale.
     room_list = (*(struct room_arg*)arg).room_list;
@@ -134,7 +134,7 @@ void* thrRoom(void* arg) {
                         new_player = createNewPlayerNode(new_player_fd, username_p);
                         this_room->player_list = addPlayerToPlayerList(this_room->player_list, new_player);
 
-                        writeToClient(new_local_sd, S_OK, "ok");
+                        writeToClient(new_local_sd, S_OK, S_OK_MSG);
 
                         fds[nfds].fd = new_player_fd;
                         fds[nfds].events = POLLIN;
@@ -162,7 +162,7 @@ void* thrRoom(void* arg) {
                     else{
                         printf("DEBUG: New connection to the room was refused\t-- Player already in room --\n");
                         fflush(stdout);
-                        writeToClient(new_local_sd, S_USERINROOM, "userinroom");
+                        writeToClient(new_local_sd, S_USERINROOM, S_USERINROOM_MSG);
                     }
 
                 }
@@ -186,12 +186,12 @@ void* thrRoom(void* arg) {
                             printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
                             /* game logic */
                             //if the player was the current player and disconnects we need to update assign a new player
-                            if( current_player == player ){
-                                current_player = current_player->next;
-                            }
                             if( suzerain == player ){
                                 next_turn = 1;
                                 //gameOver?
+                            }
+                            if( current_player == player ){
+                                current_player = current_player->next;
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
                             this_room->player_num--;
@@ -314,6 +314,7 @@ int createNewRoom(int sd, struct room_node** room_list) {
     struct room_arg args;
     args.room_list = room_list;
     args.room_ID = 0;
+    // ????
     args.flag = 0;
 
     //printf("DEBUG: Creation of detatched thread...\n");

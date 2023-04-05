@@ -27,7 +27,7 @@ void* thrService(void* arg) {
     int control_flag;
 
 
-    signal_num = 2;
+    //signal_num = 2;
 
     // Copia i valori della struttura originale.
     sd = (*(struct service_arg*)arg).sd;
@@ -202,9 +202,7 @@ void* thrService(void* arg) {
 
     /* La funzione inizia la fase di terminazione a seguito di una disconnessione. E' per tanto necessario deallocare
      * il nodo giocatore e chiudere la socket. */
-    /*if(player != NULL) {
-        destroyPlayerNode(player);
-    }*/
+
     close(sd);
     printf("\t\tSERVICE_SD%d: service thread has been closed.\n", sd);
     fflush(stdout);
