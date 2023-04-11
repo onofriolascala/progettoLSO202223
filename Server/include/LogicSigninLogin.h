@@ -8,14 +8,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <pthread.h>
 
 #include "../include/ListHandler.h"
+#include "../include/MySqlUtil.h"
 #include "../include/Def.h"
 
-int signin(char incoming[], char username[], char outgoing[]);
+int signin(char incoming[], char username[], char outgoing[], struct mySQLConnection* db_connection);
 
-int login(int sd, char incoming[], char username[], char outgoing[]);
+int login(int sd, char incoming[], char username[], char outgoing[], struct mySQLConnection* db_connection);
 
 int loginParser(char incoming[], char outgoing[], char username[], char password[]);
 

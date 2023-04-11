@@ -13,13 +13,12 @@
 void* thrService(void* arg) {
     /*printf("DEBUG: Thread started...\n");
     fflush(stdout);*/
-
-    //struct player_node player;
     char incoming[MAXCOMMBUFFER];
     char outgoing[MAXCOMMBUFFER];
     char username[USERNAMELENGTH + 1];
     int sd, service_sd, out_len, signal_num, room_ID;
     struct room_node** room_list;
+    struct mySQLConnection* db_connection;
     /*debug*/ char deb[USERNAMELENGTH + 1];
 
     /* get room list utility*/
@@ -31,6 +30,7 @@ void* thrService(void* arg) {
 
     // Copia i valori della struttura originale.
     sd = (*(struct service_arg*)arg).sd;
+    db_connection = (*(struct service_arg*)arg).db_connection;
     room_list = (*(struct service_arg*)arg).room_list;
     strcpy(username, (*(struct service_arg *)arg).username);
 
@@ -82,15 +82,15 @@ void* thrService(void* arg) {
                     //sprintf(deb,"debug%d-debug", sd);
                     //strcpy(incoming, deb);
 
-                    signal_num = login(sd, incoming, username, outgoing);
-                    printf("\t\tDEBUG_SD%d: <Login as \"%s\">.\n", sd, username);
+                    signal_num = login(sd, incoming, username, outgoing, db_connection);
+                    //printf("\t\tDEBUG_SD%d: <Login as \"%s\">.\n", sd, username);
                     writeToClient(sd, signal_num, outgoing);
                     break;
                 case C_SIGNIN:
                     //printf("\t\tDEBUG_SD%d: <Signin>\n", sd);
                     //strcpy(incoming, "debug1debug2debug3debug4debug5de-debug1debug2debu;");
-                    signal_num = signin(incoming, username, outgoing);
-                    printf("\t\tDEBUG_SD%d: <Signin as \"%s\">.\n", sd, username);
+                    signal_num = signin(incoming, username, outgoing, db_connection);
+                    //printf("\t\tDEBUG_SD%d: <Signin as \"%s\">.\n", sd, username);
                     writeToClient(sd, signal_num, outgoing);
                     break;
                 case 14:
@@ -141,7 +141,7 @@ void* thrService(void* arg) {
                     break;
                 case C_CREATEROOM:
                     printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, incoming);
-                    room_ID = createNewRoom(sd, room_list);
+                    room_ID = createNewRoom(sd, room_list, db_connection);
                     sprintf(outgoing, "Stanza creata con ID %d", room_ID);
                     signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
                     writeToClient(sd, signal_num, outgoing);
@@ -212,7 +212,7 @@ void* thrService(void* arg) {
 /* Pseudo-costruttore del thread di handling delle richieste lato client, in stato detatched.
  * Riceve in input il puntatore alla testa della lista delle stanze ed il nuovo socket descriptor accettato
  * dal main thread. Restituisce il thread id appena generato. */
-pthread_t createNewService(int sd2, struct room_node** room_list) {
+pthread_t createNewService(int sd2, struct room_node** room_list, struct mySQLConnection* db_connection) {
     /*printf("DEBUG: Input for createNewService sd:%d.\n",sd2);
     fflush(stdout);*/
     int flag;
@@ -220,6 +220,7 @@ pthread_t createNewService(int sd2, struct room_node** room_list) {
 
     struct service_arg args;
     args.sd = sd2;
+    args.db_connection = db_connection;
     args.room_list = room_list;
     strcpy(args.username, "\0");
     args.flag = 0;
@@ -250,11 +251,12 @@ pthread_t createNewService(int sd2, struct room_node** room_list) {
  * Simula un recupero dell'elaborazione di un service thread precedentemente chiuso, ma in realtà è diverso.
  * Riceve in input il puntatore alla testa della lista delle stanze ed il giocatore in uscita dalla stanza
  * di gioco. Restituisce il thread id appena generato. */
-pthread_t rebuildService(struct player_node* player, struct room_node** room_list) {
+pthread_t rebuildService(struct player_node* player, struct room_node** room_list, struct mySQLConnection* db_connection) {
     pthread_t tid;
 
     struct service_arg args;
     args.sd = player->player_socket;
+    args.db_connection = db_connection;
     args.room_list = room_list;
     strcpy(args.username, player->username);
     args.flag = 0;

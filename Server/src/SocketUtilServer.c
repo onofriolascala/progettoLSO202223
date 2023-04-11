@@ -42,7 +42,7 @@ int socketInit(struct sockaddr_in* server_addr, socklen_t* len) {
 }
 
 // Funzione contenente il while infinito con annesso ascolto passivo.
-void acceptLoop(int sd1, struct room_node** room_list) {
+void acceptLoop(int sd1, struct room_node** room_list, struct mySQLConnection* db_connection) {
     int sd2;
     while(1){
         // Loop di Accettazione
@@ -51,7 +51,7 @@ void acceptLoop(int sd1, struct room_node** room_list) {
             //close(sd1);
         }
         else {
-            createNewService(sd2, room_list);
+            createNewService(sd2, room_list, db_connection);
         }
         printf("MAIN: Accept loop restarting...\n");
         fflush(stdout);

@@ -8,10 +8,12 @@
  * Restituisce 0 in caso di successo, 1 in caso di fallimento, o un intero
  * negativo per indicare una situazione d'errore. */
 int selectQuery(struct mySQLConnection* LSO2223, char username[], char password[]) {
-    char query[QUERYLENGHT];
+    char query[QUERYLENGTH];
     int ret_value;
     unsigned int num_fields;
     unsigned long *field_lengths;
+    MYSQL_RES *result;
+    MYSQL_ROW row;
 
     ret_value = 0;
 
@@ -27,30 +29,31 @@ int selectQuery(struct mySQLConnection* LSO2223, char username[], char password[
     //printf("DEBUG: query \"%s\".\n", query);
 
     // Esecuzione query.
+    pthread_mutex_lock(&LSO2223->db_mutex);
     if (mysql_query(LSO2223->connection, query)) {
         fprintf(stderr, ":DB_STRUCT ERROR: error while querying server \"%s\"\n", mysql_error(LSO2223->connection));
         return -1;
     }
 
     // Ricezione dei record.
-    LSO2223->result = mysql_use_result(LSO2223->connection);
-    if (LSO2223->result == NULL) {
+    result = mysql_use_result(LSO2223->connection);
+    if (result == NULL) {
         return 0;
     }
 
     // Controlla tutti i record.
-    num_fields = mysql_num_fields(LSO2223->result);
-    while ((LSO2223->row = mysql_fetch_row(LSO2223->result))) {
-        field_lengths = mysql_fetch_lengths(LSO2223->result);
+    num_fields = mysql_num_fields(result);
+    while ((row = mysql_fetch_row(result))) {
+        field_lengths = mysql_fetch_lengths(result);
         if (field_lengths == NULL) {
             fprintf(stderr, ":DB_STRUCT ERROR: failed to get field lengths \"%s\"\n", mysql_error(LSO2223->connection));
             return -1;
         }
-        if(strcmp(LSO2223->row[0], username) != 0) {
-            //printf("DEBUG: Wrong username \"%s\" - \"%s\".\n", LSO2223->row[0], username);
-        }
-        else if (strcmp(LSO2223->row[1], password) != 0) {
-            //printf("DEBUG: Wrong password \"%s\" - \"%s\".\n", LSO2223->row[1], password);
+        /*if(strcmp(row[0], username) != 0) {
+            printf("DEBUG: Wrong username \"%s\" - \"%s\".\n", row[0], username);
+        }*/
+        if (strcmp(row[1], password) != 0) {
+            //printf("DEBUG: Wrong password \"%s\" - \"%s\".\n", row[1], password);
         }
         else {
             //printf("DEBUG: correct.\n");
@@ -60,8 +63,9 @@ int selectQuery(struct mySQLConnection* LSO2223, char username[], char password[
             printf("[%.*s] ", (int) field_lengths[i], LSO2223->row[i] ? LSO2223->row[i] : "NULL");
         }*/
     }
+    pthread_mutex_unlock(&LSO2223->db_mutex);
 
-    mysql_free_result(LSO2223->result);
+    mysql_free_result(result);
 
     return ret_value;
 }
@@ -71,10 +75,12 @@ int selectQuery(struct mySQLConnection* LSO2223, char username[], char password[
  * Restituisce 0 in caso di successo, 1 in caso di fallimento, o un intero
  * negativo per indicare una situazione d'errore. */
 int insertQuery(struct mySQLConnection* LSO2223, char username[], char password[]) {
-    char query[QUERYLENGHT];
+    char query[QUERYLENGTH];
     int ret_value;
     unsigned int num_fields;
     unsigned long *field_lengths;
+    MYSQL_RES *result;
+    MYSQL_ROW row;
 
     ret_value = 0;
 
@@ -88,13 +94,15 @@ int insertQuery(struct mySQLConnection* LSO2223, char username[], char password[
     // Composizione query.
     sprintf(query, "INSERT INTO Profile "
                    "VALUES ('%s', '%s');", username, password);
-    printf("DEBUG: query \"%s\".\n", query);
+    //printf("DEBUG: query \"%s\".\n", query);
 
     // Esecuzione query.
+    pthread_mutex_lock(&LSO2223->db_mutex);
     if (mysql_query(LSO2223->connection, query)) {
         fprintf(stderr, ":DB_STRUCT ERROR: error while querying server \"%s\"\n", mysql_error(LSO2223->connection));
         if((ret_value = mysql_errno(LSO2223->connection)) == 1062) {
             //printf("Duplicate Key\n");
+            ret_value = 0;
         }
         else {
             //printf("%d\n", ret_value);
@@ -104,6 +112,7 @@ int insertQuery(struct mySQLConnection* LSO2223, char username[], char password[
     else {
         ret_value = 1;
     }
+    pthread_mutex_unlock(&LSO2223->db_mutex);
 
     return ret_value;
 }
@@ -118,13 +127,14 @@ struct mySQLConnection* establishDBConnection(void) {
             perror(":MALLOC DBCONNECTION");
             exit(1);
         } else {
-            printf("MAIN: Inizializzazione connessione al database. Prego inserire i dati richiesti...\n");
+            /**/printf("MAIN: Inizializzazione automatica connessione al database.");
+            strcpy(LSO2223->hostname, "localhost");
+            strcpy(LSO2223->port, "3306");
+            strcpy(LSO2223->username, "osboxes");
+            strcpy(LSO2223->password, "password");
+            strcpy(LSO2223->database, "LSO2223_Database");/**/
 
-            //strcpy(LSO2223->hostname, "localhost");
-            //strcpy(LSO2223->port, "3306");
-            //strcpy(LSO2223->username, "osboxes");
-            //strcpy(LSO2223->password, "password");
-            //strcpy(LSO2223->database, "LSO2223_Database");
+            /*printf("MAIN: Inizializzazione connessione al database. Prego inserire i dati richiesti...\n");
 
             printf("\t\tIndirizzo del server: ");
             fgets(LSO2223->hostname, sizeof(LSO2223->hostname), stdin);
@@ -144,7 +154,7 @@ struct mySQLConnection* establishDBConnection(void) {
 
             printf("\t\tDatabase: ");
             fgets(LSO2223->database, sizeof(LSO2223->database), stdin);
-            LSO2223->database[strlen(LSO2223->database) - 1] = '\0';
+            LSO2223->database[strlen(LSO2223->database) - 1] = '\0';*/
 
             /* Inizializzazione della connessione */
             LSO2223->connection = mysql_init(NULL);
@@ -153,16 +163,17 @@ struct mySQLConnection* establishDBConnection(void) {
                 printf("MAIN: Tentativo di connessione fallito. Riprovare.\n");
                 free(LSO2223);
                 LSO2223 = NULL;
+                sleep(10);
                 continue;
             }
 
-            /* printf("\nTentativo di connessione con le seguenti credenziali:\n"
+            /**/printf("\nTentativo di connessione con le seguenti credenziali:\n"
                    "\t\tHostname: %s\n"
                    "\t\tPort: %s\n"
                    "\t\tUsername: %s\n"
                    "\t\tPassword: %s\n"
                    "\t\tDatabase: %s\n",
-                   LSO2223->hostname, LSO2223->port, LSO2223->username, LSO2223->password, LSO2223->database); */
+                   LSO2223->hostname, LSO2223->port, LSO2223->username, LSO2223->password, LSO2223->database); /**/
 
             /* Tentativo di connessione */
             if (!mysql_real_connect(LSO2223->connection, LSO2223->hostname, LSO2223->username, LSO2223->password,
@@ -172,12 +183,14 @@ struct mySQLConnection* establishDBConnection(void) {
                 printf("MAIN: Tentativo di connessione fallito. Riprovare.\n");
                 free(LSO2223);
                 LSO2223 = NULL;
+                sleep(10);
                 continue;
             }
 
             printf("\nMAIN: Connessione riuscita.\n");
         }
     }
+    pthread_mutex_init(&LSO2223->db_mutex, NULL);
     return LSO2223;
 }
 

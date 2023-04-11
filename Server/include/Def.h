@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <mysql/mysql.h>
 
 // Costanti per la gestione delle socket.
 #define MAXCONNECTIONS 5
@@ -118,6 +119,17 @@
 #define C_EXITROOM 32       // Uscita dalla stanza
 #define C_CLIENTERROR 49    // Generico errore lato client
 
+struct mySQLConnection {
+    MYSQL *connection;
+
+    char hostname[MAXCOMMBUFFER];
+    char port[MAXCOMMBUFFER];
+    char username[MAXCOMMBUFFER];
+    char password[MAXCOMMBUFFER];
+    char database[MAXCOMMBUFFER];
+
+    pthread_mutex_t db_mutex;
+};
 
 struct player_node{
     char username[USERNAMELENGTH+1];
@@ -139,12 +151,14 @@ struct room_node{
 
 struct service_arg {
     int sd;
+    struct mySQLConnection* db_connection;
     struct room_node** room_list;
     char username[USERNAMELENGTH+1];
     int flag;
 };
 
 struct room_arg {
+    struct mySQLConnection* db_connection;
     struct room_node** room_list;
     int room_ID;
     int flag;

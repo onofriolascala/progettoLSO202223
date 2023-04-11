@@ -14,13 +14,12 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-//#include <mysql/mysql.h>
 
 #include "../include/SocketUtilServer.h"
 #include "../include/ThreadService.h"
 #include "../include/Def.h"
-//#include "../include/ThreadRoom.h"
 #include "../include/ListHandler.h"
+#include "../include/MySqlUtil.h"
 #include <signal.h>
 
 static void sigHandler(int signum);
@@ -30,11 +29,11 @@ int main() {
     struct room_node** room_list;
     struct room_node* room_head;
     struct sockaddr_in server_addr;
-    //struct mySQLConncection* LSO2223;
+    struct mySQLConnection* LSO2223 = NULL;
     socklen_t len;
 
     // Loop di inizializzazione della connessione al DB_server.
-    //LSO2223 = establishDBConnection();
+    LSO2223 = establishDBConnection();
 
     room_head = NULL;
     room_list = &room_head;
@@ -54,7 +53,10 @@ int main() {
     sd1 = socketInit(&server_addr, &len);
 
     // Loop di accettazione di nuove chiamate in entrata.
-    acceptLoop(sd1, room_list);
+    acceptLoop(sd1, room_list, LSO2223);
+
+    mysql_close(LSO2223->connection);
+    free(LSO2223);
 
     close(sd1);
     printf("Terminazione processo server.\n");

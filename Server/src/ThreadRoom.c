@@ -22,7 +22,7 @@ void* thrRoom(void* arg) {
 
     // Copia i valori della struttura originale.
     room_list = (*(struct room_arg*)arg).room_list;
-
+    struct mySQLConnection* db_connection = (*(struct room_arg*)arg).db_connection;
     this_room = createAndAddNewRoom(room_list);
     ID = this_room->id;
     (*(struct room_arg*)arg).room_ID = this_room->id;
@@ -242,7 +242,7 @@ void* thrRoom(void* arg) {
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
 
                             // Riavvio del threadService
-                            rebuildService(player, room_list);
+                            rebuildService(player, room_list, db_connection);
 
                             if( current_player == player ){
                                 current_player = current_player->next;
@@ -305,13 +305,14 @@ void* thrRoom(void* arg) {
 }
 
 // Creazione del thread della stanza.
-int createNewRoom(int sd, struct room_node** room_list) {
+int createNewRoom(int sd, struct room_node** room_list, struct mySQLConnection* db_connection) {
     printf("DEBUG: Input for createNewRoom.\n");
     fflush(stdout);
     int flag;
     pthread_t tid;
 
     struct room_arg args;
+    args.db_connection = db_connection;
     args.room_list = room_list;
     args.room_ID = 0;
     // ????

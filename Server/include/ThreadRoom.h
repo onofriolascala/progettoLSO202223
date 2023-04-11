@@ -33,7 +33,7 @@ struct room_node* addNewRoom(struct room_node* room_list);
 void* thrRoom(void* arg);
 
 // Creazione del thread. Richiama <foo_name> dal thread costruttore.
-int createNewRoom(int sd, struct room_node** room_list);
+int createNewRoom(int sd, struct room_node** room_list, struct mySQLConnection* db_connection);
 int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], char outgoing[]);
 int joinParser(char incoming[], char outgoing[], char username[], int *sd);
 

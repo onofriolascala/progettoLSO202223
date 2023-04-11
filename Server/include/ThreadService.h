@@ -28,7 +28,7 @@
 
 void* thrService(void* arg);
 
-pthread_t createNewService(int sd2, struct room_node** room_list);
-pthread_t rebuildService(struct player_node* player, struct room_node** room_list);
+pthread_t createNewService(int sd2, struct room_node** room_list, struct mySQLConnection* db_connection);
+pthread_t rebuildService(struct player_node* player, struct room_node** room_list, struct mySQLConnection* db_connection);
 
 #endif /* THREADSERVICE_H */
