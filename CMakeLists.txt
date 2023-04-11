@@ -1,8 +1,17 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.24)
 project(progettoLSO202223 C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS -pthread)
+
+include(FindPkgConfig)
+pkg_check_modules(LIBMYSQLCLIENT REQUIRED mysqlclient)
+
+foreach(FLAG ${LIBMYSQLCLIENT_CFLAGS_OTHER})
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
+endforeach()
+
+link_directories(${LIBMYSQLCLIENT_LIBRARY_DIRS})
 
 add_executable(Server.out Server/src/MainServer.c
         Server/include/Def.h
@@ -14,7 +23,8 @@ add_executable(Server.out Server/src/MainServer.c
         Server/src/LogicRoom.c Server/include/LogicRoom.h
         Server/src/ListHandler.c Server/include/ListHandler.h
         Server/src/LogicGame.c Server/include/LogicGame.h
-        Server/src/LogicRoom.c Server/include/LogicRoom.h Server/src/ParserServer.c)
+        Server/src/LogicRoom.c Server/include/LogicRoom.h Server/src/ParserServer.c
+        Server/src/MySqlUtil.c Server/include/MySqlUtil.h)
 add_executable(Client.out Client/src/MainClient.c
         Client/include/Def.h
         Client/src/ConsoleLayouts.c Client/include/ConsoleLayouts.h
@@ -24,3 +34,6 @@ add_executable(Client.out Client/src/MainClient.c
         Client/src/ParserClient.c Client/include/ParserClient.h
         Client/src/PollSwitches.c Client/include/PollSwitches.h
         Client/src/LogUtilClient.c Client/include/LogUtilClient.h)
+
+target_include_directories(Server.out PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
+target_link_libraries(Server.out PRIVATE ${LIBMYSQLCLIENT_LIBRARIES})
