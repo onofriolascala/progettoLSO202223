@@ -8,7 +8,7 @@
  * Restituisce un segnale a seconda dell'esito. S_LOGINOK in caso di successo, S_LOGINERROR per input scorretto,
  * S_SIGNINERROR in caso di uno username già esistente. */
 int signin(char incoming[], char username[], char outgoing[], struct mySQLConnection* db_connection){
-    char password[PASSWORDLENGTH+1],;
+    char password[PASSWORDLENGTH+1];
     int signal_num, query_result;
 
     if((signal_num = loginParser(incoming, outgoing, username, password)) != 0) {
