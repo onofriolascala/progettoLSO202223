@@ -147,6 +147,9 @@ void* thrService(void* arg) {
                     writeToClient(sd, signal_num, outgoing);
                     printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, outgoing);
                     // Chiusura del threadService in caso di successo
+                    if(signal_num == S_ROOMOK){
+                        pthread_exit(NULL);
+                    }
                     break;
                 case C_JOINROOM:
                     printf("\t\tDEBUG_SD%d: <Entra stanza> %d:%s\n", sd, signal_num, incoming);
