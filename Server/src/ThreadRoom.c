@@ -198,18 +198,7 @@ void* thrRoom(void* arg) {
                             close_conn = 1;
                             break;
                         case S_DISCONNECT:
-                            printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
-                            if( current_player == player ){
-                                current_player = current_player->next;
-                            }
-                            if( suzerain == player ){
-                                next_turn = 1;
-                                //gameOver?
-                            }
-                            destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
-                            this_room->player_num--;
-                            close_conn = 1;
-                            writeToClient(fds[i].fd, S_DISCONNECT, S_DISCONNECT_MSG);
+                            writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima della disconnessione.");
                             break;
                         case C_LOGIN:
                             writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di un nuovo login.");
