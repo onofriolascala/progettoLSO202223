@@ -7,10 +7,10 @@
 ## Descrizione del Progetto
 A partire dalle specifiche formulate dalla traccia, il gioco "Guess the Word" sviluppato prevede che al più 8 giocatori registrati provino ad indovinare una parola selezionata da uno di loro, detto "Surezain", tra quelle suggerite. Ogni giocatore ha a disposizione un tentativo per turno di gioco, e se nessuno ha indovinato la parola per il turno del Suzerain, viene rivelata una lettera casuale fra quelle della parola nascosta. Se un giocatore indovina la parola diventa il nuovo Suzerain, e sceglierà a sua volta una nuova parola.
 
-L'applicazione è stata sviluppata per Ubuntu 22.04.1 LTS in linguaggio C attraverso l'IDE CLion, e compilata tramite CMake. Il programma è distribuito secondo un'architettura client-server, dove gli utenti, tramite dei client, possono connettersi ad un singolo server alla volta. L'applicazione:
-- gestisce le comunicazioni tra client e server tramite comunicazioni socket su pila TCP-IP con i client.
+L'applicazione è stata sviluppata per Ubuntu 22.04.1 LTS in linguaggio C attraverso l'IDE CLion, e compilata tramite CMake v3.24. Il programma è distribuito secondo un'architettura client-server, dove gli utenti, tramite dei client, possono connettersi ad un singolo server alla volta. L'applicazione:
+- gestisce le comunicazioni tra client e server tramite comunicazioni socket su pila TCP-IP e multi-threading.
 - registra e controlla gli accessi al server di gioco tramite l'integrazione di un database MySQL.
-- permette agli utenti di creare stanze di gioco, vedere le stanze già create ed eventualmente provare ad unirvisi.
+- permette agli utenti di creare stanze di gioco, gestite tramite multi-threading vedere le stanze già create ed eventualmente provare ad unirvisi.
 
 ## Guida all'installazione
 La repository di GitHub contiene sia il source code che gli eseguibili. Scaricare i file eseguibili e collocarli in una directory appositamente creata. Scaricare inoltre il file '.SQL' da importare per creare e popolare il database MySQL necessario al funzionamento dell'applicativo.
