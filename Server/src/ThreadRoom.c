@@ -85,7 +85,8 @@ void* thrRoom(void* arg) {
             fflush(stdout);
             /* game logic */
             if(!word_is_selected && suzerain != NULL){
-                writeToClient(suzerain->player_socket, S_OK, S_OK_MSG);
+                //generateWords(S_WORDS);
+                //writeToClient(suzerain->player_socket, S_WORDS, S_WORDS_MSG);
                 // controllare se e' richiesto un reset del timer del timeout
             }
 
@@ -236,9 +237,11 @@ void* thrRoom(void* arg) {
                         case C_SELECTWORD:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
                             if(player == suzerain){
-                                //getword()
+                                //word = getword();
                                 word_is_selected = 1;
-                                writeToClient(fds[i].fd, S_OK, "Parola.");
+                                //writeToPlayers(fds, S_NEW_WORD or S_NEW_GAME, S_NEW_MESSAGE ); semplicemente un loop di write fatto su tutti gli fd dei giocatori
+                                //curr_player = suzerain->next;
+                                //writeToClient(curr_player->player_socket, S_YOURTURN, S_YOURTURNMESSAGE);
                             }
                             break;
                         case C_GUESSSKIP:
