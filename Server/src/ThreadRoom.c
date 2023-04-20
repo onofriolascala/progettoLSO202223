@@ -86,15 +86,15 @@ void* thrRoom(void* arg) {
             rc = poll(fds, nfds, timeout);
 
             if( rc < 0 ){
-                //poll failed
+                //poll fallita, errore critico quindi chiudo stanza
                 perror("poll failed");
                 close_room = 1;
                 break;
             }
             if( rc == 0 ){
                 // timeout raggiunto
-                //printf("DEBUG: poll timed out. Closing the logic loop\n");
-                //break;
+                current_player = current_player->next;
+                continue;
             }
             current_size = nfds;
             for(i = 0; i < current_size; i++){
@@ -256,12 +256,14 @@ void* thrRoom(void* arg) {
                             fds[j].fd = fds[j + 1].fd;
                         }
                         nfds--;
+
                         /* check to see if the room is empty*/
                         if ( nfds == 1 ){
                             //room is empty
                             //closing room routine
                             next_turn = 1;
                             close_room = 1;
+                            break;
                         }
                     }
                 }
@@ -284,6 +286,15 @@ void* thrRoom(void* arg) {
     }
 
     // Chiusura della stanza.
+
+
+    //Se sono presenti ancora dei giocatori durante la chiusura della stanza mi occupo di fare il rebuild del service
+    for(i=0;i<nfds;i++){
+        if(fds[i].fd != localsocket){
+            player = getPlayer(this_room->player_list, fds[i].fd);
+            rebuildService(player, room_list, db_connection);
+        }
+    }
     removeAndDestroyRoomNode(room_list, ID);
 
     //sleep(10);
