@@ -61,6 +61,7 @@ void* thrRoom(void* arg) {
     clock_t start_t, end_t;
     double total_t;
 
+
     //initializing the listening socket into the polling array
     memset(fds, 0 ,sizeof(fds));
     fds[0].fd = localsocket;
@@ -82,6 +83,11 @@ void* thrRoom(void* arg) {
         do{
             printf("DEBUG: Waiting on poll function...\n");
             fflush(stdout);
+            /* game logic */
+            if(!word_is_selected && suzerain != NULL){
+                writeToClient(suzerain->player_socket, S_OK, S_OK_MSG);
+                // controllare se e' richiesto un reset del timer del timeout
+            }
 
             rc = poll(fds, nfds, timeout);
 
@@ -93,7 +99,16 @@ void* thrRoom(void* arg) {
             }
             if( rc == 0 ){
                 // timeout raggiunto
+                if(!word_is_selected){
+                    if(suzerain != NULL)
+                        suzerain = suzerain->next;
+                    break;
+                }
                 current_player = current_player->next;
+                if(current_player == suzerain){
+                    //addHint()
+                    current_player = current_player->next;
+                }
                 continue;
             }
             current_size = nfds;
@@ -153,7 +168,7 @@ void* thrRoom(void* arg) {
                         }
                         /* game logic */
                         /* if no usr was set to play set him as the current player*/
-                        if( current_player == NULL){
+                        if( current_player == NULL && new_player != suzerain){
                             printf("DEBUG: Selecting new gamer...\n");
                             current_player = new_player;
                             printf("DEBUG: New gamer set! Current gamer: %s\n", new_player->username);
@@ -220,8 +235,11 @@ void* thrRoom(void* arg) {
                             break;
                         case C_SELECTWORD:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
-                            //word_is_selected = 1;
-                            writeToClient(fds[i].fd, S_OK, "Parola.");
+                            if(player == suzerain){
+                                //getword()
+                                word_is_selected = 1;
+                                writeToClient(fds[i].fd, S_OK, "Parola.");
+                            }
                             break;
                         case C_GUESSSKIP:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Guess> %d:%s\n", ID, signal_num, incoming);
@@ -274,6 +292,12 @@ void* thrRoom(void* arg) {
             total_t += (double) (end_t - start_t) / CLOCKS_PER_SEC;
             if(total_t > 90){ //1 minute round timeout + 30 seconds for server-side delays
                 //round timeout routine
+                if(!word_is_selected){
+                    if(suzerain != NULL){
+                        suzerain = suzerain->next;
+                        break;
+                    }
+                }
                 current_player = current_player->next;
                 if(current_player == suzerain){
                     //addHint()
