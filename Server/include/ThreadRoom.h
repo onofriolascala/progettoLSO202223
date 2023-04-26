@@ -31,10 +31,11 @@ struct room_node* addNewRoom(struct room_node* room_list);
 /* Funzione principale. Una volta inizializzata, comunica direttamente con tutti gli utenti connessi e gestisce la
  * logica di gioco.*/
 void* thrRoom(void* arg);
-
 // Creazione del thread. Richiama <foo_name> dal thread costruttore.
 int createNewRoom(int sd, struct room_node** room_list, struct mySQLConnection* db_connection);
 int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], char outgoing[]);
 int joinParser(char incoming[], char outgoing[], char username[], int *sd);
+/* Funzione che prende una comunicazione in ingresso che contiene una parola e la estrae */
+int wordParser(char incoming[], char outgoing[], char word[]);
 
 #endif //PROGETTOLSO202223_THREADROOM_H

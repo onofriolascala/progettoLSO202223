@@ -32,6 +32,9 @@
 #define PASSWORDLENGTH 16
 #define QUERYLENGTH 1024
 
+// Costanti per la Game Logic
+#define WORDLENGTH 30
+
 // Numero di refresh massimi consentiti
 #define MAXREFRESHCONSTANT 100
 

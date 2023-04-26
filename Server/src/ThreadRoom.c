@@ -168,7 +168,7 @@ void* thrRoom(void* arg) {
                             printf("DEBUG: Suzerain set! Current suzerain: %s\n", new_player->username);
                         }
                         /* game logic */
-                        /* if no usr was set to play set him as the current player*/
+                        /* if no usr was set to play and the new usr isn't the only one in the room set him as the current player*/
                         if( current_player == NULL && new_player != suzerain){
                             printf("DEBUG: Selecting new gamer...\n");
                             current_player = new_player;
@@ -204,6 +204,8 @@ void* thrRoom(void* arg) {
                             //if the player was the current player and disconnects we need to update assign a new player
                             if( suzerain == player ){
                                 next_turn = 1;
+                                suzerain = suzerain->next;
+                                //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
                                 //gameOver?
                             }
                             if( current_player == player ){
@@ -237,17 +239,28 @@ void* thrRoom(void* arg) {
                         case C_SELECTWORD:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
                             if(player == suzerain){
-                                //word = getword();
+                                //word = parserWord();
                                 word_is_selected = 1;
                                 //writeToPlayers(fds, S_NEW_WORD or S_NEW_GAME, S_NEW_MESSAGE ); semplicemente un loop di write fatto su tutti gli fd dei giocatori
-                                //curr_player = suzerain->next;
                                 //writeToClient(curr_player->player_socket, S_YOURTURN, S_YOURTURNMESSAGE);
                             }
                             break;
-                        case C_GUESSSKIP:
+                        case C_GUESSSKIP: //solo guess?
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Guess> %d:%s\n", ID, signal_num, incoming);
-                            writeToClient(fds[i].fd, signal_num, "Mancato");
-                            break;
+                            /*
+                            word = parserWord(incoming);
+                            if( strcmp(word,game_word) == 0 ){
+                                for(i = 0; i < nfds; i++){
+                                    if( fds[i].fd != player->player_socket)
+                                        writeToClient(fds[i].fd, S_GAME_LOST, S_GAME_LOST_MESSAGE);
+                                    else
+                                        writeToClient(fds[i].fd, S_GAME_WON, S_GAME_WON_MESSAGE);
+                                }
+                             }
+                            else
+                                writeToClient(fds[i].fd, S_GUESS_MISS, S_GUESS_MISS_MESSAGE);
+                            */
+                             break;
                         case C_EXITROOM:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
 
@@ -259,6 +272,8 @@ void* thrRoom(void* arg) {
                             }
                             if( suzerain == player ){
                                 next_turn = 1;
+                                suzerain = suzerain->next;
+                                //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
                                 //gameOver? yes
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
@@ -438,12 +453,38 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
     return signal_num;
 }
 
+
+int wordParser(char incoming[], char outgoing[], char word[]){
+    char *saveptr = NULL;
+    char *word_p;
+    int word_len, return_value = S_COMMERROR;
+
+    word_p = strtok_r(incoming, "\0", &saveptr);
+
+    if(word_p != NULL) {
+        word_len = strlen(word_p);
+        if (word_len >= WORDLENGTH)
+        {
+            fprintf(stderr, ":GUESS ERROR: guess is too long\n");
+            strcpy(outgoing, "Guess is too long.");
+            return_value = S_MISSEDGUESS;
+        }
+        else {
+            strncpy(word, word_p, word_len);
+            word[word_len] = '\0';
+            return_value = S_OK;
+        }
+    }
+
+    return return_value;
+}
+
 int joinParser(char incoming[], char outgoing[], char username[], int *sd) {
     char *saveptr = NULL;
     char *username_p, *sd_p;
     int username_len, sd_len, return_value;
 
-    return_value = 1;
+    return_value = S_COMMERROR;
 
     username_p = strtok_r(incoming, "-", &saveptr);
     sd_p = strtok_r(NULL, "\0", &saveptr);
@@ -463,7 +504,7 @@ int joinParser(char incoming[], char outgoing[], char username[], int *sd) {
             strncpy(username, username_p, username_len);
             username[username_len] = '\0';
             *sd = atoi(sd_p);
-            return_value = 0;
+            return_value = S_OK;
         }
     }
     else {
