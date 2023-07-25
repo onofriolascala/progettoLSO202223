@@ -74,6 +74,15 @@
 #define S_ENDOFTURN 63      // Fine del turno
 #define S_ENDOFTURN_MSG "Fine del turno."
 
+#define S_YOURTURN 64 // Comunica ad un giocatore che e' cominciato il suo turno
+#define S_YOURTURN_MSG "E' il tuo turno! Prova ad indovinare la parola"
+
+#define S_CHOOSEWORD 65 // Richiesta di scelta della nuova parola
+
+#define S_NEWGAME 66
+#define S_NEWGAME_MSG "La parola e' stata selezionata inizia una nuova partita!"
+
+
 #define S_FULLROOM 70       // La stanza è piena
 #define S_FULLROOM_MSG "La stanza è piena."
 

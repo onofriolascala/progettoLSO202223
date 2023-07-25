@@ -60,7 +60,8 @@ void* thrRoom(void* arg) {
     int close_room = 0, word_is_selected = 0;
     clock_t start_t, end_t;
     double total_t;
-
+    char Word[3][20];
+    int selectedWord, z;
 
     //initializing the listening socket into the polling array
     memset(fds, 0 ,sizeof(fds));
@@ -85,8 +86,14 @@ void* thrRoom(void* arg) {
             fflush(stdout);
             /* game logic */
             if(!word_is_selected && suzerain != NULL){
-                //generateWords(S_WORDS);
-                //writeToClient(suzerain->player_socket, S_WORDS, S_WORDS_MSG);
+                //generateWords(Word);
+                //DEBUG:
+                strcpy(Word[0], "Test1");
+                strcpy(Word[1], "Test2");
+                strcpy(Word[2], "Test3");
+                //
+                sprintf(outgoing,"%s-%s-%s;",Word[0],Word[1],Word[2]);
+                writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
                 // controllare se e' richiesto un reset del timer del timeout
             }
 
@@ -239,10 +246,16 @@ void* thrRoom(void* arg) {
                         case C_SELECTWORD:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
                             if(player == suzerain){
-                                //word = parserWord();
+                                //selectedWord = parserWord();
                                 word_is_selected = 1;
-                                //writeToPlayers(fds, S_NEW_WORD or S_NEW_GAME, S_NEW_MESSAGE ); semplicemente un loop di write fatto su tutti gli fd dei giocatori
-                                //writeToClient(curr_player->player_socket, S_YOURTURN, S_YOURTURNMESSAGE);
+
+                                //DEBUG
+                                selectedWord = 1;
+                                //
+                                for(z = 1; z < nfds; z++) {
+                                    writeToClient(fds[z].fd, S_NEWGAME, S_NEWGAME_MSG );
+                                }
+                                writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
                             break;
                         case C_GUESSSKIP: //solo guess?
