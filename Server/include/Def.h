@@ -74,10 +74,11 @@
 #define S_ENDOFTURN 63      // Fine del turno
 #define S_ENDOFTURN_MSG "Fine del turno."
 
-#define S_YOURTURN 64 // Comunica ad un giocatore che e' cominciato il suo turno
-#define S_YOURTURN_MSG "E' il tuo turno! Prova ad indovinare la parola"
+#define S_YOURTURN 64      // Inizio del turno
+#define S_YOURTURN_MSG  "Inizio del turno."
 
-#define S_CHOOSEWORD 65 // Richiesta di scelta della nuova parola
+#define S_CHOOSEWORD 65      // Fase di selezione della parola
+#define S_CHOOSEWORD_MSG  "Sei il suzerain! Scegli la parola per iniziare."
 
 #define S_NEWGAME 66
 #define S_NEWGAME_MSG "La parola e' stata selezionata inizia una nuova partita!"
