@@ -20,6 +20,11 @@
 #define MAXCOMMBUFFER 1024
 #define MAXSIGNALBUF 2
 
+// Costanti per le strutture.
+#define MAXPLAYERS 8
+#define MAXWORDLENGTH 32
+#define MAXWORDS 100
+
 // Costanti per le dimensioni dell'ip e delle porte
 #define MAXPORT 4
 #define MINPORT 1

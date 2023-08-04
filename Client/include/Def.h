@@ -40,7 +40,8 @@
 
 // Costanti per le strutture.
 #define MAXPLAYERS 8
-#define MAXWORDLENGHT 32
+#define MAXWORDLENGTH 32
+#define MAXWORDS 100
 
 // Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 30000
@@ -153,7 +154,7 @@ struct room_struct {
     int ID;
     int player_num;
     char players[MAXPLAYERS][USERNAMELENGTH+1];
-    char secret_word[MAXWORDLENGHT];
+    char secret_word[MAXWORDLENGTH];
 };
 
 struct prompt_thread {
