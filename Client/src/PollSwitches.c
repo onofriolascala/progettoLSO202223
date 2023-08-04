@@ -170,6 +170,20 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             signal_num = C_GUESSSKIP;
             strcpy(incoming, "C_GUESSSKIP");
             break;
+        case S_YOURTURN:
+            //
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Your Turn> %d:%s\n", signal_num, incoming);
+            contacted_sd = *prompt->sd;
+            signal_num = C_GUESSSKIP;
+            strcpy(incoming, "C_GUESSSKIP");
+            break;
+        case S_CHOOSEWORD:
+            //
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Choose Word> %d:%s\n", signal_num, incoming);
+            contacted_sd = *prompt->sd;
+            signal_num = C_SELECTWORD;
+            strcpy(incoming, "C_SELECTWORD");
+            break;
         //          CASI DI ERRORE          //
         case S_FULLROOM:
             // La stanza è piena. Nuovo tentativo.

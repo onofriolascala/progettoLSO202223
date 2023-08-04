@@ -131,6 +131,8 @@
 #define C_SELECTWORD 30     // Selezione della parola
 #define C_GUESSSKIP 31      // Guess o passo
 #define C_EXITROOM 32       // Uscita dalla stanza
+#define C_ENDOFTURN 33      // Il giocatore ha terminato il tempo a disposizione
+#define C_YOURTURN 34       // E' il turno del client di provare a indovinare
 #define C_RETRY 40          // Suggerisce un nuovo tentativo della scorsa operazione
 #define C_PAUSE 41          // L'operazione non è conclusa, per tanto non viene lanciata alcuna comunicazione
 #define C_CLIENTERROR 49    // Generico errore lato client

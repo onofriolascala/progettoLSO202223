@@ -57,20 +57,112 @@ void inputComfirmation(void) {
     fflush(stdout);
 }
 
+void centerText(char *text, int fieldwidth) {
+    int padlen = (fieldwidth / 2) - (strlen(text) / 2);
+    printf("%*s%s%*s", padlen, "", text, padlen, "");
+}
+void offsetText(char *text, int fieldwidth) {
+    int wordlen = strlen(text);
+    int padlen = fieldwidth - wordlen - (SIDEOFFSET*2);
+    printf("%*s%s%*s%*s", SIDEOFFSET, "", text, padlen, "", SIDEOFFSET, "");
+}
+void encaseHeaderLine(char *text) {
+    printf(GRN "+");
+    int wordlen = strlen(text);
+    int padlen = ((MAXLINEWIDTH-2) / 2) - (wordlen/ 2);
+    for( int i = 0; i < padlen; i++ ) {
+        printf("-");
+    }
+    printf( DFT BLD BLU "%s" DFT GRN , text);
+
+    if ((wordlen%2)!=0) {
+        padlen--;
+    }
+    for( int i = 0; i < padlen; i++ ) {
+        printf("-");
+    }
+    printf("+" DFT "\n");
+}
+void encaseCenterLine(char *text) {
+    printf(GRN "|" DFT);
+    centerText(text, MAXLINEWIDTH-2);
+    printf(GRN "|" DFT "\n");
+}
+void encaseSideLine(char *text) {
+    printf(GRN "|" DFT);
+    offsetText(text, MAXLINEWIDTH-2);
+    printf(GRN "|" DFT "\n");
+}
+
+void renderLogo(void) {
+    centerText("    ___          ___          ___          ___          ___     ", MAXLINEWIDTH);
+    printf("\n");
+    centerText("   /  /\\        /__/\\        /  /\\        /  /\\        /  /\\    ", MAXLINEWIDTH);
+    printf("\n");
+    centerText("  /  / /_       \\  \\ \\      /  / /       /  / /_      /  / /_   ", MAXLINEWIDTH);
+    printf("\n");
+    centerText(" /  / / /\\    ___\\  \\ \\    /  / /_      /  / / /\\    /  / / /\\  ", MAXLINEWIDTH);
+    printf("\n");
+    centerText("/__/ /_/  \\  /__/\\\\  \\ \\  /__/ / /\\__  /__/ / /  \\  /__/ / /  \\ ", MAXLINEWIDTH);
+    printf("\n");
+    centerText("\\  \\ \\_\\/\\ \\ \\  \\ \\\\__\\ \\ \\  \\ \\/ / /\\ \\  \\ \\/ /\\ \\ \\  \\ \\/ /\\ \\", MAXLINEWIDTH);
+    printf("\n");
+    centerText(" \\  \\ \\  7 /  \\  \\ \\  / /  \\  \\  / / /  \\  \\  / 7 /  \\  \\  / 7 /", MAXLINEWIDTH);
+    printf("\n");
+    centerText("  \\  \\ \\/ /    \\  \\ \\/ /    \\  \\ \\/ /    \\__\\/ / /    \\__\\/ / / ", MAXLINEWIDTH);
+    printf("\n");
+    centerText("   \\  \\  /      \\  \\  /      \\  \\  /       /__/ /       /__/ /  ", MAXLINEWIDTH);
+    printf("\n");
+    centerText("    \\__\\/        \\__\\/        \\__\\/        \\__\\/        \\__\\/   ", MAXLINEWIDTH);
+    printf("\n");
+    fflush(stdout);
+}
+
 void renderConnection(void) {
-    printf("\n"
-           "\033[32m\033[1m+--------------------------------\033[34m GIOCO DELL'IMPICCATO PER 8 GIOCATORI \033[32m---------------------------------+\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\tBenvenuto nel gioco de \"L'Impiccato\". Indovina la parola nascosta prima dei tuoi\t\t\033[1m\033[32m|\n"
-           "|\033[0m\tavversari, e selezionane una a tua volta perchè gli altri la scoprano!\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\tPer iniziare, inserisci l'indirizzo ip e la porta del server a cui si desidera connettersi.\t\033[1m\033[32m|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "+-------------------------------------------------------------------------------------------------------+\033[0m\n\n");
+    printf(SCR );
+    gotoxyCursor(0,0);
+
+    bold();
+    slowblink();
+    renderLogo();
+    defaultFormat();
+    printf("\n");
+
+    encaseHeaderLine(" GUESS THE WORD - Gioco per 8 persone ");
+    encaseSideLine("");
+    encaseSideLine("Benvenuto nel gioco de \"Guess the Word\". Indovina la parola nascosta prima dei");
+    encaseSideLine("tuoi avversari, e selezionane una a tua volta perche' gli altri la scoprano!");
+    encaseSideLine("Per iniziare, inserisci l'indirizzo ip e la porta del server a cui si desidera");
+    encaseSideLine("connettersi.");
+    encaseSideLine("");
+    encaseHeaderLine("");
+    printf("\n");
     fflush(stdout);
 }
 
 void renderLogin(struct server_connection *server) {
-    printf("\n"
+    char tempstring[100] = "";
+
+    bold();
+    renderLogo();
+    defaultFormat();
+    printf("\n");
+
+    encaseHeaderLine(" GUESS THE WORD - Schermata di Login ");
+    encaseSideLine("");
+    sprintf(tempstring, "Server IPv4: %s    Porta: %d", server->ip, server->port);
+    encaseSideLine("Benvenuto nel gioco de \"Guess the Word\". Indovina la parola nascosta prima dei");
+    encaseSideLine("Connessione al server riuscita. Effettuare l'accesso per iniziare a giocare.");
+    encaseSideLine("In assenza di un account, registrarsi prima e poi provare ad accedere.");
+    encaseSideLine("");
+    encaseSideLine("Opzioni disponibili:");
+    encaseSideLine("      0) Disconnessione");
+    encaseSideLine("      1) Accesso");
+    encaseSideLine("      2) Registrazione");
+    encaseSideLine("");
+    encaseHeaderLine("");
+
+    /*printf("\n"
            "\033[32m\033[1m+-----------------------------------------\033[34m L'IMPICCATO - LOGIN \033[32m-----------------------------------------+\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
@@ -90,7 +182,7 @@ void renderLogin(struct server_connection *server) {
            "|\033[0m\t\t2) Registrazione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
            "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
            "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
-    //printf("\tServer: %s \t Port: %d\n\n", server->ip, server->port);
+    //printf("\tServer: %s \t Port: %d\n\n", server->ip, server->port);*/
     fflush(stdout);
 }
 
