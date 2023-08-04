@@ -23,11 +23,11 @@
 #include "../include/Def.h"
 
 void randomSCT(int [], int, int);
-void randomWords(char [3][20], char []);
+void randomWords(char [3][MAXWORDLENGTH], char []);
 void pick(char[], int);
 void addLetter(char [],char [],int );
 
 void playedWord(char []);
-void parserChosenWord(char [3][20], char []);
+void parserChosenWord(char [3][MAXWORDLENGTH], char []);
 
 #endif //LOGICGAME_H

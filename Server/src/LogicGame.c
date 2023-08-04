@@ -6,7 +6,7 @@
 
 
 
-void parserChosenWord(char words[3][20], char incoming[]){
+void parserChosenWord(char words[3][MAXWORDLENGTH], char incoming[]){
     char* num;
     int con;
     num=strtok(incoming, "-");
@@ -15,6 +15,16 @@ void parserChosenWord(char words[3][20], char incoming[]){
     return;
 }
 
+/*
+Funzione che genera una sequenza di interi che codificano l'ordine in cui i suggerimenti di una parola
+ verranno mostrati, la sequenza in output verrà inserità nell'array sequence, l'array passato
+ non può essere nullo e dovrà essere di dimensione >= wordLenght+1
+*/
+void generateUnveilingSequence(int sequence[], int wordLength){
+    randomSCT(sequence,wordLength,wordLength);
+}
+
+//::DEBUG::
 void playedWord(char word[]){
     int len;
     char blank[]="___________________";
@@ -24,8 +34,8 @@ void playedWord(char word[]){
     addLetter(word, blank, len);
     return;
 }
-
-void addLetter(char word[],char blank[],int len){
+//::DEBUG::
+void addLetter(char word[],char blank[], int len){
     int letter[len];
     randomSCT(letter, len, len);
     for(int i=0; i<len; i++) {
@@ -34,7 +44,9 @@ void addLetter(char word[],char blank[],int len){
     }
     return;
 }
-
+/*
+Funzione che riempie l'array (array[]) di j interi con valori unici random compresi nel range passato in input
+*/
 void randomSCT(int array[], int j, int range){
     char buf[30]="";
     int fd, seed, count, i;
@@ -60,11 +72,16 @@ void randomSCT(int array[], int j, int range){
     return;
 }
 
-void randomWords(char words[3][20], char outgoing[]){
+/*
+Questa funzione si occupa della generazione di tre parole selezionate in modo randomico dal file words.txt, genera tre valori random nel range del numero delle parole presenti nel file words.txt tramite la funzione randomSCT e li estrae dal file tramite la funzione pick.
+Infine li inserisce nelle due variabili di output words e outgoing
+*/
+void randomWords(char words[3][MAXWORDLENGTH], char outgoing[]){
     int i=0;
     int array[3]={0};
-    randomSCT(array, 3, 100);
+    randomSCT(array, 3, MAXWORDS);
     char word[300];
+    strcat(outgoing, "1)");
     while (i<3){
         strcpy(word, "");
         pick(word, array[i]);
@@ -72,7 +89,10 @@ void randomWords(char words[3][20], char outgoing[]){
         strcat(outgoing, word);
         i++;
         if(i<3){
-            strcat(outgoing, "-");
+            if(i == 1)
+                strcat(outgoing, " 2)");
+            else if(i == 2)
+                strcat(outgoing, " 3)");
         }
         else{
             strcat(outgoing, "\0");
@@ -80,14 +100,17 @@ void randomWords(char words[3][20], char outgoing[]){
     }
     return;
 }
-
+/*
+Questa funzione si occupa di estrarre la parola n-esima dal file delle parole words.txt, per farlo la funzione prende in input la parola
+n-esima da estrarre, legge dal file le prime n parole fino ad arrivare al target e poi lo copia nella variabile di output buff
+*/
 void pick(char buff[],int n){
     int fd;
     char bufChar[2];
     char* newline="\n";
     fflush(stdout);
     //char buff[BUFFSIZE]="";
-    if((fd = open("words.txt", O_RDONLY, NULL))<0) {
+    if((fd = open("../media/words.txt", O_RDONLY, NULL))<0) {
         perror(":OPEN ERROR:");
     }
     while(n>=0){

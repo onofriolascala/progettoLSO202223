@@ -40,7 +40,8 @@
 
 // Costanti per le strutture.
 #define MAXPLAYERS 8
-#define MAXWORDLENGHT 32
+#define MAXWORDLENGTH 32
+#define MAXWORDS 100
 
 // Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 30000
@@ -84,6 +85,9 @@
 
 #define S_CHOOSEWORD 65      // Fase di selezione della parola
 #define S_CHOOSEWORD_MSG  "Sei il suzerain! Scegli la parola per iniziare."
+
+#define S_NEWGAME 66
+#define S_NEWGAME_MSG "La parola e' stata selezionata inizia una nuova partita!"
 
 #define S_FULLROOM 70       // La stanza è piena
 #define S_FULLROOM_MSG "La stanza è piena."
@@ -152,7 +156,7 @@ struct room_struct {
     int ID;
     int player_num;
     char players[MAXPLAYERS][USERNAMELENGTH+1];
-    char secret_word[MAXWORDLENGHT];
+    char secret_word[MAXWORDLENGTH];
 };
 
 struct prompt_thread {
