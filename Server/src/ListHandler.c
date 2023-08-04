@@ -177,6 +177,7 @@ struct room_node* createNewRoomNode( struct room_node* list_head ) {
         new->player_list = NULL;
         new->player_num = 0;
         new->next = NULL;
+        new->isActive = 0;
         pthread_mutex_init(&new->roomnode_mutex, NULL);
     }
     else {
@@ -288,7 +289,7 @@ void removeAndDestroyRoomNode(struct room_node** head_pointer, int target_id ){
 }
 
 /* La funzione riceve la testa della lista di stanze ed ID da ricercare. Restituisce il nodo il cui ID
- * combaci con quello dato in input.
+ * combacia con quello dato in input.
  * Non presenta criticità che richiedano un mutex. */
 struct room_node* getRoom( struct room_node* room_list, int target_id ){
     //printf("DEBUG_getroomnode:started\n");

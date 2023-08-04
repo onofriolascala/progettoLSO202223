@@ -163,6 +163,7 @@ struct room_node{
     struct player_node** playerhead_pointer;
     struct player_node** turn_pointer;
     int player_num;
+    int isActive;
     struct room_node* next;
     pthread_mutex_t roomnode_mutex;
 };
