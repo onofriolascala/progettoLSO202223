@@ -85,6 +85,9 @@
 #define S_CHOOSEWORD 65      // Fase di selezione della parola
 #define S_CHOOSEWORD_MSG  "Sei il suzerain! Scegli la parola per iniziare."
 
+#define S_NEWGAME 66
+#define S_NEWGAME_MSG "La parola e' stata selezionata inizia una nuova partita!"
+
 #define S_FULLROOM 70       // La stanza è piena
 #define S_FULLROOM_MSG "La stanza è piena."
 
