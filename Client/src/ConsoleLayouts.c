@@ -141,7 +141,7 @@ void renderConnection(void) {
 }
 
 void renderLogin(struct server_connection *server) {
-    char tempstring[100] = "";
+    char tempstring[MAXLOGBUFFER] = "";
 
     bold();
     renderLogo();
@@ -150,8 +150,8 @@ void renderLogin(struct server_connection *server) {
 
     encaseHeaderLine(" GUESS THE WORD - Schermata di Login ");
     encaseSideLine("");
-    sprintf(tempstring, "Server IPv4: %s    Porta: %d", server->ip, server->port);
-    encaseSideLine("Benvenuto nel gioco de \"Guess the Word\". Indovina la parola nascosta prima dei");
+    sprintf(tempstring, "Server IPv4: %-*s Porta: %-*d", MAXIP, server->ip, MAXPORT, server->port);
+    encaseSideLine(tempstring);
     encaseSideLine("Connessione al server riuscita. Effettuare l'accesso per iniziare a giocare.");
     encaseSideLine("In assenza di un account, registrarsi prima e poi provare ad accedere.");
     encaseSideLine("");
@@ -161,97 +161,78 @@ void renderLogin(struct server_connection *server) {
     encaseSideLine("      2) Registrazione");
     encaseSideLine("");
     encaseHeaderLine("");
-
-    /*printf("\n"
-           "\033[32m\033[1m+-----------------------------------------\033[34m L'IMPICCATO - LOGIN \033[32m-----------------------------------------+\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
-    saveCursor();
-    up(1);
-    carriageReturn();
-    printf("\033[32m\033[1|\033[0m\t");
-    printf("Server IPv4: %s    Porta: %d", server->ip, server->port);
-    loadCursor();
-    printf("|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\tConnessione al server riuscita. Effettuare l'accesso per iniziare a giocare. In assenza di\t\033[1m\033[32m|\n"
-           "|\033[0m\tun account, registrarsi prima e poi provare ad accedere.\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\tOpzioni disponibili:\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t0) Disconnessione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t1) Accesso\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t2) Registrazione\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
-    //printf("\tServer: %s \t Port: %d\n\n", server->ip, server->port);*/
+    printf("\n");
     fflush(stdout);
 }
 
 void renderHomepage(struct server_connection *server) {
-    printf("\n"
-           "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - HOMEPAGE \033[32m----------------------------------------+\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
-    saveCursor();
-    up(1);
-    carriageReturn();
-    printf("\033[32m\033[1|\033[0m\t");
-    printf("Server IPv4: %s    Porta: %d    Username: %s", server->ip, server->port, server->connected_user);
-    loadCursor();
-    printf("|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\tBenvenuto nella homepage del gioco. Da qui è possibile creare una stanza ed unirvisi come\t\033[1m\033[32m|\n"
-           "|\033[0m\tgiocatore, entrarne in una già esistente o vedere quali stanze sono state create sul\t\t\033[1m\033[32m|\n"
-           "|\033[0m\tserver. E' infine possibile effettuare il logout, e tornare alla schermata di login.\t\t\033[1m\033[32m|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\tOpzioni disponibili:\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t0) Logout\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t1) Crea una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t2) Entra in una stanza\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\033[0m\t\t3) Lista delle stanze\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
-    //printf("\tServer IPv4: %s      Porta: %d      Username: %s\n\n", server->ip, server->port, server->connected_user);
+    char tempstring[MAXLOGBUFFER] = "";
+
+    bold();
+    renderLogo();
+    defaultFormat();
+    printf("\n");
+
+    encaseHeaderLine(" GUESS THE WORD - Schermata di Homepage ");
+    encaseSideLine("");
+    sprintf(tempstring, "Server IPv4: %-*s  Porta: %-*d", MAXIP, server->ip, MAXPORT, server->port);
+    encaseSideLine(tempstring);
+    sprintf(tempstring, "Username Giocatore: %-*s", USERNAMELENGTH, server->connected_user);
+    encaseSideLine(tempstring);
+    encaseSideLine("");
+    encaseSideLine("Benvenuto nella homepage del gioco. Da qui e' possibile creare una stanza ed");
+    encaseSideLine("unirvisi come giocatore, entrarne in una gia' esistente o vedere quali stanze");
+    encaseSideLine("sono state create sul server. E' infine possibile effettuare il logout, e");
+    encaseSideLine("tornare alla schermata di login.");
+    encaseSideLine("");
+    encaseSideLine("Opzioni disponibili:");
+    encaseSideLine("      0) Logout");
+    encaseSideLine("      1) Crea una stanza");
+    encaseSideLine("      2) Entra in una stanza");
+    encaseSideLine("      3) Lista delle stanze");
+    encaseSideLine("");
+    encaseHeaderLine("");
+    printf("\n");
     fflush(stdout);
 }
 
 void renderRoom(struct server_connection *server, struct room_struct *room) {
-    printf("\n"
-           "\033[32m\033[1m+---------------------------------------\033[34m L'IMPICCATO - ROOM ID \033[32m-----------------------------------------+\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\t\t\t\t\t\t\t\t\t\t\t\t\t\033[1m\033[32m|\n");
-    saveCursor();
-    gotoxyCursor(2, 64);
-    printf("\033[34m\033[1m%d \033[0m", room->ID);
-    loadCursor();
+    char tempstring[MAXLOGBUFFER] = "";
+    int i, j;
 
-    saveCursor();
-    up(4);
-    carriageReturn();
-    printf("\033[32m\033[1|\033[0m\t");
-    printf("Server IPv4: %s    Porta: %d    Username: %s", server->ip, server->port, server->connected_user);
-    loadCursor();
 
-    saveCursor();
-    up(2);
-    carriageReturn();
-    printf("\033[32m\033[1|\033[0m\t");
-    printf("Suzerain: %s", server->connected_user);
-    loadCursor();
+    bold();
+    renderLogo();
+    defaultFormat();
+    printf("\n");
 
-    saveCursor();
-    up(1);
-    carriageReturn();
-    printf("\033[32m\033[1|\033[0m\t");
-    printf("Giocatori(%d/8): %s", room->player_num, server->connected_user);
-    loadCursor();
+    sprintf(tempstring, " GUESS THE WORD - STANZA ID.%d ", room->ID);
+    encaseHeaderLine(tempstring);
+    encaseSideLine("");
+    sprintf(tempstring, "Server IPv4: %-*s  Porta: %-*d", MAXIP, server->ip, MAXPORT, server->port);
+    encaseSideLine(tempstring);
+    sprintf(tempstring, "Username Giocatore: %-*s", USERNAMELENGTH, server->connected_user);
+    encaseSideLine(tempstring);
+    encaseSideLine("");
+    sprintf(tempstring, "Suzerain: %s", room->surezain);
+    encaseSideLine(tempstring);
+    sprintf(tempstring, "Giocatori(%d/8): %-*s %-*s", room->player_num, USERNAMELENGTH, room->players[0], USERNAMELENGTH, room->players[1]);
+    encaseSideLine(tempstring);
 
-    printf("|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "|\033[0m\t\033[1m\033[37mParola: In attesa di una parola...\t\t\t\t\t\t\t\t\033[32m|\n"
-           "|\t\t\t\t\t\t\t\t\t\t\t\t\t|\n"
-           "+-------------------------------------------------------------------------------------------------------+\033[0m\n");
-    //printf("\tServer IPv4: %s      Porta: %d      Username: %s\n\n", server->ip, server->port, server->connected_user);
+    i = 2;
+    while( i < MAXPLAYERS ) {
+        j = i+1;
+        i = i+2;
+        sprintf(tempstring, "                %-*s %-*s", USERNAMELENGTH, room->players[i], USERNAMELENGTH, room->players[j]);
+        encaseSideLine(tempstring);
+    }
+
+    encaseSideLine("");
+    encaseSideLine("Parola da indovinare:");
+    encaseSideLine(room->secret_word);
+    encaseSideLine("");
+    encaseHeaderLine("");
+    printf("\n");
     fflush(stdout);
 }
 

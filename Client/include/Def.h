@@ -155,6 +155,7 @@ struct server_connection {
 struct room_struct {
     int ID;
     int player_num;
+    char surezain[USERNAMELENGTH+1];
     char players[MAXPLAYERS][USERNAMELENGTH+1];
     char secret_word[MAXWORDLENGTH];
 };

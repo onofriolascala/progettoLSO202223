@@ -105,6 +105,10 @@ void* thrPrompt(void* arg) {
                     writeToServer(main_socket, C_RETRY, "C_RETRY");
                 }
                 break;
+            case C_GUESSSKIP:
+                last_mode = prompt_mode;
+                //result = promptRoom(prompt, outgoing);
+                break;
             default:
                 last_mode = prompt_mode;
                 printf("PROMPT_THREAD: <DEBUG> signal number not recognized. Manual response enabled.\n");

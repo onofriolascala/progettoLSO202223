@@ -58,7 +58,7 @@
 #define SCR "\033[2J"
 #define LIN "\033[2K"
 
-#define MAXLINEWIDTH 90
+#define MAXLINEWIDTH 100
 #define SIDEOFFSET 5
 
 // Funzione di pulizia della console. Da usare solo al passaggio da una schermata all'altra.

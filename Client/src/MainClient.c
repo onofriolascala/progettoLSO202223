@@ -51,6 +51,17 @@ int main() {
     struct server_connection server;
     struct room_struct room;
 
+    // Inizializzazione della struttura room
+    room.ID = 0;
+    room.player_num = 0;
+    strcpy(room.surezain , "Vuoto");
+    for( int i = 0; i<MAXPLAYERS ; i++) {
+        //memset(room.players[i], '\0', sizeof(room.players[i]));
+        strcpy(room.players[i] , "Vuoto");
+    }
+    //memset(room.secret_word, '\0', sizeof(room.secret_word));
+    strcpy(room.secret_word, "Vuoto");
+
     // Inizializzazione della struttura per il prompt e del suo mutex
     struct prompt_thread *prompt;
     if((prompt = (struct prompt_thread*)malloc(sizeof(struct prompt_thread))) == NULL){
@@ -209,9 +220,9 @@ static void sigHandler(int signum){
         //closing routine
 
         green();
-        printf("\n\nChiusura del programma. Grazie di aver giocato!\n");
+        printf("\n\nChiusura del processo. Grazie di aver giocato!\n");
         defaultFormat();
-        sleep(5);
+        //sleep(5);
 
         unlink(temp_buf);
         printf("\n");

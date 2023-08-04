@@ -179,11 +179,17 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_CHOOSEWORD:
             //
-            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Choose Word> %d:%s\n", signal_num, incoming);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Join> %d:%s\n", signal_num, incoming);
+            if( !same_signal ) renderRoom(server, room);
+            if(strcmp(incoming, S_ROOMOK_MSG) != 0) printf("\n\t%s\n\n", incoming);
+            contacted_sd = *prompt->sd;
+            signal_num = C_GUESSSKIP;
+            break;
+            /*sprintf( prompt->log_str, "\tSERVER_SWITCH: <Choose Word> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_SELECTWORD;
             strcpy(incoming, "C_SELECTWORD");
-            break;
+            break;*/
         //          CASI DI ERRORE          //
         case S_FULLROOM:
             // La stanza è piena. Nuovo tentativo.
