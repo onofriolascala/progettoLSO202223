@@ -97,7 +97,7 @@ int main() {
     fds[1].events = POLLIN;                         // Inizialmente settata a -1 per essere ignorata.
     num_fds = 2;
 
-    timeout = ( 5 * 60 * 1000 );
+    timeout = ( 1 * 60 * 1000 );
 
     // Inizializzazione della socket locale e del thread per il PROMPT
     if((localsocket = localSocketInit(&localsocket_addr, &local_len, prompt)) < 0) {
@@ -182,8 +182,8 @@ int main() {
     } while( !end_loop );
 
     writeToLog(*prompt->log, "Terminazione processo client.\n\n\t\t\t END CLIENT.\n");
-
     deleteLocalSocket(prompt);
+
     system("tput rmcup");
     return 0;
 }
@@ -192,8 +192,27 @@ static void sigHandler(int signum){
     char temp_buf[MAXCOMMBUFFER];
     pid_t pid = getpid();
     sprintf(temp_buf, "%s%d", CLIENTLOCALSOCKET, pid);
-    if(signum == SIGINT || signum == SIGTERM || signum == SIGKILL){
+    if(signum == SIGTERM || signum == SIGKILL){
         //closing routine
+
+        yellow();
+        printf("\n\nTerminazione del programma\n");
+        defaultFormat();
+        sleep(5);
+
+        unlink(temp_buf);
+        printf("\n");
+        system("tput rmcup");
+        exit(1);
+    }
+    else if(signum == SIGINT){
+        //closing routine
+
+        green();
+        printf("\n\nChiusura del programma. Grazie di aver giocato!\n");
+        defaultFormat();
+        sleep(5);
+
         unlink(temp_buf);
         printf("\n");
         system("tput rmcup");

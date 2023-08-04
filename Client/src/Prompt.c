@@ -159,13 +159,13 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
     int result;
 
     green();
-    printf("Attivare la connessione di debug? (25.72.233.6:5200)\n");
+    printf("Attivare la connessione di debug? (192.168.1.139:5200)\n");
     defaultFormat();
     inputComfirmation();
     if(promptConfirmation(prompt)) {
         printf("Connessione a "
-               "25.72.233.6:5200\n");
-        strcpy(outgoing, "25.72.233.6-5200;");
+               "192.168.1.139:5200\n");
+        strcpy(outgoing, "192.168.1.139-5200;");
         return 0;
     }
     else {
@@ -178,8 +178,12 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
         fflush(stdout);
     }
 
+    usleep(REFRESHCONSTANT);
+
     inputAddress();
     if ((result = promptString(prompt, temp_buffer, MAXIP)) < 0) return result;
+
+    usleep(REFRESHCONSTANT);
 
     strncat(outgoing, temp_buffer, MAXIP+1);
     strncat(outgoing, "-", 2);
@@ -188,6 +192,8 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
 
     inputPort();
     if ((result = promptString(prompt, temp_buffer, MAXPORT)) < 0) return result;
+
+    usleep(REFRESHCONSTANT);
 
     strncat(outgoing, temp_buffer, MAXPORT+1);
     strncat(outgoing, ";", 2);
@@ -200,8 +206,12 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
 
     do {
         end_loop = 1;
-        //
+
+        usleep(REFRESHCONSTANT);
+
         result = promptSelection(prompt, '2');
+
+        usleep(REFRESHCONSTANT);
 
         switch (result) {
             // Disconnessione
@@ -228,8 +238,8 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                 inputComfirmation();
                 if (promptConfirmation(prompt)) {
                     printf("Accesso come "
-                           "\"pippopippopippo\" con password \"pippopippop\".\n");
-                    strcpy(outgoing, "pippopippopippo-pippopippop;");
+                           "\"Utente01\" con password \"password01\".\n");
+                    strcpy(outgoing, "Utente01-password01;");
                     return 1;
                 } else {
                     up(1);
@@ -291,8 +301,11 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
     do {
         end_loop = 1;
 
-        //
+        usleep(REFRESHCONSTANT);
+
         result = promptSelection(prompt, '3');
+
+        usleep(REFRESHCONSTANT);
 
         switch (result) {
             // Logout

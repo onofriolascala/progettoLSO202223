@@ -36,7 +36,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             break;
         case S_DISCONNECT_ABRUPT:
             writeToLog( *prompt->log, "\tSERVER_SWITCH: <Abrupt Disconnection>.\n");
-            printErrorNoNumber(prompt, "!Attenzione! Il server ha prematuramente terminato la connessione. Riavvio.\n", incoming);
+            printErrorNoNumber(prompt, "!Attenzione! Il server ha terminato prematuramente la connessione. Riavvio.\n", incoming);
             switchServer(server, room, prompt, S_DISCONNECT, "S_DISCONNECT");
             return 0;
         case S_DISCONNECT:
@@ -44,6 +44,11 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // la connessione, e riportare la console alla schermata di connessione.
             do {
                 if(pthread_mutex_trylock(&prompt->mutex) == 0) {
+
+                    if(writeToServer(*prompt->sd, S_DISCONNECT_ABRUPT, "S_DISCONNECT_ABRUPT") < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
+                    usleep(REFRESHCONSTANT);
+
+                    pthread_cancel(prompt->id);
 
                     bold();
                     yellow();
@@ -57,10 +62,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     close(*server->sd);
                     *server->sd = -1;
 
-                    if(writeToServer(*prompt->sd, S_DISCONNECT_ABRUPT, "S_DISCONNECT_ABRUPT") < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
-                    usleep(REFRESHCONSTANT);
 
-                    //pthread_cancel(prompt->id);
                     //deleteLocalSocket(prompt);
                     close(*prompt->sd);
 
