@@ -177,7 +177,6 @@ struct room_node* createNewRoomNode( struct room_node* list_head ) {
         new->player_list = NULL;
         new->player_num = 0;
         new->next = NULL;
-        new->isActive = 0;
         pthread_mutex_init(&new->roomnode_mutex, NULL);
     }
     else {
