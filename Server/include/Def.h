@@ -39,6 +39,7 @@
 
 // Costanti per la Game Logic
 #define WORDLENGTH 30
+#define TURNTIMEOUT 1*60*1000
 
 // Numero di refresh massimi consentiti
 #define MAXREFRESHCONSTANT 100
@@ -163,7 +164,6 @@ struct room_node{
     struct player_node** playerhead_pointer;
     struct player_node** turn_pointer;
     int player_num;
-    int isActive;
     struct room_node* next;
     pthread_mutex_t roomnode_mutex;
 };
