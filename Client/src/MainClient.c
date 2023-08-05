@@ -58,7 +58,7 @@ int main() {
     strcpy(room.suzerain , "Surezain Placeholder");
     for( int i = 0; i<MAXPLAYERS ; i++) {
         //memset(room.players[i], '\0', sizeof(room.players[i]));
-        sprintf(incoming, "Seat n.%d", i+1);
+        sprintf(incoming, "Vuoto");
         strcpy(room.players[i] , incoming);
         memset(incoming, '\0', sizeof(incoming));
     }
@@ -125,7 +125,7 @@ int main() {
         memset(prompt->log_str, '\0', sizeof(prompt->log_str));
     }
     prompt->sd = &fds[0].fd;
-    prompt->id = createPrompt(localsocket, prompt, NULL);
+    prompt->id = createPrompt(localsocket, prompt, &room);
 
     // Rendering Iniziale
     emptyConsole();

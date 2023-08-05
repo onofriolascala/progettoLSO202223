@@ -393,7 +393,6 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
     return result;
 }
 
-
 int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outgoing[]) {
     char temp_buffer[USERNAMELENGTH];
     char *endp;
@@ -437,6 +436,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 clearLine();
                 carriageReturn();
                 printf(" > ");
+                break;
             default:
                 end_loop = 0;
                 result = -1;

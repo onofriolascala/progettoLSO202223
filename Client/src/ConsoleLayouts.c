@@ -249,12 +249,12 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
 
 // Le seguenti funzioni manipolano il cursore della console per modificare lo stato della schermata.
 // Essendo funzioni di UI non fanno error-checking in relazione ai valori passati, assumendoli corretti.
-/*   N.B. Il suzerain ed il numero giocatori hanno offset orizzontale 17, la parola 7, i giocatori 23 e 56
+/*   N.B. Il numero di giocatori ha offset orizzontale 17, la parola 7, i giocatori pari ed il suzerain 23, quelli dispari 56
  *   La composizione della schermata è la seguente
  *   righe  0-11 : logo + ""
  *   righe  12-13: Header + ""
  *   righe  14-16: ServerIP, Porta + Username + ""
- *   riga   17   : Surezain
+ *   riga   17   : Suzerain
  *   righe  18-??: Giocatori, va da 1 a MAXPLAYERS
  *   righe ~19-20: "" + Pre-parola
  *   riga  ~21   : riga : Parola nascosta
@@ -315,7 +315,7 @@ void updatePlayer(struct room_struct *room, int position) {
     }
 
     gotoxyCursor(vertical_offset, horizontal_offset);
-    printf("%32s", room->players[position]);
+    printf("%-32s", room->players[position]);
     loadCursor();
     fflush(stdout);
 }
@@ -327,7 +327,7 @@ void updatePlayerNumber(struct room_struct *room) {
     horizontal_offset = 17;
 
     gotoxyCursor(vertical_offset, horizontal_offset);
-    printf("%1d", room->player_num);
+    printf("%-1d", room->player_num);
     loadCursor();
     fflush(stdout);
 }
@@ -347,14 +347,14 @@ void updateWord(struct room_struct *room) {
     encaseSideLine("");
     gotoxyCursor(vertical_offset, 7);
 
-    printf( BLD WHT "%32s" DFT, room->secret_word);
+    printf( BLD WHT "%-32s" DFT, room->secret_word);
     loadCursor();
     fflush(stdout);
 }
 void updateSuzerain(struct room_struct *room) {
     saveCursor();
-    gotoxyCursor(17, 17);
-    printf(BLD GRN "%32s" DFT, room->suzerain);
+    gotoxyCursor(17, 23);
+    printf(BLD GRN "%-32s" DFT, room->suzerain);
     loadCursor();
     fflush(stdout);
 }
@@ -364,7 +364,7 @@ void updateVictory(void) {
     up(1);
     clearLine();
     printf(BLD YLW "****** HAI INDOVINATO! VITTORIA! ******\n"
-                   "Resta in attesa per diventare il nuovo Surezain e scegliere la parola.\n\n" DFT);
+                   "Resta in attesa per diventare il nuovo Suzerain e scegliere la parola.\n\n" DFT);
     loadCursor();
     fflush(stdout);
 }
@@ -374,7 +374,7 @@ void updateDefeat(void) {
     up(1);
     clearLine();
     printf(BLD RED "------ QUALCUN ALTRO HA INDOVINATO. SCONFITTA! ------\n"
-           "Resta in attesa della parola scelta dal nuovo Surezain.\n\n" DFT);
+           "Resta in attesa della parola scelta dal nuovo Surain.\n\n" DFT);
     loadCursor();
     fflush(stdout);
 }
@@ -383,14 +383,14 @@ void failedGuess(char *incoming) {
     fflush(stdout);
 }
 void selectWord(char *incoming) {
-    saveCursor();
-    clearLine();
-    up(1);
-    up(1);
-    clearLine();
+    //saveCursor();
+    //clearLine();
+    //up(1);
+    //up(1);
+    //clearLine();
     printf("Sei il nuovo Surezain. Scegli una parola tra le seguenti:\n"
            " > %s\n", incoming);
-    loadCursor();
+    //loadCursor();
     fflush(stdout);
 }
 

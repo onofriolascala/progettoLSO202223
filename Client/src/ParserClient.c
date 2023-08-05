@@ -204,7 +204,7 @@ int parserRoomJoin(struct room_struct *room, char incoming[]) {
     playernum_p = strtok_r(incoming, "-", &saveptr);
     suzerain_p = strtok_r(NULL, "-", &saveptr);
     players_p = strtok_r(NULL, "-", &saveptr);
-    word_p = strtok_r(NULL, "\0", &saveptr);
+    word_p = strtok_r(NULL, "-", &saveptr);
 
     room->player_num = atoi(playernum_p);
     strcpy(room->suzerain, suzerain_p);
