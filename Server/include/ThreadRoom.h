@@ -36,6 +36,8 @@ int createNewRoom(int sd, struct room_node** room_list, struct mySQLConnection* 
 int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], char outgoing[]);
 int joinParser(char incoming[], char outgoing[], char username[], int *sd);
 /* Funzione che prende una comunicazione in ingresso che contiene una parola e la estrae */
-int wordParser(char incoming[], char outgoing[], char word[]);
+int guessParser(char incoming[], char outgoing[], char guess[] );
+void getRoomInfo(struct player_node* suzerain, int player_num, char selected_word[], char outgoing[MAXCOMMBUFFER]);
+
 
 #endif //PROGETTOLSO202223_THREADROOM_H

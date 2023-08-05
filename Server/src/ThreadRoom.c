@@ -41,15 +41,16 @@ void* thrRoom(void* arg) {
 
     //                 mainRoomLoop init                   //
 
-    struct pollfd fds[9];
+    struct pollfd fds[MAXPLAYERS+1];
     char buffer[MAXCOMMBUFFER];
+    char users[500];
     int timeout, rc = 0;
     //int localsocket;
     int nfds, new_local_sd, current_size = 0, i, j, signal_code;
     int next_turn = 0, close_conn;
     char *saveptr = NULL;
     char *username_p, *fd_p;
-    struct player_node* new_player, *player;
+    struct player_node* new_player, *player, *tmp;
     int new_player_fd;
 
 
@@ -60,16 +61,17 @@ void* thrRoom(void* arg) {
     int close_room = 0, word_is_selected = 0;
     clock_t start_t, end_t;
     double total_t;
-    char Word[3][20];
+    char words[3][MAXWORDLENGTH];
+    char guess[MAXWORDLENGTH];
     int selectedWord, z;
-
+    int wordsSent;
     //initializing the listening socket into the polling array
     memset(fds, 0 ,sizeof(fds));
     fds[0].fd = localsocket;
     fds[0].events = POLLIN;
     nfds = 1;
 
-    timeout = ( 1 * 60 * 1000);
+    timeout = TURNTIMEOUT;
 
     //              MAIN GAME LOOP                //
 
@@ -80,20 +82,24 @@ void* thrRoom(void* arg) {
         total_t = 0;
         next_turn = 0;
         word_is_selected = 0;
+        wordsSent = 0;
 
         do{
             printf("DEBUG: Waiting on poll function...\n");
             fflush(stdout);
             /* game logic */
-            if(!word_is_selected && suzerain != NULL){
-                //generateWords(Word);
+
+
+            if(!word_is_selected && suzerain != NULL && !wordsSent && this_room->player_num > 1){
+                //generateWords(words);
                 //DEBUG:
-                strcpy(Word[0], "Test1");
-                strcpy(Word[1], "Test2");
-                strcpy(Word[2], "Test3");
+                strcpy(words[0], "Test1");
+                strcpy(words[1], "Test2");
+                strcpy(words[2], "Test3");
                 //
-                sprintf(outgoing,"%s-%s-%s;",Word[0],Word[1],Word[2]);
+                sprintf(outgoing, "1) %s - 2) %s - 3) %s ", words[0], words[1], words[2]);
                 writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
+                wordsSent = 1;
                 // controllare se e' richiesto un reset del timer del timeout
             }
 
@@ -112,11 +118,17 @@ void* thrRoom(void* arg) {
                         suzerain = suzerain->next;
                     break;
                 }
+                writeToClient(current_player->player_socket, S_ENDOFTURN, S_ENDOFTURN_MSG);
+
                 current_player = current_player->next;
+
                 if(current_player == suzerain){
                     //addHint()
                     current_player = current_player->next;
                 }
+
+                writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
+
                 continue;
             }
             current_size = nfds;
@@ -132,6 +144,7 @@ void* thrRoom(void* arg) {
                     break;
                 }
                 if(fds[i].fd == localsocket){
+
                     //the listening socket is readable, so we manage the new incoming connections
                     printf("DEBUG: new incoming connection to the room\n");
                     new_local_sd = accept(localsocket, NULL, NULL);
@@ -157,7 +170,7 @@ void* thrRoom(void* arg) {
                         new_player = createNewPlayerNode(new_player_fd, username_p);
                         this_room->player_list = addPlayerToPlayerList(this_room->player_list, new_player);
 
-                        writeToClient(new_local_sd, S_OK, S_OK_MSG);
+
 
                         fds[nfds].fd = new_player_fd;
                         fds[nfds].events = POLLIN;
@@ -173,6 +186,7 @@ void* thrRoom(void* arg) {
                             printf("DEBUG: Selecting new suzerain...\n");
                             suzerain = new_player;
                             printf("DEBUG: Suzerain set! Current suzerain: %s\n", new_player->username);
+                            word_is_selected = 0;
                         }
                         /* game logic */
                         /* if no usr was set to play and the new usr isn't the only one in the room set him as the current player*/
@@ -181,13 +195,22 @@ void* thrRoom(void* arg) {
                             current_player = new_player;
                             printf("DEBUG: New gamer set! Current gamer: %s\n", new_player->username);
                         }
+
+                        getRoomInfo(suzerain,this_room->player_num,words[selectedWord],outgoing);
+
+                        writeToClient(new_local_sd, S_OK, S_OK_MSG);
+                        writeToClient(new_player_fd, S_ROOMOK, outgoing);
+
+                        for(i = 1; i < nfds; i++){
+                            if(fds[i].fd != new_player_fd)
+                                writeToClient(fds[i].fd, S_PLAYERUPDATE, outgoing);
+                        }
                     }
                     else{
                         printf("DEBUG: New connection to the room was refused\t-- Player already in room --\n");
                         fflush(stdout);
                         writeToClient(new_local_sd, S_USERINROOM, S_USERINROOM_MSG);
                     }
-
                 }
                 else {
                     //not the listening socket, managing the players socket
@@ -208,7 +231,7 @@ void* thrRoom(void* arg) {
                         case S_DISCONNECT_ABRUPT:
                             printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
                             /* game logic */
-                            //if the player was the current player and disconnects we need to update assign a new player
+                            //if the player was the current player and disconnects we need to assign a new player
                             if( suzerain == player ){
                                 next_turn = 1;
                                 suzerain = suzerain->next;
@@ -253,26 +276,34 @@ void* thrRoom(void* arg) {
                                 selectedWord = 1;
                                 //
                                 for(z = 1; z < nfds; z++) {
-                                    writeToClient(fds[z].fd, S_NEWGAME, S_NEWGAME_MSG );
+                                    writeToClient(fds[z].fd, S_NEWGAME, words[selectedWord] );
                                 }
+                                current_player = suzerain->next;
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
                             break;
-                        case C_GUESSSKIP: //solo guess?
-                            //printf("\t\t\t\tDEBUG_STANZAID%d: <Guess> %d:%s\n", ID, signal_num, incoming);
-                            /*
-                            word = parserWord(incoming);
-                            if( strcmp(word,game_word) == 0 ){
-                                for(i = 0; i < nfds; i++){
-                                    if( fds[i].fd != player->player_socket)
-                                        writeToClient(fds[i].fd, S_GAME_LOST, S_GAME_LOST_MESSAGE);
-                                    else
-                                        writeToClient(fds[i].fd, S_GAME_WON, S_GAME_WON_MESSAGE);
+                        case C_GUESSSKIP:
+                            printf("\t\t\t\tDEBUG_STANZAID%d: <Guess> %d:%s\n", ID, signal_num, incoming);
+
+                            signal_num = guessParser(incoming, outgoing, guess);
+
+                            if(signal_num == S_OK){
+                                sprintf(outgoing, "%s prova \"%s\" ", player->username, guess);
+                                if (strcmp(guess, words[selectedWord]) == 0) {
+                                    for (i = 1; i < nfds; i++) {
+                                        if (fds[i].fd != player->player_socket)
+                                            writeToClient(fds[i].fd, S_DEFEAT, outgoing);
+                                        else
+                                            writeToClient(fds[i].fd, S_VICTORY, outgoing);
+                                    }
+                                    sleep(5);
+                                    suzerain = player;
                                 }
-                             }
+                                else
+                                    writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
+                            }
                             else
-                                writeToClient(fds[i].fd, S_GUESS_MISS, S_GUESS_MISS_MESSAGE);
-                            */
+                                writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
                              break;
                         case C_EXITROOM:
                             //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
@@ -314,6 +345,13 @@ void* thrRoom(void* arg) {
                             close_room = 1;
                             break;
                         }
+                        if( nfds == 2){
+                            next_turn = 1;
+                        }
+                        for(i = 1; i < nfds; i++){
+                                writeToClient(fds[i].fd, S_PLAYERUPDATE, outgoing);
+                        }
+
                     }
                 }
             }
@@ -330,11 +368,16 @@ void* thrRoom(void* arg) {
                     }
                 }
                 current_player = current_player->next;
+
+                writeToClient(current_player->player_socket, S_ENDOFTURN, S_ENDOFTURN_MSG);
+
                 if(current_player == suzerain){
                     //addHint()
                     current_player = current_player->next;
                 }
-                next_turn = 1;
+
+                writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
+
             }
 
         }while(!next_turn);
@@ -370,7 +413,6 @@ int createNewRoom(int sd, struct room_node** room_list, struct mySQLConnection* 
     args.db_connection = db_connection;
     args.room_list = room_list;
     args.room_ID = 0;
-    // ????
     args.flag = 0;
 
     //printf("DEBUG: Creation of detatched thread...\n");
@@ -412,7 +454,7 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
         strcpy(outgoing, S_ROOMNOTFOUND_MSG);
         signal_num = S_ROOMNOTFOUND;
     }
-    else if (joined_room->player_num >= 8){
+    else if (joined_room->player_num >= MAXPLAYERS){
         strcpy(outgoing, S_FULLROOM_MSG);
         signal_num = S_FULLROOM;
     }
@@ -467,7 +509,7 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
 }
 
 
-int wordParser(char incoming[], char outgoing[], char word[]){
+int guessParser(char incoming[],char outgoing[], char guess[]){
     char *saveptr = NULL;
     char *word_p;
     int word_len, return_value = S_COMMERROR;
@@ -483,14 +525,41 @@ int wordParser(char incoming[], char outgoing[], char word[]){
             return_value = S_MISSEDGUESS;
         }
         else {
-            strncpy(word, word_p, word_len);
-            word[word_len] = '\0';
+            strncpy(guess, word_p, word_len);
+            guess[word_len] = '\0';
             return_value = S_OK;
         }
     }
 
     return return_value;
 }
+
+
+void getRoomInfo(struct player_node* suzerain, int player_num, char selected_word[], char outgoing[MAXCOMMBUFFER]){
+    char users[400];
+    struct player_node *tmp;
+    int i = 0;
+    if(strcmp(selected_word,"") == 0)
+        strcpy(selected_word,"In attesa della parola...");
+    if(suzerain != NULL){
+        memset(users,'\0',sizeof(users));
+        tmp = suzerain;
+        do{
+            strcat(users,tmp->username);
+            strcat(users,",");
+            tmp = tmp->next;
+            i++;
+        }
+        while(tmp != suzerain);
+        for(;i<=8;i++){
+            strcat(users, ",");
+        }
+        sprintf(outgoing, "%d-%s-%s-%s", player_num, suzerain->username, users, selected_word );
+    }
+
+}
+
+
 
 int joinParser(char incoming[], char outgoing[], char username[], int *sd) {
     char *saveptr = NULL;
