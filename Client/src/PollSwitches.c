@@ -6,7 +6,7 @@
 
 int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]) {
     int end_loop, same_signal, contacted_sd, counter;
-    char temp_buffer[MAXCOMMBUFFER];
+    char temp_buffer[MAXCOMMBUFFER*2];
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
 
@@ -66,7 +66,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                     //deleteLocalSocket(prompt);
                     close(*prompt->sd);
 
-                    prompt->id = createPrompt(*server->localsocket, prompt);
+                    prompt->id = createPrompt(*server->localsocket, prompt, NULL);
 
                     sleep(3);
                     emptyConsole();
@@ -137,59 +137,160 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // Il server comunica l'avvenuto accesso alla stanza. Verrà eseguita la prima stampa della stanza.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Join> %d:%s\n", signal_num, incoming);
             if( !same_signal ) renderRoom(server, room);
-            if(strcmp(incoming, S_ROOMOK_MSG) != 0) printf("\n\t%s\n\n", incoming);
+            //if(strcmp(incoming, S_ROOMOK_MSG) != 0) printf("\n\t%s\n\n", incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_GUESSSKIP;
+
+            parserRoomJoin(room, incoming);
+            updateSuzerain(room);
+            updatePlayerNumber(room);
+            updateWord(room);
+            for(int i = 0; i < MAXPLAYERS; i++)
+            {
+                updatePlayer(room, i);
+            }
+
             break;
         //          GAME LOGIC          //
         case S_MISSEDGUESS:
-            //
+            // Il server fa eco del tentativo di un giocatore
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Missed Guess> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
+
+            sprintf(temp_buffer, " > %s  ->  " BLK "SBAGLIATO" DFT, incoming);
+            addMessage(room, incoming);
+            slideMessages(room);
+
             break;
         case S_VICTORY:
-            //
+            // Il server annuncia la vittoria di questo client sugli altri. Si prepara alla ricezione delle
+            // parole tra cui il nuovo Surezain dovrà scegliere.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Victory> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
+
+            sprintf(temp_buffer, " > %s  ->  " WHT "CORRETTO" DFT, incoming);
+            addMessage(room, temp_buffer);
+            slideMessages(room);
+            updateVictory();
+
             break;
         case S_DEFEAT:
-            //
+            // Il server annuncia la sconfitta di questo client. Si prepara alla ricezione della nuova
+            // parola e all'eventuale aggiornamento della schermata.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Defeat> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
+
+            sprintf(temp_buffer, " > %s  ->  " WHT "CORRETTO" DFT, incoming);
+            addMessage(room, temp_buffer);
+            slideMessages(room);
+            updateDefeat();
+
             break;
         case S_ENDOFTURN:
-            //
+            // Il server fa eco dell'inizio di un nuovo giro, comunicando una nuova versione della parola segreta.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <End of Turn> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
             break;
         case S_YOURTURN:
-            //
+            // Il server comunica di star aspettando un tentativo da parte del client. Il prompt verrà
+            // aggiornato di conseguenza.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Your Turn> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
+
+            saveCursor();
+            up(1);
+            clearLine();
+            printf(" E' il tuo turno, prova a indovinare:");
+            loadCursor();
+
+            room->turn_flag = 1;
+
             break;
         case S_CHOOSEWORD:
-            //
-            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Join> %d:%s\n", signal_num, incoming);
-            if( !same_signal ) renderRoom(server, room);
-            if(strcmp(incoming, S_ROOMOK_MSG) != 0) printf("\n\t%s\n\n", incoming);
-            contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            break;
-            /*sprintf( prompt->log_str, "\tSERVER_SWITCH: <Choose Word> %d:%s\n", signal_num, incoming);
+            // Il server chiede al client di restituirgli il numero di una delle parole indicate.
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Choose Word> %d:%s\n", signal_num, incoming);
             contacted_sd = *prompt->sd;
             signal_num = C_SELECTWORD;
             strcpy(incoming, "C_SELECTWORD");
-            break;*/
+
+            selectWord(incoming);
+            clearLine();
+            printf(" > ");
+
+            room->turn_flag = 1;
+
+            break;
+        case S_NEWGAME:
+            // Il server comunica l'avvio di una nuova partita.
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <NewGame> %d:%s\n", signal_num, incoming);
+            if( !same_signal ) renderRoom(server, room);
+            //if(strcmp(incoming, S_ROOMOK_MSG) != 0) printf("\n\t%s\n\n", incoming);
+            contacted_sd = *prompt->sd;
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
+
+            parserRoomJoin(room, incoming);
+            updateSuzerain(room);
+            updatePlayerNumber(room);
+            updateWord(room);
+            for(int i = 0; i < MAXPLAYERS; i++)
+            {
+                updatePlayer(room, i);
+            }
+
+            clearMessages();
+            sprintf(temp_buffer, " > Inizio Nuova Partita.");
+            addMessage(room, incoming);
+            slideMessages(room);
+
+            break;
+        case S_PLAYERUPDATE:
+            // Il server comunica un aggiornamento relativo ai giocatori in partita
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <PlayerUpdate> %d:%s\n", signal_num, incoming);
+            contacted_sd = *prompt->sd;
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
+
+            parserRoomJoin(room, incoming);
+            updatePlayerNumber(room);
+            for(int i = 0; i < MAXPLAYERS; i++)
+            {
+                updatePlayer(room, i);
+            }
+
+            sprintf(temp_buffer, GRN " > Lo stato dei giocatori è stato aggiornato." DFT);
+            addMessage(room, incoming);
+            slideMessages(room);
+
+            break;
+        case S_NEWHINT:
+            // Il server chiede al client di restituirgli il numero di una delle parole indicate.
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <NewHint> %d:%s\n", signal_num, incoming);
+            contacted_sd = *prompt->sd;
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
+
+            if(incoming != NULL) {
+                strncpy(room->secret_word, incoming, sizeof(room->secret_word));
+                room->secret_word[MAXWORDLENGTH] = '\0';
+                updateWord(room);
+            }
+
+            sprintf(temp_buffer, GRN " > Giro concluso. Nuova lettera rivelata." DFT);
+            addMessage(room, incoming);
+            slideMessages(room);
+
+            break;
         //          CASI DI ERRORE          //
         case S_FULLROOM:
             // La stanza è piena. Nuovo tentativo.
@@ -228,8 +329,8 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_NOTYOURTURN> %d:%s\n", signal_num, incoming);
             printWarning(prompt, "Attendere il proprio turno.\n");
             contacted_sd = *prompt->sd;
-            signal_num = C_RETRY;
-            strcpy(incoming, "C_RETRY");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
             break;
         case S_SERVERERROR:
             // Il server non è attualmente disponibile. Nuovo tentativo.
@@ -448,12 +549,31 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             contacted_sd = *server->sd;
             break;
         case C_EXITROOM:
+            // Il prompt comunica l'intenzione di voler uscire dalla stanza
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Exit Room> %d:%s.\n", signal_num, incoming);
             contacted_sd = *server->sd;
             break;
         case C_GUESSSKIP:
+            // Il prompt comunica il tentativo dell'utente
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Guess> %d:%s.\n", signal_num, incoming);
             contacted_sd = *server->sd;
+            room->turn_flag = 0;
+            break;
+        case C_ENDOFTURN:
+            // Il prompt comunica il tentativo dell'utente
+            sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Guess> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
+            break;
+        case C_YOURTURN:
+            // Il prompt comunica il tentativo dell'utente
+            sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Guess> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
+            break;
+        case C_SELECTWORD:
+            // Il prompt comunica il tentativo dell'utente
+            sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Chose Word> %d:%s.\n", signal_num, incoming);
+            contacted_sd = *server->sd;
+            room->turn_flag = 0;
             break;
         case C_CLIENTERROR:
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Client Error> %d:%s.\n", signal_num, incoming);
@@ -468,4 +588,50 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
         if(writeToServer(contacted_sd, signal_num, incoming) < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
     }
     return end_loop;
+}
+
+void addMessage(struct room_struct *room, char *incoming) {
+    if (incoming == NULL) {
+        return;
+    }
+    char temp_buff[MAXCOMMBUFFER*2];
+
+    sprintf(temp_buff, BLK "%s" DFT, room->saved_messages[MAXSAVEDMESSAGES-1]);
+    strcpy(room->saved_messages[MAXSAVEDMESSAGES-1], temp_buff);
+
+    memset(temp_buff, '\0', sizeof(temp_buff));
+    memset(room->saved_messages[MAXSAVEDMESSAGES-1], '\0', sizeof(room->saved_messages[MAXSAVEDMESSAGES-1]));
+
+    for(int i = MAXSAVEDMESSAGES-1; i > 0; i--) {
+        strcpy(room->saved_messages[i], room->saved_messages[i-1]);
+    }
+
+    sprintf(temp_buff, " > %s", incoming);
+    strcpy(room->saved_messages[0], incoming);
+    room->saved_messages[0][MAXCOMMBUFFER] = '\0';
+    clearMessages();
+}
+void emptyMessageList(struct room_struct *room) {
+    int string_size = sizeof(room->saved_messages[0]);
+    for(int i = 0; i < MAXSAVEDMESSAGES; i++) {
+        memset(room->saved_messages[i], '\0', string_size);
+    }
+    clearMessages();
+}
+void changePlayers(struct room_struct *room, char *incoming) {
+    if (incoming == NULL) {
+        return;
+    }
+    parserPlayers(room, incoming);
+    for(int i = 0; i < MAXPLAYERS; i++)
+    {
+        updatePlayer(room, i);
+    }
+}
+void changeSuzerain(struct room_struct *room, char *incoming) {
+    if (incoming == NULL) {
+        return;
+    }
+    strcpy(room->suzerain, incoming);
+    room->suzerain[USERNAMELENGTH] = '\0';
 }

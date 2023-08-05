@@ -54,13 +54,16 @@ int main() {
     // Inizializzazione della struttura room
     room.ID = 0;
     room.player_num = 0;
-    strcpy(room.surezain , "Vuoto");
+    room.turn_flag = 0;
+    strcpy(room.suzerain , "Surezain Placeholder");
     for( int i = 0; i<MAXPLAYERS ; i++) {
         //memset(room.players[i], '\0', sizeof(room.players[i]));
-        strcpy(room.players[i] , "Vuoto");
+        sprintf(incoming, "Seat n.%d", i+1);
+        strcpy(room.players[i] , incoming);
+        memset(incoming, '\0', sizeof(incoming));
     }
     //memset(room.secret_word, '\0', sizeof(room.secret_word));
-    strcpy(room.secret_word, "Vuoto");
+    strcpy(room.secret_word, "Word Placeholder");
 
     // Inizializzazione della struttura per il prompt e del suo mutex
     struct prompt_thread *prompt;
@@ -108,7 +111,7 @@ int main() {
     fds[1].events = POLLIN;                         // Inizialmente settata a -1 per essere ignorata.
     num_fds = 2;
 
-    timeout = ( 1 * 60 * 1000 );
+    timeout = ( 10 * 60 * 1000 );
 
     // Inizializzazione della socket locale e del thread per il PROMPT
     if((localsocket = localSocketInit(&localsocket_addr, &local_len, prompt)) < 0) {
@@ -122,7 +125,7 @@ int main() {
         memset(prompt->log_str, '\0', sizeof(prompt->log_str));
     }
     prompt->sd = &fds[0].fd;
-    prompt->id = createPrompt(localsocket, prompt);
+    prompt->id = createPrompt(localsocket, prompt, NULL);
 
     // Rendering Iniziale
     emptyConsole();

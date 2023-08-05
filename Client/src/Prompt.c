@@ -9,7 +9,10 @@ void* thrPrompt(void* arg) {
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER], tempbuffer[MAXCOMMBUFFER];
 
     struct prompt_thread *prompt;
-    prompt = (struct prompt_thread*)arg;
+    struct room_struct *room;
+
+    prompt = (*(struct prompt_args*)arg).prompt;
+    room = (*(struct prompt_args*)arg).room;
 
     struct sockaddr_un localaddr;
     localaddr.sun_family = PF_LOCAL;
@@ -107,7 +110,35 @@ void* thrPrompt(void* arg) {
                 break;
             case C_GUESSSKIP:
                 last_mode = prompt_mode;
-                //result = promptRoom(prompt, outgoing);
+                result = promptRoom(prompt, room, outgoing);
+                // EXIT
+                if(result == 0) {
+                    writeToServer(main_socket, C_EXITROOM, "C_EXITROOM");
+                }
+                    // GUESSSKIP
+                else if(result == 1) {
+                    writeToServer(main_socket, C_CREATEROOM, outgoing);
+                }
+                    // Errore
+                else {
+                    writeToServer(main_socket, C_RETRY, "C_RETRY");
+                }
+                break;
+            case C_SELECTWORD:
+                last_mode = prompt_mode;
+                result = promptRoom(prompt, room, outgoing);
+                // EXIT
+                if(result == 0) {
+                    writeToServer(main_socket, C_EXITROOM, "C_EXITROOM");
+                }
+                    // Choose Word
+                else if(result == 1) {
+                    writeToServer(main_socket, C_SELECTWORD, outgoing);
+                }
+                    // Errore
+                else {
+                    writeToServer(main_socket, C_RETRY, "C_RETRY");
+                }
                 break;
             default:
                 last_mode = prompt_mode;
@@ -132,11 +163,15 @@ void* thrPrompt(void* arg) {
     return 0;
 }
 
-pthread_t createPrompt(int localsocket, struct prompt_thread *prompt) {
+pthread_t createPrompt(int localsocket, struct prompt_thread *prompt, struct room_struct *room) {
     pthread_t tid;
 
+    struct prompt_args arg;
+    arg.prompt = prompt;
+    arg.room = room;
+
     //printf("DEBUG: Creation of detatched thread...\n");
-    if (pthread_create(&tid, NULL, thrPrompt, prompt)) {
+    if (pthread_create(&tid, NULL, thrPrompt, &arg)) {
         printErrorNoNumber(prompt, ECRITICALCLIENT, ":THREAD CREATION ERROR: unable to create new prompt thread. Closing socket.\n");
         deleteLocalSocket(prompt);
         raise(SIGTERM);
@@ -358,6 +393,59 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
     return result;
 }
 
+
+int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outgoing[]) {
+    char temp_buffer[USERNAMELENGTH];
+    char *endp;
+    int result, end_loop, n;
+
+    do {
+        end_loop = 1;
+
+        usleep(REFRESHCONSTANT);
+
+        result = promptExitKey(prompt, room);
+
+        usleep(REFRESHCONSTANT);
+
+        switch (result) {
+            // Exit Room
+            case 1:
+                inputComfirmation();
+                if (promptConfirmation(prompt)) {
+                    result = 0;
+                } else {
+                    end_loop = 0;
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                }
+                break;
+            // Activate Guess Prompt
+            case 2:
+                if ((result = promptString(prompt, temp_buffer, MAXWORDLENGTH)) < 0) return result;
+
+                strncat(outgoing, temp_buffer, MAXWORDLENGTH + 1);
+                strncat(outgoing, ";", 2);
+
+                result = 1;
+                break;
+            // Wrong Key
+            case 0:
+                end_loop = 0;
+                up(1);
+                clearLine();
+                carriageReturn();
+                printf(" > ");
+            default:
+                end_loop = 0;
+                result = -1;
+        }
+
+    } while ( !end_loop );
+    return result;
+}
+
 // Principale funzione di ricezione della stringa. Tramite un mutex si assicura che non venga attivata la ricezione di
 // una stringa durante le altre operazioni di stampa. Riceve la struttura del prompt, un buffer in uscita ed una
 // lunghezza massima per la stringa da recepire (con massimo comunque MAXCOMMBUFFER).
@@ -446,6 +534,28 @@ int promptConfirmation(struct prompt_thread *prompt) {
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
     if(temp_buffer[0] == 'Y' || temp_buffer[0] == 'y') {
         result = 1;
+    }
+
+    return result;
+}
+
+// La funzione resta in attesa o della hotkey d'uscita o, se la flag del turno è attiva, la
+// conferma richiesta all'attivazione del prompt.
+// Restituisce 0 se la stringa non corrisponde alla chiave d'uscita, 1 se corrisponde,
+// 2 se non corrisponde ma è il turno dell'utente.
+int promptExitKey(struct prompt_thread *prompt, struct room_struct *room) {
+    char temp_buffer[MAXCOMMBUFFER];
+    int result;
+
+    result = 0;
+
+    memset(temp_buffer, '\0', sizeof(temp_buffer));
+    if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
+    if(temp_buffer[0] == 27 || temp_buffer[0] == 27) {
+        result = 1;
+    }
+    else if (room->turn_flag != 0) {
+        result = 2;
     }
 
     return result;

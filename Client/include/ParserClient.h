@@ -27,4 +27,7 @@ int parserUsername(char incoming[], struct server_connection *server);
 
 int parserList(char incoming[], char print_buffer[]);
 
+int parserRoomJoin(struct room_struct *room, char incoming[]);
+int parserPlayers(struct room_struct *room, char incoming[]);
+
 #endif //PROGETTOLSO202223_PARSERCLIENT_H
