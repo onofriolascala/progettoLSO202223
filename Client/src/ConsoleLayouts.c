@@ -170,6 +170,9 @@ void renderLogin(struct server_connection *server) {
 void renderHomepage(struct server_connection *server) {
     char tempstring[MAXLOGBUFFER] = "";
 
+    printf(SCR );
+    gotoxyCursor(0,0);
+
     bold();
     renderLogo();
     defaultFormat();
@@ -202,6 +205,8 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
     char tempstring[MAXLOGBUFFER] = "";
     int i, j;
 
+    printf(SCR );
+    gotoxyCursor(0,0);
 
     bold();
     renderLogo();
@@ -216,7 +221,7 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
     sprintf(tempstring, "Username Giocatore: %-*s", USERNAMELENGTH, server->connected_user);
     encaseSideLine(tempstring);
     encaseSideLine("");
-    sprintf(tempstring, "Suzerain: %s", room->suzerain);
+    sprintf(tempstring, "Suzerain:       %s", room->suzerain);
     encaseSideLine(tempstring);
     sprintf(tempstring, "Giocatori(%d/%d): %-*s %-*s", room->player_num, MAXPLAYERS, USERNAMELENGTH, room->players[0], USERNAMELENGTH, room->players[1]);
     encaseSideLine(tempstring);
@@ -259,26 +264,29 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
  *   righe ~19-20: "" + Pre-parola
  *   riga  ~21   : riga : Parola nascosta
  *   righe ~22-24: "" + Closing Header + ""
- *   righe ~25-28: User prompt
- *   right ~29-MAXSAVEDMESSAGES: Log ascendente di comunicazioni
+ *   righe ~25-26: User prompt
+ *   right ~27-MAXSAVEDMESSAGES: Log ascendente di comunicazioni
  */
 void slideMessages(struct room_struct *room) {
-    int vertical_offset;
+    int vertical_offset, i;
     saveCursor();
 
     if ((MAXPLAYERS % 2)==0) {
-        vertical_offset = 29 + (MAXPLAYERS/2) - 1;
+        vertical_offset = 27 + (MAXPLAYERS/2) - 1;
     }
     else {
-        vertical_offset = 29 + (MAXPLAYERS/2);
+        vertical_offset = 27 + (MAXPLAYERS/2);
     }
 
     gotoxyCursor(vertical_offset, 0);
 
-    for(int i = 0; i < MAXSAVEDMESSAGES; i++)  {
+    for(i = 0; i < MAXSAVEDMESSAGES-1; i++)  {
         clearLine();
-        printf( "%s", room->saved_messages[i]);
+        printf( "%s\n", room->saved_messages[i]);
     }
+    clearLine();
+    printf( BLK"%s"DFT, room->saved_messages[++i]);
+
     loadCursor();
     fflush(stdout);
 }
@@ -302,20 +310,23 @@ void clearMessages(void) {
     fflush(stdout);
 }
 void updatePlayer(struct room_struct *room, int position) {
-    int vertical_offset, horizontal_offset;
+    int vertical_offset = 0, horizontal_offset = 0;
     saveCursor();
 
-    if ((position % 2)==0) {
-        vertical_offset = 18 + (position/2) - 1;
+    if (position == 0 || (position % 2) == 0) {
+        vertical_offset = 18 + (position/2);
         horizontal_offset = 23;
     }
     else {
-        vertical_offset = 18 + (MAXPLAYERS/2);
+        vertical_offset = 18 + (position/2);
         horizontal_offset = 56;
     }
 
     gotoxyCursor(vertical_offset, horizontal_offset);
-    printf("%-32s", room->players[position]);
+    if((strcmp(room->players[position], "Vuoto") == 0) || (strcmp(room->players[position], BLK"Vuoto"DFT) == 0)) {
+        black();
+    }
+    printf("%s"DFT, room->players[position]);
     loadCursor();
     fflush(stdout);
 }

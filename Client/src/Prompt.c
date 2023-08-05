@@ -410,6 +410,10 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
         switch (result) {
             // Exit Room
             case 1:
+                up(1);
+                clearLine();
+                carriageReturn();
+                printf(" ");
                 inputComfirmation();
                 if (promptConfirmation(prompt)) {
                     result = 0;
@@ -432,7 +436,11 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
             // Wrong Key
             case 0:
                 end_loop = 0;
-                up(1);
+                up(2);
+                clearLine();
+                carriageReturn();
+                printf(" Premere Esc + Invio per uscire dalla stanza.");
+                down(1);
                 clearLine();
                 carriageReturn();
                 printf(" > ");
@@ -551,7 +559,7 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room) {
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
-    if(temp_buffer[0] == 27 || temp_buffer[0] == 27) {
+    if(temp_buffer[0] == 27 && temp_buffer[1] == '\0') {
         result = 1;
     }
     else if (room->turn_flag != 0) {

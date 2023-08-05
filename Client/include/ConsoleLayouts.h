@@ -41,6 +41,7 @@
 #define defaultFormat()     printf("\033[0m")
 #define bold()              printf("\033[1m")
 #define slowblink()         printf("\033[5m")
+#define black()             printf("\033[90m")
 #define red()               printf("\033[31m")
 #define green()             printf("\033[32m")
 #define yellow()            printf("\033[33m")
@@ -49,7 +50,8 @@
 
 #define DFT "\033[0m"
 #define BLD "\033[1m"
-#define BLK "\033[5m"
+#define BLN "\033[5m"
+#define BLK "\033[90m"
 #define RED "\033[31m"
 #define GRN "\033[32m"
 #define YLW "\033[33m"

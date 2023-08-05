@@ -10,7 +10,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
 
-    if(server->last_signal != signal_num && signal_num != S_DISCONNECT && signal_num <= S_FULLROOM) {
+    if(server->last_signal != signal_num && signal_num != S_DISCONNECT && signal_num <= S_ROOMOK) {
         emptyConsole();
         server->last_signal = signal_num;
         same_signal = 0;
@@ -149,15 +149,27 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             {
                 updatePlayer(room, i);
             }
-
+            saveCursor();
+            up(1);
+            clearLine();
+            carriageReturn();
+            printf(" Premere Esc + Invio per uscire dalla stanza.");
+            loadCursor();
+            printf("\n");
+            for(int j = 0; j <= MAXSAVEDMESSAGES; j++) {
+                printf("\n");
+            }
+            encaseHeaderLine("");
+            loadCursor();
+            printf(" > ");
             break;
         //          GAME LOGIC          //
         case S_MISSEDGUESS:
             // Il server fa eco del tentativo di un giocatore
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Missed Guess> %d:%s\n", signal_num, incoming);
 
-            sprintf(temp_buffer, " > %s  ->  " BLK "SBAGLIATO" DFT, incoming);
-            addMessage(room, incoming);
+            sprintf(temp_buffer, " > " BLD WHT "%s" DFT "  ->  " RED "SBAGLIATO" DFT, incoming);
+            addMessage(room, temp_buffer);
             slideMessages(room);
 
             contacted_sd = *prompt->sd;
@@ -169,7 +181,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // parole tra cui il nuovo Suzerain dovrà scegliere.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Victory> %d:%s\n", signal_num, incoming);
 
-            sprintf(temp_buffer, " > %s  ->  " WHT "CORRETTO" DFT, incoming);
+            sprintf(temp_buffer, " > " BLD WHT "%s" DFT "  ->  " GRN "CORRETTO" DFT, incoming);
             addMessage(room, temp_buffer);
             slideMessages(room);
             updateVictory();
@@ -183,7 +195,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // parola e all'eventuale aggiornamento della schermata.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Defeat> %d:%s\n", signal_num, incoming);
 
-            sprintf(temp_buffer, " > %s  ->  " WHT "CORRETTO" DFT, incoming);
+            sprintf(temp_buffer, " > " BLD WHT "%s" DFT "  ->  " GRN "CORRETTO" DFT, incoming);
             addMessage(room, temp_buffer);
             slideMessages(room);
             updateDefeat();
@@ -223,7 +235,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
 
             //selectWord(incoming);
             printf(BLD YLW "QUI!" DFT "%s", incoming);
-            clearLine();
+            //clearLine();
             printf(" > ");
 
             room->turn_flag = 1;
@@ -249,7 +261,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
 
             clearMessages();
             sprintf(temp_buffer, " > Inizio Nuova Partita.");
-            addMessage(room, incoming);
+            addMessage(room, temp_buffer);
             slideMessages(room);
 
             contacted_sd = *prompt->sd;
@@ -260,15 +272,26 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // Il server comunica un aggiornamento relativo ai giocatori in partita
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <PlayerUpdate> %d:%s\n", signal_num, incoming);
 
-            parserRoomJoin(room, incoming);
+            counter = parserRoomJoin(room, incoming);
+
+            //printf(BLD YLW "QUI!" DFT "%s", incoming);
+
             updatePlayerNumber(room);
             for(int i = 0; i < MAXPLAYERS; i++)
             {
                 updatePlayer(room, i);
             }
 
-            sprintf(temp_buffer, GRN " > Lo stato dei giocatori è stato aggiornato." DFT);
-            addMessage(room, incoming);
+            if (counter > 0) {
+                sprintf(temp_buffer, " > Un giocatore ha lasciato la partita.");
+            }
+            else if (counter < 0) {
+                sprintf(temp_buffer, " > Un giocatore si è unito alla partita.");
+            }
+            else {
+                sprintf(temp_buffer, " > I giocatori sono stati aggiornati.");
+            }
+            addMessage(room, temp_buffer);
             slideMessages(room);
 
             contacted_sd = *prompt->sd;
@@ -596,9 +619,10 @@ void addMessage(struct room_struct *room, char *incoming) {
     if (incoming == NULL) {
         return;
     }
+    clearMessages();
     char temp_buff[MAXCOMMBUFFER*2];
 
-    sprintf(temp_buff, BLK "%s" DFT, room->saved_messages[MAXSAVEDMESSAGES-1]);
+    sprintf(temp_buff, BLN "%s" DFT, room->saved_messages[MAXSAVEDMESSAGES - 1]);
     strcpy(room->saved_messages[MAXSAVEDMESSAGES-1], temp_buff);
 
     memset(temp_buff, '\0', sizeof(temp_buff));
@@ -611,7 +635,6 @@ void addMessage(struct room_struct *room, char *incoming) {
     sprintf(temp_buff, " > %s", incoming);
     strcpy(room->saved_messages[0], incoming);
     room->saved_messages[0][MAXCOMMBUFFER] = '\0';
-    clearMessages();
 }
 void emptyMessageList(struct room_struct *room) {
     int string_size = sizeof(room->saved_messages[0]);
