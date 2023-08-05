@@ -104,6 +104,7 @@ void* thrRoom(void* arg) {
                 //
                 sprintf(outgoing, "1) %s - 2) %s - 3) %s ", words[0], words[1], words[2]);
                 writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
+                printf("DEBUG_ROOM%d: Sending words [%s - %s - %s] to suzerain %s\n", this_room->id, words[0], words[1] , words[2], suzerain->username);
                 wordsSent = 1;
                 memset(outgoing,'\0',sizeof(outgoing));
                 // controllare se e' richiesto un reset del timer del timeout
@@ -273,7 +274,7 @@ void* thrRoom(void* arg) {
                             writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di effettuare il logout.");
                             break;
                         case C_SELECTWORD:
-                            //printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
+                            printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
                             if(player == suzerain){
                                 //selectedWord = parserWord();
                                 word_is_selected = 1;
@@ -312,13 +313,16 @@ void* thrRoom(void* arg) {
                                 writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
                              break;
                         case C_EXITROOM:
-                            //printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
+                            printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
 
                             // Riavvio del threadService
                             rebuildService(player, room_list, db_connection);
+                            if(this_room->player_num < 3){
 
+                            }
                             if( current_player == player ){
                                 current_player = current_player->next;
+
                             }
                             if( suzerain == player ){
                                 next_turn = 1;
@@ -367,7 +371,7 @@ void* thrRoom(void* arg) {
 
             end_t = clock();
             total_t += (double) (end_t - start_t) / CLOCKS_PER_SEC;
-            if(total_t > 90){ //1 minute round timeout + 30 seconds for server-side delays
+            if(total_t > (TURNTIMEOUT / 1000)){ //1 minute round timeout + 30 seconds for server-side delays
                 //round timeout routine
                 if(!word_is_selected){
                     if(suzerain != NULL){
