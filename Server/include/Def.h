@@ -89,6 +89,8 @@
 #define S_NEWGAME 66
 #define S_NEWGAME_MSG "La parola e' stata selezionata inizia una nuova partita!"
 
+#define S_PLAYERUPDATE 67
+#define S_PLAYERUPDATE_MSG
 
 #define S_FULLROOM 70       // La stanza è piena
 #define S_FULLROOM_MSG "La stanza è piena."
