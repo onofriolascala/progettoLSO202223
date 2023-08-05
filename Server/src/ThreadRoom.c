@@ -91,6 +91,7 @@ void* thrRoom(void* arg) {
         do{
             printf("DEBUG: Waiting on poll function...\n");
             fflush(stdout);
+            memset(outgoing,'\0',sizeof(outgoing));
             /* game logic */
 
 
@@ -104,6 +105,7 @@ void* thrRoom(void* arg) {
                 sprintf(outgoing, "1) %s - 2) %s - 3) %s ", words[0], words[1], words[2]);
                 writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
                 wordsSent = 1;
+                memset(outgoing,'\0',sizeof(outgoing));
                 // controllare se e' richiesto un reset del timer del timeout
             }
 
@@ -340,6 +342,8 @@ void* thrRoom(void* arg) {
                             fds[j].fd = fds[j + 1].fd;
                         }
                         nfds--;
+
+                        getRoomInfo(suzerain,this_room->player_num,words[selectedWord],outgoing);
 
                         /* check to see if the room is empty*/
                         if ( nfds == 1 ){
