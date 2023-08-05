@@ -87,4 +87,16 @@ void renderLogin(struct server_connection *server);
 void renderHomepage(struct server_connection *server);
 void renderRoom(struct server_connection *server, struct room_struct *room);
 
+// Funzioni di aggiornamento dei singoli campi della stanza
+void slideMessages(struct room_struct *room);
+void clearMessages(void);
+void updatePlayer(struct room_struct *room, int position);
+void updatePlayerNumber(struct room_struct *room);
+void updateWord(struct room_struct *room);
+void updateSuzerain(struct room_struct *room);
+void updateVictory(void);
+void updateDefeat(void);
+void failedGuess(char *incoming);
+void selectWord(char *incoming);
+
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H

@@ -29,4 +29,9 @@
 int switchServer(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]);
 int switchPrompt(struct server_connection *server, struct room_struct *room, struct prompt_thread *prompt, int signal_num, char incoming[]);
 
+void addMessage(struct room_struct *room, char *incoming);
+void emptyMessageList(struct room_struct *room);
+void changePlayers(struct room_struct *room, char *incoming);
+void changeSuzerain(struct room_struct *room, char *incoming);
+
 #endif // POLLSWITCHES_H

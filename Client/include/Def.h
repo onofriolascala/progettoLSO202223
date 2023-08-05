@@ -37,6 +37,9 @@
 
 #define MAXCOMMBUFFER 1024
 #define MAXSIGNALBUF 2
+#define MAXSAVEDMESSAGES 10
+
+#define EXITKEY 27
 
 // Costanti per le strutture.
 #define MAXPLAYERS 8
@@ -88,6 +91,12 @@
 
 #define S_NEWGAME 66
 #define S_NEWGAME_MSG "La parola e' stata selezionata inizia una nuova partita!"
+
+#define S_PLAYERUPDATE 67
+#define S_PLAYERUPDATE_MSG "La lista di giocatori della stanza ha subito modifiche"
+
+#define S_NEWHINT 68
+#define S_NEWHINT_MSG "Viene dispensato un indizio sulla parola"
 
 #define S_FULLROOM 70       // La stanza è piena
 #define S_FULLROOM_MSG "La stanza è piena."
@@ -147,7 +156,7 @@ struct server_connection {
     struct sockaddr_in addr;
     socklen_t len;
     int last_signal;
-    char ip[MAXCOMMBUFFER];
+    char ip[MAXIP+1];
     int port;
     char connected_user[USERNAMELENGTH+1];
 };
@@ -155,9 +164,11 @@ struct server_connection {
 struct room_struct {
     int ID;
     int player_num;
-    char surezain[USERNAMELENGTH+1];
+    int turn_flag;
+    char suzerain[USERNAMELENGTH + 1];
     char players[MAXPLAYERS][USERNAMELENGTH+1];
-    char secret_word[MAXWORDLENGTH];
+    char secret_word[MAXWORDLENGTH+1];
+    char saved_messages[MAXSAVEDMESSAGES][MAXCOMMBUFFER+(MAXCOMMBUFFER/2)];
 };
 
 struct prompt_thread {
@@ -167,6 +178,11 @@ struct prompt_thread {
     pthread_mutex_t mutex;
     char log_str[MAXLOGBUFFER];
     char localsocket_path[MAXLOGBUFFER];
+};
+
+struct prompt_args {
+    struct prompt_thread *prompt;
+    struct room_struct *room;
 };
 
 #endif //PROGETTOLSO202223_DEF_H

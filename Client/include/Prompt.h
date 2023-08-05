@@ -30,15 +30,18 @@
 
 void* thrPrompt(void* arg);
 
-pthread_t createPrompt(int localsocket, struct prompt_thread *prompt);
+pthread_t createPrompt(int localsocket, struct prompt_thread *prompt, struct room_struct *room);
 
 int promptConnection(struct prompt_thread *prompt, char outgoing[]);
 int promptLogin(struct prompt_thread *prompt, char outgoing[]);
 int promptHomepage(struct prompt_thread *prompt, char outgoing[]);
+int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outgoing[]);
 int promptString(struct prompt_thread *prompt, char buffer[], int max_len);
 
 int promptSelection(struct prompt_thread *prompt_line, char max_selection);
 int promptInteger(struct prompt_thread *prompt);
 int promptConfirmation(struct prompt_thread *prompt);
+
+int promptExitKey(struct prompt_thread *prompt, struct room_struct *room);
 
 #endif //PROGETTOLSO202223_PROMPT_H

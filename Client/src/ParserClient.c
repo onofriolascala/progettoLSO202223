@@ -182,3 +182,81 @@ int parserList(char incoming[], char print_buffer[]) {
 
     return return_value;
 }
+
+int parserRoomJoin(struct room_struct *room, char incoming[]) {
+    if(incoming == NULL) {
+        return -1;
+    }
+
+    int return_value, count;
+    char *saveptr;
+    char *playernum_p;
+    char *suzerain_p;
+    char *players_p;
+    char *player_p;
+    char *word_p;
+    char temp_buf[MAXCOMMBUFFER];
+
+    saveptr = NULL;
+    return_value = 0;
+    count = 0;
+
+    playernum_p = strtok_r(incoming, "-", &saveptr);
+    suzerain_p = strtok_r(NULL, "-", &saveptr);
+    players_p = strtok_r(NULL, "-", &saveptr);
+    word_p = strtok_r(NULL, "\0", &saveptr);
+
+    room->player_num = atoi(playernum_p);
+    strcpy(room->suzerain, suzerain_p);
+    strcpy(room->secret_word, word_p);
+
+    strcpy(temp_buf, players_p);
+    for (player_p = strtok_r(temp_buf, ",", &saveptr);
+         player_p != NULL;
+         player_p = strtok_r(NULL, ",", &saveptr))
+    {
+        if(count < MAXPLAYERS) {
+            strcpy(room->players[count], player_p);
+            room->players[count][USERNAMELENGTH] = '\0';
+            count++;
+        }
+    }
+
+
+    return return_value;
+}
+
+// Parser dell'array dei giocatori. Opera in modo da rimanere in attesa delle stanze da scrivere qualora eccedano il buffer
+// Riceve in ingresso il messaggio in entrata, il contatore delle colonne scritte ed il puntatore del buffer di stampa
+// Restituisce 0 in caso di successo, -1 in caso di arrey mal inizializzati, -2 in caso di messaggio in input vuoto,
+// 1 in caso di attesa di una nuova comunicazione
+// per indicare l'attuale posizione del cursore delle colonne
+int parserPlayers(struct room_struct *room, char incoming[]) {
+    int return_value, count;
+    char *saveptr;
+    char *player_p;
+    char temp_buf[MAXCOMMBUFFER];
+
+    saveptr = NULL;
+    return_value = 0;
+    count = 0;
+
+    if (incoming == NULL) {
+        return_value = -1;
+    }
+    else {
+        strcpy(temp_buf, incoming);
+        for (player_p = strtok_r(temp_buf, ",", &saveptr);
+             player_p != NULL;
+             player_p = strtok_r(NULL, ",", &saveptr))
+        {
+            if(count < MAXPLAYERS) {
+                strcpy(room->players[count], player_p);
+                room->players[count][USERNAMELENGTH] = '\0';
+                count++;
+            }
+        }
+    }
+
+    return return_value;
+}
