@@ -160,7 +160,8 @@ void* thrService(void* arg) {
                     }
                     else {
                         signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
-                        //writeToClient(sd, signal_num, outgoing);
+                        if(signal_num != S_ROOMOK)
+                            writeToClient(sd, signal_num, outgoing);
                         if(signal_num == S_ROOMOK) {
                             pthread_exit(NULL);
                         }

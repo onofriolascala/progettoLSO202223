@@ -82,6 +82,10 @@ void* thrRoom(void* arg) {
         total_t = 0;
         next_turn = 0;
         word_is_selected = 0;
+        selectedWord = 0;
+        memset(words[0],'\0',MAXWORDLENGTH);
+        memset(words[1],'\0',MAXWORDLENGTH);
+        memset(words[2],'\0',MAXWORDLENGTH);
         wordsSent = 0;
 
         do{
