@@ -144,7 +144,8 @@ void* thrService(void* arg) {
                     room_ID = createNewRoom(sd, room_list, db_connection);
                     sprintf(outgoing, "Stanza creata con ID %d", room_ID);
                     signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
-                    writeToClient(sd, signal_num, outgoing);
+                    //writeToClient(sd, signal_num, outgoing);
+
                     printf("\t\tDEBUG_SD%d: <Crea stanza> %d:%s\n", sd, signal_num, outgoing);
                     // Chiusura del threadService in caso di successo
                     if(signal_num == S_ROOMOK){
@@ -159,7 +160,7 @@ void* thrService(void* arg) {
                     }
                     else {
                         signal_num = joinRoom(sd, room_ID, room_list, username, outgoing);
-                        writeToClient(sd, signal_num, outgoing);
+                        //writeToClient(sd, signal_num, outgoing);
                         if(signal_num == S_ROOMOK) {
                             pthread_exit(NULL);
                         }
