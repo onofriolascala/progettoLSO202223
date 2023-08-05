@@ -8,7 +8,7 @@
 
 void mainRoomLoop(int listen_local_sd){
 
-    struct pollfd fds[9];
+    struct pollfd fds[MAXPLAYERS+1];
     char buffer[MAXCOMMBUFFER];
     int timeout, rc = 0;
     int nfds, new_local_sd, current_size = 0, i, j, signal_code;
