@@ -170,6 +170,9 @@ void renderLogin(struct server_connection *server) {
 void renderHomepage(struct server_connection *server) {
     char tempstring[MAXLOGBUFFER] = "";
 
+    printf(SCR );
+    gotoxyCursor(0,0);
+
     bold();
     renderLogo();
     defaultFormat();
@@ -202,6 +205,8 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
     char tempstring[MAXLOGBUFFER] = "";
     int i, j;
 
+    printf(SCR );
+    gotoxyCursor(0,0);
 
     bold();
     renderLogo();
@@ -216,7 +221,7 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
     sprintf(tempstring, "Username Giocatore: %-*s", USERNAMELENGTH, server->connected_user);
     encaseSideLine(tempstring);
     encaseSideLine("");
-    sprintf(tempstring, "Suzerain: %s", room->suzerain);
+    sprintf(tempstring, "Suzerain:       %s", room->suzerain);
     encaseSideLine(tempstring);
     sprintf(tempstring, "Giocatori(%d/%d): %-*s %-*s", room->player_num, MAXPLAYERS, USERNAMELENGTH, room->players[0], USERNAMELENGTH, room->players[1]);
     encaseSideLine(tempstring);
@@ -249,36 +254,39 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
 
 // Le seguenti funzioni manipolano il cursore della console per modificare lo stato della schermata.
 // Essendo funzioni di UI non fanno error-checking in relazione ai valori passati, assumendoli corretti.
-/*   N.B. Il suzerain ed il numero giocatori hanno offset orizzontale 17, la parola 7, i giocatori 23 e 56
+/*   N.B. Il numero di giocatori ha offset orizzontale 17, la parola 7, i giocatori pari ed il suzerain 23, quelli dispari 56
  *   La composizione della schermata è la seguente
  *   righe  0-11 : logo + ""
  *   righe  12-13: Header + ""
  *   righe  14-16: ServerIP, Porta + Username + ""
- *   riga   17   : Surezain
+ *   riga   17   : Suzerain
  *   righe  18-??: Giocatori, va da 1 a MAXPLAYERS
  *   righe ~19-20: "" + Pre-parola
  *   riga  ~21   : riga : Parola nascosta
  *   righe ~22-24: "" + Closing Header + ""
- *   righe ~25-28: User prompt
- *   right ~29-MAXSAVEDMESSAGES: Log ascendente di comunicazioni
+ *   righe ~25-26: User prompt
+ *   right ~27-MAXSAVEDMESSAGES: Log ascendente di comunicazioni
  */
 void slideMessages(struct room_struct *room) {
-    int vertical_offset;
+    int vertical_offset, i;
     saveCursor();
 
     if ((MAXPLAYERS % 2)==0) {
-        vertical_offset = 29 + (MAXPLAYERS/2) - 1;
+        vertical_offset = 27 + (MAXPLAYERS/2) - 1;
     }
     else {
-        vertical_offset = 29 + (MAXPLAYERS/2);
+        vertical_offset = 27 + (MAXPLAYERS/2);
     }
 
     gotoxyCursor(vertical_offset, 0);
 
-    for(int i = 0; i < MAXSAVEDMESSAGES; i++)  {
+    for(i = 0; i < MAXSAVEDMESSAGES-1; i++)  {
         clearLine();
-        printf( "%s", room->saved_messages[i]);
+        printf( "%s\n", room->saved_messages[i]);
     }
+    clearLine();
+    printf( BLK"%s"DFT, room->saved_messages[++i]);
+
     loadCursor();
     fflush(stdout);
 }
@@ -302,20 +310,23 @@ void clearMessages(void) {
     fflush(stdout);
 }
 void updatePlayer(struct room_struct *room, int position) {
-    int vertical_offset, horizontal_offset;
+    int vertical_offset = 0, horizontal_offset = 0;
     saveCursor();
 
-    if ((position % 2)==0) {
-        vertical_offset = 18 + (position/2) - 1;
+    if (position == 0 || (position % 2) == 0) {
+        vertical_offset = 18 + (position/2);
         horizontal_offset = 23;
     }
     else {
-        vertical_offset = 18 + (MAXPLAYERS/2);
+        vertical_offset = 18 + (position/2);
         horizontal_offset = 56;
     }
 
     gotoxyCursor(vertical_offset, horizontal_offset);
-    printf("%32s", room->players[position]);
+    if((strcmp(room->players[position], "Vuoto") == 0) || (strcmp(room->players[position], BLK"Vuoto"DFT) == 0)) {
+        black();
+    }
+    printf("%s"DFT, room->players[position]);
     loadCursor();
     fflush(stdout);
 }
@@ -327,7 +338,7 @@ void updatePlayerNumber(struct room_struct *room) {
     horizontal_offset = 17;
 
     gotoxyCursor(vertical_offset, horizontal_offset);
-    printf("%1d", room->player_num);
+    printf("%-1d", room->player_num);
     loadCursor();
     fflush(stdout);
 }
@@ -347,14 +358,14 @@ void updateWord(struct room_struct *room) {
     encaseSideLine("");
     gotoxyCursor(vertical_offset, 7);
 
-    printf( BLD WHT "%32s" DFT, room->secret_word);
+    printf( BLD WHT "%-32s" DFT, room->secret_word);
     loadCursor();
     fflush(stdout);
 }
 void updateSuzerain(struct room_struct *room) {
     saveCursor();
-    gotoxyCursor(17, 17);
-    printf(BLD GRN "%32s" DFT, room->suzerain);
+    gotoxyCursor(17, 23);
+    printf(BLD GRN "%-32s" DFT, room->suzerain);
     loadCursor();
     fflush(stdout);
 }
@@ -364,7 +375,7 @@ void updateVictory(void) {
     up(1);
     clearLine();
     printf(BLD YLW "****** HAI INDOVINATO! VITTORIA! ******\n"
-                   "Resta in attesa per diventare il nuovo Surezain e scegliere la parola.\n\n" DFT);
+                   "Resta in attesa per diventare il nuovo Suzerain e scegliere la parola.\n\n" DFT);
     loadCursor();
     fflush(stdout);
 }
@@ -374,7 +385,7 @@ void updateDefeat(void) {
     up(1);
     clearLine();
     printf(BLD RED "------ QUALCUN ALTRO HA INDOVINATO. SCONFITTA! ------\n"
-           "Resta in attesa della parola scelta dal nuovo Surezain.\n\n" DFT);
+           "Resta in attesa della parola scelta dal nuovo Surain.\n\n" DFT);
     loadCursor();
     fflush(stdout);
 }
@@ -383,14 +394,14 @@ void failedGuess(char *incoming) {
     fflush(stdout);
 }
 void selectWord(char *incoming) {
-    saveCursor();
-    clearLine();
-    up(1);
-    up(1);
-    clearLine();
+    //saveCursor();
+    //clearLine();
+    //up(1);
+    //up(1);
+    //clearLine();
     printf("Sei il nuovo Surezain. Scegli una parola tra le seguenti:\n"
            " > %s\n", incoming);
-    loadCursor();
+    //loadCursor();
     fflush(stdout);
 }
 

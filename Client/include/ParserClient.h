@@ -16,6 +16,7 @@
 #include <ctype.h>
 
 #include "../include/Def.h"
+#include "../include/ConsoleLayouts.h"
 
 int parserIp(char incoming[], struct server_connection *server);
 

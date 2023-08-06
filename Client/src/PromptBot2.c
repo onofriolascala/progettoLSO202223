@@ -61,12 +61,15 @@ void* thrPrompt(void* arg) {
                 continue;
             case C_CONNECTION:
                 last_mode = prompt_mode;
-                promptConnection(prompt, outgoing);
+                strcpy(outgoing, "192.168.1.139-5200;");
+                //promptConnection(prompt, outgoing);
                 writeToServer(main_socket, C_CONNECTION, outgoing);
                 break;
             case C_LOGIN:
                 last_mode = prompt_mode;
-                result = promptLogin(prompt, outgoing);
+                //result = promptLogin(prompt, outgoing);
+                result = 1;
+                strcpy(outgoing, "Utente03-password03;");
                 // Disconnessione
                 if(result == 0) {
                     writeToServer(main_socket, S_DISCONNECT, S_DISCONNECT_MSG);
@@ -86,7 +89,9 @@ void* thrPrompt(void* arg) {
                 break;
             case C_CREATEROOM:
                 last_mode = prompt_mode;
-                result = promptHomepage(prompt, outgoing);
+                //result = promptHomepage(prompt, outgoing);
+                result = 2;
+                sprintf(outgoing, "%d;", 1);
                 // Logout
                 if(result == 0) {
                     writeToServer(main_socket, C_LOGOUT, "C_LOGOUT");
@@ -410,10 +415,6 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
         switch (result) {
             // Exit Room
             case 1:
-                up(1);
-                clearLine();
-                carriageReturn();
-                printf(" ");
                 inputComfirmation();
                 if (promptConfirmation(prompt)) {
                     result = 0;
@@ -436,11 +437,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
             // Wrong Key
             case 0:
                 end_loop = 0;
-                up(2);
-                clearLine();
-                carriageReturn();
-                printf(" Premere Esc + Invio per uscire dalla stanza.");
-                down(1);
+                up(1);
                 clearLine();
                 carriageReturn();
                 printf(" > ");
@@ -559,7 +556,7 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room) {
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
-    if(temp_buffer[0] == 27 && temp_buffer[1] == '\0') {
+    if(temp_buffer[0] == 27 || temp_buffer[0] == 27) {
         result = 1;
     }
     else if (room->turn_flag != 0) {

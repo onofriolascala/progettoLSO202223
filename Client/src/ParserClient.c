@@ -204,24 +204,32 @@ int parserRoomJoin(struct room_struct *room, char incoming[]) {
     playernum_p = strtok_r(incoming, "-", &saveptr);
     suzerain_p = strtok_r(NULL, "-", &saveptr);
     players_p = strtok_r(NULL, "-", &saveptr);
-    word_p = strtok_r(NULL, "\0", &saveptr);
+    word_p = strtok_r(NULL, "-", &saveptr);
 
-    room->player_num = atoi(playernum_p);
+    count = atoi(playernum_p);
+    return_value = room->player_num - count;
+    room->player_num = count;
     strcpy(room->suzerain, suzerain_p);
     strcpy(room->secret_word, word_p);
 
     strcpy(temp_buf, players_p);
-    for (player_p = strtok_r(temp_buf, ",", &saveptr);
-         player_p != NULL;
-         player_p = strtok_r(NULL, ",", &saveptr))
+
+    count = 0;
+    player_p = strtok_r(temp_buf, ",", &saveptr);
+    for (count = 0; count < MAXPLAYERS; count++)
     {
-        if(count < MAXPLAYERS) {
-            strcpy(room->players[count], player_p);
+        if(player_p == NULL) {
+            sprintf(room->players[count], BLK"%s"DFT, "Vuoto");
             room->players[count][USERNAMELENGTH] = '\0';
-            count++;
         }
+        else {
+            sprintf(room->players[count], "%s", player_p);
+            room->players[count][USERNAMELENGTH] = '\0';
+        }
+        player_p = strtok_r(NULL, ",", &saveptr);
     }
 
+    strcpy(incoming, players_p);
 
     return return_value;
 }
