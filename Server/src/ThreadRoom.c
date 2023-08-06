@@ -104,7 +104,7 @@ void* thrRoom(void* arg) {
                 //
                 sprintf(outgoing, "1) %s - 2) %s - 3) %s ", words[0], words[1], words[2]);
                 writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
-                printf("DEBUG_ROOM%d: Sending words [%s - %s - %s] to suzerain %s\n", this_room->id, words[0], words[1] , words[2], suzerain->username);
+                printf("DEBUG_ROOM%d: Sending words [%s - %s - %s] to suzerain %s\n con socket %d", this_room->id, words[0], words[1] , words[2], suzerain->username, suzerain->player_socket);
                 wordsSent = 1;
                 memset(outgoing,'\0',sizeof(outgoing));
                 // controllare se e' richiesto un reset del timer del timeout
@@ -404,7 +404,7 @@ void* thrRoom(void* arg) {
 
     // Chiusura della stanza.
 
-
+    /*
     //Se sono presenti ancora dei giocatori durante la chiusura della stanza mi occupo di fare il rebuild del service
     for(i=0;i<nfds;i++){
         if(fds[i].fd != localsocket){
@@ -412,6 +412,7 @@ void* thrRoom(void* arg) {
             rebuildService(player, room_list, db_connection);
         }
     }
+     */
     removeAndDestroyRoomNode(room_list, ID);
 
     //sleep(10);
@@ -578,40 +579,17 @@ void getRoomInfo(struct player_node* suzerain, int player_num, char selected_wor
 
 }
 
+void moveSuzerainTurn(struct player_node** curr_suzerain, struct player_node* new_suzerain){
+    if((*curr_suzerain)->next == new_suzerain)
+        *curr_suzerain = NULL;
+    else
+        *curr_suzerain = new_suzerain;
+}
 
-
-int joinParser(char incoming[], char outgoing[], char username[], int *sd) {
-    char *saveptr = NULL;
-    char *username_p, *sd_p;
-    int username_len, sd_len, return_value;
-
-    return_value = S_COMMERROR;
-
-    username_p = strtok_r(incoming, "-", &saveptr);
-    sd_p = strtok_r(NULL, "\0", &saveptr);
-
-    if(username_p != NULL && sd_p != NULL) {
-        username_len = strlen(username_p);
-        sd_len = strlen(sd_p);
-
-        if (username_len >= USERNAMEMINLENGTH && username_len < USERNAMELENGTH
-            && sd_len <= (MAXCOMMBUFFER - username_len - 5))
-        {
-            fprintf(stderr, ":JOIN ERROR: wrong length for username or sd arguments detected.\n");
-            strcpy(outgoing, "Credenziali errate.");
-            return_value = S_LOGINERROR;
-        }
-        else {
-            strncpy(username, username_p, username_len);
-            username[username_len] = '\0';
-            *sd = atoi(sd_p);
-            return_value = S_OK;
-        }
+void movePlayerTurn(struct player_node** curr_player,struct player_node* suzerain, int* addHintFlag){
+    *curr_player = (*curr_player)->next;
+    if((*curr_player) == suzerain){
+        *addHintFlag = 1;
+        *curr_player = (*curr_player)->next;
     }
-    else {
-        fprintf(stderr, ":JOIN ERROR: null username or password arguments detected.\n");
-        strcpy(outgoing, "Credenziali errate.");
-        return_value = S_LOGINERROR;
-    }
-    return return_value;
 }
