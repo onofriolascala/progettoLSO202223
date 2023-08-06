@@ -10,7 +10,12 @@ int createLog(int room_id) {
     int fd;
     pid_t pid = getpid();
 
-    sprintf(log_path, "./roomlog_%d_id%d.txt", pid, room_id);
+    struct stat st = {0};
+    if(stat("./RoomLogs", &st) == -1) {
+        mkdir("./RoomLogs", 0777);
+    }
+
+    sprintf(log_path, "./RoomLogs/roomlog_%d_id%d.txt", pid, room_id);
 
     if( unlink(log_path) < 0) {
         if (errno != ENOENT)

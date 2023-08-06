@@ -14,6 +14,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -21,6 +22,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <time.h>
 
 #define MAXERRORBUFFER 1024
 #define defaultFormat()     printf("\033[0m")
