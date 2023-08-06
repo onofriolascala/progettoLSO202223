@@ -24,7 +24,10 @@ add_executable(Server.out Server/src/MainServer.c
         Server/src/ListHandler.c Server/include/ListHandler.h
         Server/src/LogicGame.c Server/include/LogicGame.h
         Server/src/LogicRoom.c Server/include/LogicRoom.h Server/src/ParserServer.c
-        Server/src/MySqlUtil.c Server/include/MySqlUtil.h)
+        Server/src/MySqlUtil.c Server/include/MySqlUtil.h
+        Server/src/LogUtilServer.c
+        Server/src/LogUtilServer.c
+        Server/include/LogUtilServer.h)
 add_executable(Client.out Client/src/MainClient.c
         Client/include/Def.h
         Client/src/ConsoleLayouts.c Client/include/ConsoleLayouts.h
