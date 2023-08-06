@@ -171,6 +171,7 @@ void* thrService(void* arg) {
                     //printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, signal_num, incoming);
                     control_flag = 1;
                     tmp = *room_list;
+                    memset(outgoing,'\0',sizeof(outgoing));
                     while(control_flag == 1){
                         tmp = getRoomList(tmp, outgoing, MAXCOMMBUFFER, &control_flag);
                         if(control_flag != -2){
