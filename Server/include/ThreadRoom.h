@@ -37,7 +37,7 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
 /* Funzione che prende una comunicazione in ingresso che contiene una parola e la estrae */
 int guessParser(char incoming[], char outgoing[], char guess[] );
 /* Funzione che impacchetta le informazioni della stanza nella stringa outgoing*/
-void getRoomInfo(struct player_node* suzerain, int player_num, char selected_word[], char outgoing[MAXCOMMBUFFER]);
+void getRoomInfo(struct player_node* suzerain, int room_num, int player_num, char selected_word[], char outgoing[MAXCOMMBUFFER]);
 void movePlayerTurn(struct player_node** curr_player,struct player_node* suzerain, int* addHintFlag);
 void moveSuzerainTurn(struct player_node** curr_suzerain, struct player_node* new_suzerain);
 #endif //PROGETTOLSO202223_THREADROOM_H

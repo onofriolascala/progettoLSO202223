@@ -204,7 +204,7 @@ void* thrRoom(void* arg) {
                             printf("DEBUG: New gamer set! Current gamer: %s\n", new_player->username);
                         }
 
-                        getRoomInfo(suzerain,this_room->player_num,words[selectedWord],outgoing);
+                        getRoomInfo(suzerain,this_room->id, this_room->player_num,words[selectedWord],outgoing);
 
                         writeToClient(new_local_sd, S_OK, S_OK_MSG);
                         writeToClient(new_player_fd, S_ROOMOK, outgoing);
@@ -363,7 +363,7 @@ void* thrRoom(void* arg) {
                             next_turn = 1;
                         }
 
-                        getRoomInfo(suzerain,this_room->player_num,words[selectedWord],outgoing);
+                        getRoomInfo(suzerain, this_room->id, this_room->player_num,words[selectedWord],outgoing);
 
 
                         for(i = 1; i < nfds; i++){
@@ -554,7 +554,7 @@ int guessParser(char incoming[],char outgoing[], char guess[]){
 }
 
 
-void getRoomInfo(struct player_node* suzerain, int player_num, char selected_word[], char outgoing[MAXCOMMBUFFER]){
+void getRoomInfo(struct player_node* suzerain,int room_num, int player_num, char selected_word[], char outgoing[MAXCOMMBUFFER]){
     char users[400];
     struct player_node *tmp;
     int i = 0;
@@ -573,7 +573,7 @@ void getRoomInfo(struct player_node* suzerain, int player_num, char selected_wor
         for(;i<=8;i++){
             strcat(users, ",");
         }
-        sprintf(outgoing, "%d-%s-%s-%s", player_num, suzerain->username, users, selected_word );
+        sprintf(outgoing, "%d-%d-%s-%s-%s",room_num, player_num, suzerain->username, users, selected_word );
     }
 
 }
