@@ -42,6 +42,6 @@ int promptSelection(struct prompt_thread *prompt_line, char max_selection);
 int promptInteger(struct prompt_thread *prompt);
 int promptConfirmation(struct prompt_thread *prompt);
 
-int promptExitKey(struct prompt_thread *prompt, struct room_struct *room);
+int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *buffer);
 
 #endif //PROGETTOLSO202223_PROMPT_H

@@ -108,7 +108,7 @@ void* thrPrompt(void* arg) {
                     writeToServer(main_socket, C_RETRY, "C_RETRY");
                 }
                 break;
-            case C_GUESSSKIP:
+            case C_GUESSSKIP: case C_SELECTWORD:
                 last_mode = prompt_mode;
                 result = promptRoom(prompt, room, outgoing);
                 // EXIT
@@ -117,22 +117,10 @@ void* thrPrompt(void* arg) {
                 }
                     // GUESSSKIP
                 else if(result == 1) {
-                    writeToServer(main_socket, C_CREATEROOM, outgoing);
+                    writeToServer(main_socket, C_GUESSSKIP, outgoing);
                 }
-                    // Errore
-                else {
-                    writeToServer(main_socket, C_RETRY, "C_RETRY");
-                }
-                break;
-            case C_SELECTWORD:
-                last_mode = prompt_mode;
-                result = promptRoom(prompt, room, outgoing);
-                // EXIT
-                if(result == 0) {
-                    writeToServer(main_socket, C_EXITROOM, "C_EXITROOM");
-                }
-                    // Choose Word
-                else if(result == 1) {
+                    // SELECTWORD
+                else if(result == 2) {
                     writeToServer(main_socket, C_SELECTWORD, outgoing);
                 }
                     // Errore
@@ -396,14 +384,14 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
 int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outgoing[]) {
     char temp_buffer[USERNAMELENGTH];
     char *endp;
-    int result, end_loop, n;
+    int result, end_loop;
 
     do {
         end_loop = 1;
 
         usleep(REFRESHCONSTANT);
 
-        result = promptExitKey(prompt, room);
+        result = promptExitKey(prompt, room, temp_buffer);
 
         usleep(REFRESHCONSTANT);
 
@@ -419,19 +407,49 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                     result = 0;
                 } else {
                     end_loop = 0;
+                    clearLine();
+                    carriageReturn();
                     up(1);
                     clearLine();
                     carriageReturn();
                 }
                 break;
-            // Activate Guess Prompt
+            // Guess Mode
             case 2:
-                if ((result = promptString(prompt, temp_buffer, MAXWORDLENGTH)) < 0) return result;
+                //if ((result = promptString(prompt, temp_buffer, MAXWORDLENGTH)) < 0) return result;
 
-                strncat(outgoing, temp_buffer, MAXWORDLENGTH + 1);
-                strncat(outgoing, ";", 2);
+                strncpy(outgoing, temp_buffer, MAXWORDLENGTH + 1);
+                //strncat(outgoing, ";", 2);
 
                 result = 1;
+                break;
+            // Choose Word Mode
+            case 3:
+                //if ((result = promptString(prompt, temp_buffer, MAXWORDLENGTH)) < 0) return result;
+
+                if(temp_buffer[0] == 0) {
+                    clearLine();
+                    carriageReturn();
+                    printWarning(prompt, "Inserire un valore.\n");
+                    memset(temp_buffer, '\0', sizeof(temp_buffer));
+                    end_loop = 0;
+                    result = 0;
+                }
+                else {
+                    result = strtol(temp_buffer, &endp, 10);
+                    if (temp_buffer == endp || *endp != '\0') {
+                        clearLine();
+                        carriageReturn();
+                        printWarning(prompt, "Inserire un valore numerico.\n");
+                        end_loop = 0;
+                        result = 0;
+                    } else {
+                        strncpy(outgoing, temp_buffer, MAXWORDLENGTH + 1);
+                        //strncat(outgoing, ";", 2);
+                        result = 2;
+                    }
+                    memset(temp_buffer, '\0', sizeof(temp_buffer));
+                }
                 break;
             // Wrong Key
             case 0:
@@ -439,7 +457,15 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 up(2);
                 clearLine();
                 carriageReturn();
-                printf(" Premere Esc + Invio per uscire dalla stanza.");
+                if(room->turn_flag == 2) {
+                    selectWord();
+                }
+                else if (room->turn_flag == 1){
+                    tryGuess();
+                }
+                else {
+                    exitMessage();
+                }
                 down(1);
                 clearLine();
                 carriageReturn();
@@ -449,7 +475,6 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 end_loop = 0;
                 result = -1;
         }
-
     } while ( !end_loop );
     return result;
 }
@@ -551,7 +576,7 @@ int promptConfirmation(struct prompt_thread *prompt) {
 // conferma richiesta all'attivazione del prompt.
 // Restituisce 0 se la stringa non corrisponde alla chiave d'uscita, 1 se corrisponde,
 // 2 se non corrisponde ma è il turno dell'utente.
-int promptExitKey(struct prompt_thread *prompt, struct room_struct *room) {
+int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *buffer) {
     char temp_buffer[MAXCOMMBUFFER];
     int result;
 
@@ -559,12 +584,18 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room) {
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
-    if(temp_buffer[0] == 27 && temp_buffer[1] == '\0') {
+    if(temp_buffer[0] == 33 && temp_buffer[1] == '\0') {
         result = 1;
     }
-    else if (room->turn_flag != 0) {
+    else if (room->turn_flag == 1) {
+        strcpy(buffer, temp_buffer);
         result = 2;
+    }
+    else if (room->turn_flag == 2) {
+        strcpy(buffer, temp_buffer);
+        result = 3;
     }
 
     return result;
 }
+

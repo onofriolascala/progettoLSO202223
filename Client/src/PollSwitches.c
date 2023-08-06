@@ -219,7 +219,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             saveCursor();
             up(1);
             clearLine();
-            printf(" E' il tuo turno, prova a indovinare:");
+            tryGuess();
             loadCursor();
 
             room->turn_flag = 1;
@@ -233,15 +233,20 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // Il server chiede al client di restituirgli il numero di una delle parole indicate.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Choose Word> %d:%s\n", signal_num, incoming);
 
-            //selectWord(incoming);
-            printf(BLD YLW "QUI!" DFT "%s", incoming);
-            //clearLine();
+            strcpy(room->secret_word, incoming);
+
+            selectWord(room->secret_word);
+            updateWord(room);
+            printf("\n");
+            clearLine();
+            carriageReturn();
             printf(" > ");
 
-            room->turn_flag = 1;
+            room->turn_flag = 2;
 
             contacted_sd = *prompt->sd;
-            signal_num = C_SELECTWORD;
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
 
             break;
         case S_NEWGAME:
@@ -282,10 +287,10 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
                 updatePlayer(room, i);
             }
 
-            if (counter > 0) {
+            if (counter < 0) {
                 sprintf(temp_buffer, " > Un giocatore ha lasciato la partita.");
             }
-            else if (counter < 0) {
+            else if (counter > 0) {
                 sprintf(temp_buffer, " > Un giocatore si è unito alla partita.");
             }
             else {
