@@ -145,6 +145,7 @@ void* thrRoom(void* arg) {
                 }
                 if(fds[i].revents != POLLIN){
                     //unexpected behaviour
+                    //probabile socket chiusa, rimuovere il giocatore dalla partita
                     printf("DEBUG: Error! fds[%d].revents = %d\n",i, fds[i].revents);
                     next_turn = 1;
                     close_room = 1;
@@ -241,14 +242,17 @@ void* thrRoom(void* arg) {
                             //if the player was the current player and disconnects we need to assign a new player
                             if( suzerain == player ){
                                 next_turn = 1;
-                                suzerain = suzerain->next;
+                                if(suzerain->next == suzerain)
+                                    suzerain = NULL;
+                                else
+                                    suzerain = suzerain->next;
                                 //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
                                 //gameOver?
                             }
                             if( current_player == player ){
                                 current_player = current_player->next;
                             }
-                            destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
+                            destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
                             this_room->player_num--;
                             close_conn = 1;
                             break;
@@ -326,15 +330,18 @@ void* thrRoom(void* arg) {
                             }
                             if( suzerain == player ){
                                 next_turn = 1;
-                                suzerain = suzerain->next;
+                                if(suzerain->next == suzerain)
+                                    suzerain = NULL;
+                                else
+                                    suzerain = suzerain->next;
                                 //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
                                 //gameOver? yes
                             }
-                            destroyPlayerNode(removePlayerNode(&this_room->player_list, fds[i].fd));
+                            destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
                             this_room->player_num--;
                             close_conn = 1;
 
-                            writeToClient(fds[i].fd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
+                            writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
                             break;
                         default:
                             printf("\t\t\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);

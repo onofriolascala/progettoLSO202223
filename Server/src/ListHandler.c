@@ -68,6 +68,8 @@ struct player_node* removePlayerNode( struct player_node** playerhead_pointer, i
         if (playerlist_head->player_socket == target_socket) {
             target = playerlist_head;
             (*playerhead_pointer) = playerlist_head->next;
+            if(target == *playerhead_pointer) // caso di una lista di un singolo elemento
+                *playerhead_pointer = NULL;
             target->next = NULL;
         } else {
             tmp = playerlist_head;
