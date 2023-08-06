@@ -38,9 +38,8 @@ void* thrRoom(void* arg) {
     memset(incoming, '\0', sizeof(incoming));
     memset(outgoing, '\0', sizeof(outgoing));
     //                  log                                 //
-    int log_fd;
-    char log_out[300];
-    log_fd = createLog(this_room->id);
+    //int log_fd;
+    //log_fd = createLog(this_room->id);
 
     //                 mainRoomLoop init                   //
 
@@ -67,7 +66,7 @@ void* thrRoom(void* arg) {
     char words[3][MAXWORDLENGTH];
     char guess[MAXWORDLENGTH];
     int selectedWord, z;
-    int wordsSent, addHintFlag;
+    int word_is_sent, addHintFlag;
     //initializing the listening socket into the polling array
     memset(fds, 0 ,sizeof(fds));
     fds[0].fd = localsocket;
@@ -76,13 +75,12 @@ void* thrRoom(void* arg) {
 
     timeout = TURNTIMEOUT;
 
-    writeToLog(log_fd,"ROOM: SETUP COMPLETED\n");
+    //writeToLog(log_fd,"ROOM %d: SETUP COMPLETED!");
 
     //              MAIN GAME LOOP                //
 
     while( !close_room ){
         /* inizio di un nuovo turno*/
-        writeToLog(log_fd,"Nuovo round\n");
 
         start_t = clock();
         total_t = 0;
@@ -93,17 +91,16 @@ void* thrRoom(void* arg) {
         memset(words[0],'\0',MAXWORDLENGTH);
         memset(words[1],'\0',MAXWORDLENGTH);
         memset(words[2],'\0',MAXWORDLENGTH);
-        wordsSent = 0;
+        word_is_sent = 0;
 
         do{
-            writeToLog(log_fd,"\tNuovo giro di poll\n\tDEBUG: Waiting on poll function...\n");
-            printf("DEBUG: Waiting on poll function...\n");
+            printf("\t\t\t\tDEBUG_STANZAID_%d: Waiting on poll function...\n", ID);
             fflush(stdout);
             memset(outgoing,'\0',sizeof(outgoing));
             /* game logic */
 
 
-            if(!word_is_selected && suzerain != NULL && !wordsSent && this_room->player_num > 1){
+            if(!word_is_selected && suzerain != NULL && !word_is_sent && this_room->player_num > 1){
                 //generateWords(words);
                 //DEBUG:
                 strcpy(words[0], "Test1\0");
@@ -111,11 +108,10 @@ void* thrRoom(void* arg) {
                 strcpy(words[2], "Test3\0");
                 //
                 sprintf(outgoing, "1) %s - 2) %s - 3) %s ", words[0], words[1], words[2]);
+                sleep(1);
                 writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
-                sprintf(log_out,"\tInvio delle parole al suzerain (%s SD->%d) msg: %s\n",suzerain->username,suzerain->player_socket,outgoing);
-                writeToLog(log_fd,log_out);
-                printf("DEBUG_ROOM%d: Sending words [%s - %s - %s] to suzerain %s con socket %d", this_room->id, words[0], words[1] , words[2], suzerain->username, suzerain->player_socket);
-                wordsSent = 1;
+                printf("\t\t\t\tDEBUG_STANZAID%d: Sending words [%s - %s - %s] to Suzerain %s with socket %d.\n", this_room->id, words[0], words[1] , words[2], suzerain->username, suzerain->player_socket);
+                word_is_sent = 1;
                 memset(outgoing,'\0',sizeof(outgoing));
                 // controllare se e' richiesto un reset del timer del timeout
             }
@@ -151,7 +147,7 @@ void* thrRoom(void* arg) {
                 if(fds[i].revents != POLLIN){
                     //unexpected behaviour
                     //probabile socket chiusa, rimuovere il giocatore dalla partita
-                    printf("DEBUG: Error! fds[%d].revents = %d\n",i, fds[i].revents);
+                    printf("\t\t\t\tDEBUG_STANZAID_%d: Error! fds[%d].revents = %d\n", ID, i, fds[i].revents);
                     next_turn = 1;
                     close_room = 1;
                     break;
@@ -159,7 +155,7 @@ void* thrRoom(void* arg) {
                 if(fds[i].fd == localsocket){
 
                     //the listening socket is readable, so we manage the new incoming connections
-                    printf("DEBUG: new incoming connection to the room\n");
+                    printf("\t\t\t\tDEBUG_STANZAID_%d: new incoming connection to the room\n", ID);
                     new_local_sd = accept(localsocket, NULL, NULL);
                     if (new_local_sd < 0){
                         if (errno != EWOULDBLOCK){
@@ -190,23 +186,23 @@ void* thrRoom(void* arg) {
                         nfds++;
                         this_room->player_num++;
 
-                        printf("DEBUG: New connection to the room was accepted\n");
+                        printf("\t\t\t\tDEBUG_STANZAID_%d: New connection to the room was accepted\n", ID);
                         fflush(stdout);
 
                         /* game logic */
                         /* if no suzerain was chosen set new usr as the suzerain*/
                         if( suzerain == NULL){
-                            printf("DEBUG: Selecting new suzerain...\n");
+                            //printf("\t\t\t\tDEBUG_STANZAID%d: Selecting new suzerain...\n", ID);
                             suzerain = new_player;
-                            printf("DEBUG: Suzerain set! Current suzerain: %s\n", new_player->username);
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: current Suzerain %s with socket %d.\n", ID, new_player->username, new_player_fd);
                             word_is_selected = 0;
                         }
                         /* game logic */
                         /* if no usr was set to play and the new usr isn't the only one in the room set him as the current player*/
                         if( current_player == NULL && new_player != suzerain){
-                            printf("DEBUG: Selecting new gamer...\n");
+                            //printf("				DEBUG_STANZAID%d: Selecting new gamer...\n", ID);
                             current_player = new_player;
-                            printf("DEBUG: New gamer set! Current gamer: %s\n", new_player->username);
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with socket %d.\n", ID, new_player->username, new_player_fd);
                         }
 
                         getRoomInfo(suzerain,this_room->id, this_room->player_num,words[selectedWord],outgoing);
@@ -220,7 +216,7 @@ void* thrRoom(void* arg) {
                         }
                     }
                     else{
-                        printf("DEBUG: New connection to the room was refused\t-- Player already in room --\n");
+                        printf("\t\t\t\tDEBUG_STANZAID_%d: New connection to the room was refused\t-- Player %s with socket %d already in room --\n", ID, new_player->username, new_local_sd);
                         fflush(stdout);
                         writeToClient(new_local_sd, S_USERINROOM, S_USERINROOM_MSG);
                     }
@@ -242,7 +238,7 @@ void* thrRoom(void* arg) {
                             close_conn = 1;
                             break;
                         case S_DISCONNECT_ABRUPT:
-                            printf("\t\t\t\tDEBUG_STANZAID%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
                             /* game logic */
                             //if the player was the current player and disconnects we need to assign a new player
                             if( suzerain == player ){
@@ -280,37 +276,50 @@ void* thrRoom(void* arg) {
                             writeToClient(fds[i].fd, S_NOPERMISSION, "Uscire dalla stanza prima di effettuare il logout.");
                             break;
                         case C_SELECTWORD:
-                            printf("\t\t\t\tDEBUG_STANZAID%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
                             if(player == suzerain){
                                 //selectedWord = parserWord();
                                 word_is_selected = 1;
 
-                                //DEBUG
-                                selectedWord = 1;
-                                //
+                                selectedWord = parserChosenWord(incoming);
+                                // selectedWord < 0 implica un errore
+                                if(selectedWord < 0) {
+                                    word_is_selected = 0;
+                                    word_is_sent = 0;
+                                    continue;
+                                }
+                                selectedWord--;
+
                                 memset(outgoing,'\0',sizeof(outgoing));
                                 getRoomInfo(suzerain, this_room->id, this_room->player_num, words[selectedWord], outgoing);
                                 for(z = 1; z < nfds; z++) {
                                     writeToClient(fds[z].fd, S_NEWGAME, outgoing );
                                 }
                                 current_player = suzerain->next;
-                                sleep(2);
+                                usleep(REFRESHCONSTANT);
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
+                                printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with %d socket.\n", ID, current_player->username, current_player->player_socket);
                             }
                             break;
                         case C_GUESSSKIP:
-                            printf("\t\t\t\tDEBUG_STANZAID%d: <Guess> %d:%s\n", ID, signal_num, incoming);
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: <Guess> %d:%s\n", ID, signal_num, incoming);
 
                             signal_num = guessParser(incoming, outgoing, guess);
+
+                            sleep(1);
 
                             if(signal_num == S_OK){
                                 sprintf(outgoing, "%s prova \"%s\" ", player->username, guess);
                                 if (strcmp(guess, words[selectedWord]) == 0) {
                                     for (i = 1; i < nfds; i++) {
-                                        if (fds[i].fd != player->player_socket)
+                                        if (fds[i].fd != player->player_socket) {
                                             writeToClient(fds[i].fd, S_DEFEAT, outgoing);
-                                        else
+                                        }
+                                        else {
                                             writeToClient(fds[i].fd, S_VICTORY, outgoing);
+                                            printf("\t\t\t\tDEBUG_STANZAID_%d: %s with %d socket has won the round.\n", ID, current_player->username, current_player->player_socket);
+
+                                        }
                                     }
                                     sleep(5);
                                     suzerain = player;
@@ -320,13 +329,22 @@ void* thrRoom(void* arg) {
                                     for (i = 1; i < nfds; i++) {
                                         writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
                                     }
+                                    sleep(1);
                                     movePlayerTurn(&current_player,suzerain,&addHintFlag);
                                     writeToClient(current_player->player_socket,S_YOURTURN,S_YOURTURN_MSG);
+                                    printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with %d socket.\n", ID, current_player->username, current_player->player_socket);
                                 }
                             }
-                            else
-                                writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
-                             break;
+                            else {
+                                sprintf(outgoing, "%s ha scritto una parola troppo lunga. ", player->username);
+                                for (i = 1; i < nfds; i++) {
+                                    writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
+                                }
+                                sleep(1);
+                                movePlayerTurn(&current_player, suzerain, &addHintFlag);
+                                writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
+                            }
+                            break;
                         case C_EXITROOM:
                             printf("\t\t\t\tDEBUG_STANZAID%d: <Lascia Stanza> %d:%s\n", ID, signal_num, incoming);
 
@@ -349,7 +367,7 @@ void* thrRoom(void* arg) {
                             writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
                             break;
                         default:
-                            printf("\t\t\t\t\t<ERRORE> %d: Codice di comunicazione non riconosciuto.\n", signal_num);
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: <ERRORE> %d: Codice di comunicazione non riconosciuto.\n", ID, signal_num);
                             writeToClient(fds[i].fd, S_UNKNOWNSIGNAL, S_UNKNOWNSIGNAL_MSG);
                     }
                     if (close_conn) {
@@ -536,7 +554,7 @@ int joinRoom(int sd, int ID, struct room_node** head_pointer, char username[], c
 }
 
 
-int guessParser(char incoming[],char outgoing[], char guess[]){
+int guessParser(char incoming[], char outgoing[], char guess[]){
     char *saveptr = NULL;
     char *word_p;
     int word_len, return_value = S_COMMERROR;
@@ -547,7 +565,7 @@ int guessParser(char incoming[],char outgoing[], char guess[]){
         word_len = strlen(word_p);
         if (word_len >= WORDLENGTH)
         {
-            fprintf(stderr, ":GUESS ERROR: guess is too long\n");
+            //fprintf(stderr, ":GUESS ERROR: guess is too long\n");
             strcpy(outgoing, "Guess is too long.");
             return_value = S_MISSEDGUESS;
         }
@@ -563,27 +581,26 @@ int guessParser(char incoming[],char outgoing[], char guess[]){
 
 
 void getRoomInfo(struct player_node* suzerain,int room_num, int player_num, char selected_word[], char outgoing[MAXCOMMBUFFER]){
-    char users[400];
-    struct player_node *tmp;
+    char users[MAXCOMMBUFFER];
+    struct player_node *player_tmp;
     int i = 0;
     if(strcmp(selected_word,"") == 0)
         strcpy(selected_word,"In attesa della parola...");
     if(suzerain != NULL){
         memset(users,'\0',sizeof(users));
-        tmp = suzerain;
+        player_tmp = suzerain;
         do{
-            strcat(users,tmp->username);
+            strcat(users, player_tmp->username);
             strcat(users,",");
-            tmp = tmp->next;
+            player_tmp = player_tmp->next;
             i++;
         }
-        while(tmp != suzerain);
-        for(;i<=8;i++){
+        while(player_tmp != suzerain);
+        for(;i<=MAXPLAYERS;i++){
             strcat(users, ",");
         }
-        sprintf(outgoing, "%d-%d-%s-%s-%s",room_num, player_num, suzerain->username, users, selected_word );
+        sprintf(outgoing, "%d-%d-%s-%s-%s", room_num, player_num, suzerain->username, users, selected_word);
     }
-
 }
 
 void moveSuzerainTurn(struct player_node** curr_suzerain, struct player_node* new_suzerain){

@@ -28,6 +28,6 @@ void pick(char[], int);
 void addLetter(char [],char [],int );
 
 void playedWord(char []);
-void parserChosenWord(char [3][MAXWORDLENGTH], char []);
+int parserChosenWord(char incoming[]);
 
 #endif //LOGICGAME_H

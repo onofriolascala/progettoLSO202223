@@ -255,6 +255,13 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
     {
         updatePlayer(room, i);
     }
+
+    printf("\n");
+    for(int j = 0; j <= MAXSAVEDMESSAGES; j++) {
+        printf("\n");
+    }
+    printf("\n");
+    encaseHeaderLine("");
 }
 
 // Le seguenti funzioni manipolano il cursore della console per modificare lo stato della schermata.
@@ -285,7 +292,7 @@ void slideMessages(struct room_struct *room) {
 
     gotoxyCursor(vertical_offset, 0);
 
-    for(i = 0; i < MAXSAVEDMESSAGES-1; i++)  {
+    for(i = 0; i < MAXSAVEDMESSAGES; i++)  {
         clearLine();
         printf( "%s\n", room->saved_messages[i]);
     }
@@ -332,6 +339,7 @@ void updatePlayer(struct room_struct *room, int position) {
         black();
     }
     printf("%s"DFT, room->players[position]);
+    printf("%*s", USERNAMELENGTH-5, "");
     loadCursor();
     fflush(stdout);
 }
@@ -375,39 +383,107 @@ void updateSuzerain(struct room_struct *room) {
     fflush(stdout);
 }
 void updateVictory(void) {
+    int vertical_offset;
+    if ((MAXPLAYERS % 2)==0) {
+        vertical_offset = 24 + (MAXPLAYERS/2)-1;
+    }
+    else {
+        vertical_offset = 24 + (MAXPLAYERS/2);
+    }
+
     saveCursor();
     clearLine();
-    up(1);
+    gotoxyCursor(vertical_offset, 0);
     clearLine();
+    carriageReturn();
     printf(BLD YLW "****** HAI INDOVINATO! VITTORIA! ******\n"
                    "Resta in attesa per diventare il nuovo Suzerain e scegliere la parola.\n\n" DFT);
     loadCursor();
     fflush(stdout);
 }
 void updateDefeat(void) {
+    int vertical_offset;
+    if ((MAXPLAYERS % 2)==0) {
+        vertical_offset = 24 + (MAXPLAYERS/2)-1;
+    }
+    else {
+        vertical_offset = 24 + (MAXPLAYERS/2);
+    }
+
     saveCursor();
     clearLine();
-    up(1);
+    gotoxyCursor(vertical_offset, 0);
     clearLine();
+    carriageReturn();
     printf(BLD RED "------ QUALCUN ALTRO HA INDOVINATO. SCONFITTA! ------\n"
            "Resta in attesa della parola scelta dal nuovo Surain.\n\n" DFT);
     loadCursor();
     fflush(stdout);
 }
 void tryGuess(void) {
+    int vertical_offset;
+    if ((MAXPLAYERS % 2)==0) {
+        vertical_offset = 24 + (MAXPLAYERS/2)-1;
+    }
+    else {
+        vertical_offset = 24 + (MAXPLAYERS/2);
+    }
+
+    saveCursor();
+    gotoxyCursor(vertical_offset, 0);
+    clearLine();
+    carriageReturn();
     printf(" E' il tuo turno, prova a indovinare:");
+    loadCursor();
     fflush(stdout);
 }
 void exitMessage(void) {
+    int vertical_offset;
+    if ((MAXPLAYERS % 2)==0) {
+        vertical_offset = 24 + (MAXPLAYERS/2)-1;
+    }
+    else {
+        vertical_offset = 24 + (MAXPLAYERS/2);
+    }
+
+    saveCursor();
+    gotoxyCursor(vertical_offset, 0);
+    clearLine();
+    carriageReturn();
     printf(" Premere Esc + Invio per uscire dalla stanza.");
+    loadCursor();
     fflush(stdout);
 }
-void selectWord() {
+void selectWord(void) {
+    int vertical_offset;
+    if ((MAXPLAYERS % 2)==0) {
+        vertical_offset = 24 + (MAXPLAYERS/2)-1;
+    }
+    else {
+        vertical_offset = 24 + (MAXPLAYERS/2);
+    }
+
     saveCursor();
-    up(1);
+    gotoxyCursor(vertical_offset, 0);
     clearLine();
-    printf("Sei il Surezain. Scegli un'opzione tra quelle elencate sopra.");
+    carriageReturn();
+    printf(" Sei il Surezain. Scegli un'opzione tra quelle elencate sopra.");
     loadCursor();
+    fflush(stdout);
+}
+void resetCursor(void) {
+    int vertical_offset;
+    if ((MAXPLAYERS % 2)==0) {
+        vertical_offset = 25 + (MAXPLAYERS/2)-1;
+    }
+    else {
+        vertical_offset = 25 + (MAXPLAYERS/2);
+    }
+
+    gotoxyCursor(vertical_offset, 0);
+    clearLine();
+    carriageReturn();
+    printf(" > ");
     fflush(stdout);
 }
 

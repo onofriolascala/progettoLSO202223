@@ -190,6 +190,7 @@ int parserRoomJoin(struct room_struct *room, char incoming[]) {
 
     int return_value, count;
     char *saveptr;
+    char *roomid_p;
     char *playernum_p;
     char *suzerain_p;
     char *players_p;
@@ -201,7 +202,8 @@ int parserRoomJoin(struct room_struct *room, char incoming[]) {
     return_value = 0;
     count = 0;
 
-    playernum_p = strtok_r(incoming, "-", &saveptr);
+    roomid_p = strtok_r(incoming, "-", &saveptr);
+    playernum_p = strtok_r(NULL, "-", &saveptr);
     suzerain_p = strtok_r(NULL, "-", &saveptr);
     players_p = strtok_r(NULL, "-", &saveptr);
     word_p = strtok_r(NULL, "-", &saveptr);
@@ -216,6 +218,7 @@ int parserRoomJoin(struct room_struct *room, char incoming[]) {
     else {
         return_value = 0;
     }
+    room->ID = atoi(roomid_p);
     room->player_num = count;
     strcpy(room->suzerain, suzerain_p);
     strcpy(room->secret_word, word_p);

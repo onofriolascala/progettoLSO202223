@@ -6,13 +6,17 @@
 
 
 
-void parserChosenWord(char words[3][MAXWORDLENGTH], char incoming[]){
-    char* num;
-    int con;
-    num=strtok(incoming, "-");
-    con=atoi(num);
-    playedWord(words[con]);
-    return;
+int parserChosenWord(char incoming[]){
+    char *num_p;
+    int return_value = -1;
+    num_p=strtok(incoming, "\0");
+    if(num_p != NULL) {
+        return_value = atoi(num_p);
+        if(return_value < 0 || return_value >= 3) {
+            return_value = -1;
+        }
+    }
+    return return_value;
 }
 
 /*

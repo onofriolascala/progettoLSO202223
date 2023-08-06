@@ -100,6 +100,7 @@ void updateVictory(void);
 void updateDefeat(void);
 void tryGuess(void);
 void exitMessage(void);
-void selectWord();
+void selectWord(void);
+void resetCursor(void);
 
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H

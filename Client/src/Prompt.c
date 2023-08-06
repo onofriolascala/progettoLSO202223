@@ -97,6 +97,7 @@ void* thrPrompt(void* arg) {
                 }
                 // Join Room
                 else if(result == 2) {
+                    room->ID = atoi(outgoing);
                     writeToServer(main_socket, C_JOINROOM, outgoing);
                 }
                 // List Rooms
@@ -393,6 +394,10 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
 
         result = promptExitKey(prompt, room, temp_buffer);
 
+        resetCursor();
+        clearLine();
+        carriageReturn();
+
         usleep(REFRESHCONSTANT);
 
         switch (result) {
@@ -420,6 +425,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
 
                 strncpy(outgoing, temp_buffer, MAXWORDLENGTH + 1);
                 //strncat(outgoing, ";", 2);
+                exitMessage();
 
                 result = 1;
                 break;
@@ -447,16 +453,15 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                         strncpy(outgoing, temp_buffer, MAXWORDLENGTH + 1);
                         //strncat(outgoing, ";", 2);
                         result = 2;
+                        exitMessage();
                     }
+                    resetCursor();
                     memset(temp_buffer, '\0', sizeof(temp_buffer));
                 }
                 break;
             // Wrong Key
             case 0:
                 end_loop = 0;
-                up(2);
-                clearLine();
-                carriageReturn();
                 if(room->turn_flag == 2) {
                     selectWord();
                 }
@@ -466,10 +471,6 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 else {
                     exitMessage();
                 }
-                down(1);
-                clearLine();
-                carriageReturn();
-                printf(" > ");
                 break;
             default:
                 end_loop = 0;
