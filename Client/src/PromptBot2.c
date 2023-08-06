@@ -408,7 +408,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
 
         usleep(REFRESHCONSTANT);
 
-        result = promptExitKey(prompt, room);
+        result = promptExitKey(prompt, room, NULL);
 
         usleep(REFRESHCONSTANT);
 
@@ -548,7 +548,7 @@ int promptConfirmation(struct prompt_thread *prompt) {
 // conferma richiesta all'attivazione del prompt.
 // Restituisce 0 se la stringa non corrisponde alla chiave d'uscita, 1 se corrisponde,
 // 2 se non corrisponde ma è il turno dell'utente.
-int promptExitKey(struct prompt_thread *prompt, struct room_struct *room) {
+int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *buffer) {
     char temp_buffer[MAXCOMMBUFFER];
     int result;
 

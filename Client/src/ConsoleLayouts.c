@@ -223,21 +223,22 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
     encaseSideLine("");
     sprintf(tempstring, "Suzerain:       %s", room->suzerain);
     encaseSideLine(tempstring);
-    sprintf(tempstring, "Giocatori(%d/%d): %-*s %-*s", room->player_num, MAXPLAYERS, USERNAMELENGTH, room->players[0], USERNAMELENGTH, room->players[1]);
+    //sprintf(tempstring, "Giocatori(%d/%d): %-*s %-*s", room->player_num, MAXPLAYERS, USERNAMELENGTH, room->players[0], USERNAMELENGTH, room->players[1]);
+    sprintf(tempstring, "Giocatori(%d/%d):", room->player_num, MAXPLAYERS);
     encaseSideLine(tempstring);
 
     i = 2;
     while( i < MAXPLAYERS ) {
         j = i+1;
         if (j >= MAXPLAYERS) {
-            sprintf(tempstring, "                %-*s", USERNAMELENGTH, room->players[i]);
+            //sprintf(tempstring, "                %-*s", USERNAMELENGTH, room->players[i]);
         }
         else {
-            sprintf(tempstring, "                %-*s %-*s", USERNAMELENGTH, room->players[i], USERNAMELENGTH,
-                    room->players[j]);
+            //sprintf(tempstring, "                %-*s %-*s", USERNAMELENGTH, room->players[i], USERNAMELENGTH,
+            //        room->players[j]);
         }
         i = i+2;
-        encaseSideLine(tempstring);
+        encaseSideLine("");
     }
 
     encaseSideLine("");
@@ -250,6 +251,10 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
 
     updateWord(room);
     updateSuzerain(room);
+    for(int i = 0; i < MAXPLAYERS; i++)
+    {
+        updatePlayer(room, i);
+    }
 }
 
 // Le seguenti funzioni manipolano il cursore della console per modificare lo stato della schermata.
@@ -358,7 +363,7 @@ void updateWord(struct room_struct *room) {
     encaseSideLine("");
     gotoxyCursor(vertical_offset, 7);
 
-    printf( BLD WHT "%-32s" DFT, room->secret_word);
+    printf( BLD WHT "%s" DFT, room->secret_word);
     loadCursor();
     fflush(stdout);
 }
@@ -389,19 +394,20 @@ void updateDefeat(void) {
     loadCursor();
     fflush(stdout);
 }
-void failedGuess(char *incoming) {
-    printf(" > %s  ->  SBAGLIATO", incoming);
+void tryGuess(void) {
+    printf(" E' il tuo turno, prova a indovinare:");
     fflush(stdout);
 }
-void selectWord(char *incoming) {
-    //saveCursor();
-    //clearLine();
-    //up(1);
-    //up(1);
-    //clearLine();
-    printf("Sei il nuovo Surezain. Scegli una parola tra le seguenti:\n"
-           " > %s\n", incoming);
-    //loadCursor();
+void exitMessage(void) {
+    printf(" Premere Esc + Invio per uscire dalla stanza.");
+    fflush(stdout);
+}
+void selectWord() {
+    saveCursor();
+    up(1);
+    clearLine();
+    printf("Sei il Surezain. Scegli un'opzione tra quelle elencate sopra.");
+    loadCursor();
     fflush(stdout);
 }
 

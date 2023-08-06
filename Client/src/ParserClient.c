@@ -207,7 +207,15 @@ int parserRoomJoin(struct room_struct *room, char incoming[]) {
     word_p = strtok_r(NULL, "-", &saveptr);
 
     count = atoi(playernum_p);
-    return_value = room->player_num - count;
+    if (count < room->player_num) {
+        return_value = -1;
+    }
+    else if (count > room->player_num) {
+        return_value = 1;
+    }
+    else {
+        return_value = 0;
+    }
     room->player_num = count;
     strcpy(room->suzerain, suzerain_p);
     strcpy(room->secret_word, word_p);

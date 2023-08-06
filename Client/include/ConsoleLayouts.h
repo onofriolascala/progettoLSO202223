@@ -98,7 +98,8 @@ void updateWord(struct room_struct *room);
 void updateSuzerain(struct room_struct *room);
 void updateVictory(void);
 void updateDefeat(void);
-void failedGuess(char *incoming);
-void selectWord(char *incoming);
+void tryGuess(void);
+void exitMessage(void);
+void selectWord();
 
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H
