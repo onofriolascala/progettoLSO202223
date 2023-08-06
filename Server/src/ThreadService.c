@@ -172,7 +172,7 @@ void* thrService(void* arg) {
                     control_flag = 1;
                     tmp = *room_list;
                     while(control_flag == 1){
-                        tmp = getRoomList(tmp, outgoing, 16, &control_flag);
+                        tmp = getRoomList(tmp, outgoing, MAXCOMMBUFFER, &control_flag);
                         if(control_flag != -2){
                             printf("\t\tDEBUG_SD%d: <Lista stanze> %d:%s\n", sd, S_ROOMLISTOK, outgoing);
                             writeToClient(sd, S_ROOMLISTOK, outgoing);
