@@ -23,6 +23,7 @@
 #include "../include/CommUtilServer.h"
 #include "../include/SocketUtilServer.h"
 #include "../include/Def.h"
+#include "../include/LogUtilServer.h"
 
 
 

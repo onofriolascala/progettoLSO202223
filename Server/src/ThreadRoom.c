@@ -37,7 +37,9 @@ void* thrRoom(void* arg) {
 
     memset(incoming, '\0', sizeof(incoming));
     memset(outgoing, '\0', sizeof(outgoing));
-
+    //                  log                                 //
+    int log_fd;
+    log_fd = createLog(this_room->id);
 
     //                 mainRoomLoop init                   //
 
@@ -64,7 +66,7 @@ void* thrRoom(void* arg) {
     char words[3][MAXWORDLENGTH];
     char guess[MAXWORDLENGTH];
     int selectedWord, z;
-    int wordsSent;
+    int wordsSent, addHintFlag;
     //initializing the listening socket into the polling array
     memset(fds, 0 ,sizeof(fds));
     fds[0].fd = localsocket;
@@ -72,6 +74,8 @@ void* thrRoom(void* arg) {
     nfds = 1;
 
     timeout = TURNTIMEOUT;
+
+    writeToLog(log_fd,"ROOM %d: SETUP COMPLETED!");
 
     //              MAIN GAME LOOP                //
 
@@ -83,6 +87,7 @@ void* thrRoom(void* arg) {
         next_turn = 0;
         word_is_selected = 0;
         selectedWord = 0;
+        addHintFlag = 0;
         memset(words[0],'\0',MAXWORDLENGTH);
         memset(words[1],'\0',MAXWORDLENGTH);
         memset(words[2],'\0',MAXWORDLENGTH);
@@ -98,13 +103,13 @@ void* thrRoom(void* arg) {
             if(!word_is_selected && suzerain != NULL && !wordsSent && this_room->player_num > 1){
                 //generateWords(words);
                 //DEBUG:
-                strcpy(words[0], "Test1");
-                strcpy(words[1], "Test2");
-                strcpy(words[2], "Test3");
+                strcpy(words[0], "Test1\0");
+                strcpy(words[1], "Test2\0");
+                strcpy(words[2], "Test3\0");
                 //
                 sprintf(outgoing, "1) %s - 2) %s - 3) %s ", words[0], words[1], words[2]);
                 writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
-                printf("DEBUG_ROOM%d: Sending words [%s - %s - %s] to suzerain %s\n con socket %d", this_room->id, words[0], words[1] , words[2], suzerain->username, suzerain->player_socket);
+                printf("DEBUG_ROOM%d: Sending words [%s - %s - %s] to suzerain %s con socket %d", this_room->id, words[0], words[1] , words[2], suzerain->username, suzerain->player_socket);
                 wordsSent = 1;
                 memset(outgoing,'\0',sizeof(outgoing));
                 // controllare se e' richiesto un reset del timer del timeout
@@ -122,17 +127,12 @@ void* thrRoom(void* arg) {
                 // timeout raggiunto
                 if(!word_is_selected){
                     if(suzerain != NULL)
-                        suzerain = suzerain->next;
+                        moveSuzerainTurn(&suzerain,suzerain->next);
                     break;
                 }
                 writeToClient(current_player->player_socket, S_ENDOFTURN, S_ENDOFTURN_MSG);
 
-                current_player = current_player->next;
-
-                if(current_player == suzerain){
-                    //addHint()
-                    current_player = current_player->next;
-                }
+                movePlayerTurn(&current_player,suzerain,&addHintFlag);
 
                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
 
@@ -242,15 +242,12 @@ void* thrRoom(void* arg) {
                             //if the player was the current player and disconnects we need to assign a new player
                             if( suzerain == player ){
                                 next_turn = 1;
-                                if(suzerain->next == suzerain)
-                                    suzerain = NULL;
-                                else
-                                    suzerain = suzerain->next;
+                                moveSuzerainTurn(&suzerain,suzerain->next);
                                 //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
                                 //gameOver?
                             }
                             if( current_player == player ){
-                                current_player = current_player->next;
+                                movePlayerTurn(&current_player,suzerain,&addHintFlag);
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
                             this_room->player_num--;
@@ -286,10 +283,13 @@ void* thrRoom(void* arg) {
                                 //DEBUG
                                 selectedWord = 1;
                                 //
+                                memset(outgoing,'\0',sizeof(outgoing));
+                                getRoomInfo(suzerain, this_room->id, this_room->player_num, words[selectedWord], outgoing);
                                 for(z = 1; z < nfds; z++) {
-                                    writeToClient(fds[z].fd, S_NEWGAME, words[selectedWord] );
+                                    writeToClient(fds[z].fd, S_NEWGAME, outgoing );
                                 }
                                 current_player = suzerain->next;
+                                sleep(2);
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
                             break;
@@ -323,16 +323,13 @@ void* thrRoom(void* arg) {
                             rebuildService(player, room_list, db_connection);
 
                             if( current_player == player ){
-                                current_player = current_player->next;
+                                movePlayerTurn(&player,suzerain,&addHintFlag);
                             }
                             if( suzerain == player ){
                                 next_turn = 1;
-                                if(suzerain->next == suzerain)
-                                    suzerain = NULL;
-                                else
-                                    suzerain = suzerain->next;
+                                moveSuzerainTurn(&suzerain,suzerain->next);
                                 //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
-                                //gameOver? yes
+                                //gameOver?
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
                             this_room->player_num--;
@@ -377,7 +374,8 @@ void* thrRoom(void* arg) {
 
             end_t = clock();
             total_t += (double) (end_t - start_t) / CLOCKS_PER_SEC;
-            if(total_t > (TURNTIMEOUT / 1000)){ //1 minute round timeout + 30 seconds for server-side delays
+            //::IMPORTANTE:: Da dividere turntimeout per 10000 per riportarlo a secondi
+            if(total_t > (TURNTIMEOUT)){ //1 minute round timeout + 30 seconds for server-side delays
                 //round timeout routine
                 if(!word_is_selected){
                     if(suzerain != NULL){
@@ -403,7 +401,6 @@ void* thrRoom(void* arg) {
 
     // Chiusura della stanza.
 
-    /*
     //Se sono presenti ancora dei giocatori durante la chiusura della stanza mi occupo di fare il rebuild del service
     for(i=0;i<nfds;i++){
         if(fds[i].fd != localsocket){
@@ -411,7 +408,7 @@ void* thrRoom(void* arg) {
             rebuildService(player, room_list, db_connection);
         }
     }
-     */
+
     removeAndDestroyRoomNode(room_list, ID);
 
     //sleep(10);
