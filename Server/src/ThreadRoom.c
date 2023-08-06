@@ -309,9 +309,15 @@ void* thrRoom(void* arg) {
                                     }
                                     sleep(5);
                                     suzerain = player;
+                                    next_turn = 1;
                                 }
-                                else
-                                    writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
+                                else {
+                                    for (i = 1; i < nfds; i++) {
+                                        writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
+                                    }
+                                    movePlayerTurn(&current_player,suzerain,&addHintFlag);
+                                    writeToClient(current_player->player_socket,S_YOURTURN,S_YOURTURN_MSG);
+                                }
                             }
                             else
                                 writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
