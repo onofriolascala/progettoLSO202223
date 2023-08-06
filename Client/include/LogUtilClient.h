@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -19,6 +20,8 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <time.h>
+
 
 #include "../include/ConsoleLayouts.h"
 #include "../include/SocketUtilClient.h"

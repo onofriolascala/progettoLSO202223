@@ -12,7 +12,16 @@ int createLog(void) {
     int fd;
     pid_t pid = getpid();
 
-    sprintf(log_path, "./clientlog_%d.txt", pid);
+    struct stat st = {0};
+    if(stat("./ClientLogs", &st) == -1) {
+        mkdir("./ClientLogs", 0777);
+    }
+
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    sprintf(log_path, "./ClientLogs/clientlog_%d%d%d_%d%d%d_%d.txt", tm->tm_year + 1900,
+            tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, pid);
+    //sprintf(log_path, "./ClientLogs/clientlog_%d.txt", pid);
 
     if( unlink(log_path) < 0) {
         if (errno != ENOENT)
@@ -36,9 +45,18 @@ int createLog(void) {
 }
 
 int writeToLog(int fd, const char input_buf[]) {
+    char temp_buf[MAXLOGBUFFER];
     int len, result;
     result  = -1;
+
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+
     if(input_buf != NULL && fd > 2) {
+        strftime(temp_buf, MAXLOGBUFFER, "[%Y-%m-%d %H:%M:%S] ", tm);
+        len = strlen(temp_buf);
+        write(fd, temp_buf, len);
+
         len = strlen(input_buf);
         if(write(fd, input_buf, len) != len) {
             red();
