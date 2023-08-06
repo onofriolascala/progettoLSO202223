@@ -475,6 +475,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 end_loop = 0;
                 result = -1;
         }
+        memset(temp_buffer, '\0', sizeof(temp_buffer));
     } while ( !end_loop );
     return result;
 }
