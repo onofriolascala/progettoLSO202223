@@ -39,6 +39,7 @@ void* thrRoom(void* arg) {
     memset(outgoing, '\0', sizeof(outgoing));
     //                  log                                 //
     int log_fd;
+    char log_out[300];
     log_fd = createLog(this_room->id);
 
     //                 mainRoomLoop init                   //
@@ -75,12 +76,13 @@ void* thrRoom(void* arg) {
 
     timeout = TURNTIMEOUT;
 
-    writeToLog(log_fd,"ROOM %d: SETUP COMPLETED!");
+    writeToLog(log_fd,"ROOM: SETUP COMPLETED\n");
 
     //              MAIN GAME LOOP                //
 
     while( !close_room ){
         /* inizio di un nuovo turno*/
+        writeToLog(log_fd,"Nuovo round\n");
 
         start_t = clock();
         total_t = 0;
@@ -94,6 +96,7 @@ void* thrRoom(void* arg) {
         wordsSent = 0;
 
         do{
+            writeToLog(log_fd,"\tNuovo giro di poll\n\tDEBUG: Waiting on poll function...\n");
             printf("DEBUG: Waiting on poll function...\n");
             fflush(stdout);
             memset(outgoing,'\0',sizeof(outgoing));
@@ -109,6 +112,8 @@ void* thrRoom(void* arg) {
                 //
                 sprintf(outgoing, "1) %s - 2) %s - 3) %s ", words[0], words[1], words[2]);
                 writeToClient(suzerain->player_socket, S_CHOOSEWORD,  outgoing);
+                sprintf(log_out,"\tInvio delle parole al suzerain (%s SD->%d) msg: %s\n",suzerain->username,suzerain->player_socket,outgoing);
+                writeToLog(log_fd,log_out);
                 printf("DEBUG_ROOM%d: Sending words [%s - %s - %s] to suzerain %s con socket %d", this_room->id, words[0], words[1] , words[2], suzerain->username, suzerain->player_socket);
                 wordsSent = 1;
                 memset(outgoing,'\0',sizeof(outgoing));
