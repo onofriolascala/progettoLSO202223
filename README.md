@@ -25,6 +25,12 @@ Una volta connessi al server, sarà necessario identificarsi per poter procedere
 Effettuato l'accesso alla homepage, sarà possibile creare una nuova stanza, visionare l'elenco delle stanze aperte, o unirsi ad una già creata attraverso il suo ID univoco. Alternativamente sarà possibile cambiare account, riportanto l'utente alla schermata precedente.
 
 Quando un numero sufficente di utenti si unisce alla stessa stanza inizia il gioco vero e proprio:
+- Se il giocatore è selezionato come Suzerain, dovrà digitare un numero corrispondente ad una delle parole proposte dal server.
+- Se il giocatore non è il Surezain, rimarrà in attesa che il server gli comunichi che sia arrivato il suo turno. Qualsiasi input diverso dalla seguenza di uscita sarà ignorato.
+- Arrivato il turno del giocatore, l'input da lui confermato sarà inviato al server, il quale comunicherà a tutti i partecipanti alla stanza se il giocatore ha sbagliato.
+- In caso di tentativo corretto, verrà comunicata al vincitore la vittoria e a tutti gli altri giocatori la sconfitta. Il vincitore diventerà il nuovo Suzerain.
+- Durante il turno di altri giocatori, ciascun giocatore riceverà aggiornamenti sui tentativi degli avversari, l'entrata e l'uscita di partecipanti, e nuove lettere date come indizio alla fine di ciasun giro.
+- Tutti i giocatori possono uscire dalla stanza di gioco in qualsiasi momento digitanto "ESC + ENTER".
 
 ### Server
 Per avviare il Server, eseguire il file "Server.out" da linea di comando. L'applicazione è pensata per funzionare automaticamente e richiedere quanti meno input da parte di un operatore, necessari solo all'avvio del programma. All'avvio sarà infatti richiesta come prima cosa di connettersi al database MySQL necessario alle operazioni di identificazione degli utenti. Inserire l'indirizzo IP e la porta a cui si desidera connettersi.[^1][^3]
