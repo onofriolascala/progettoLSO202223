@@ -321,12 +321,9 @@ void* thrRoom(void* arg) {
 
                             // Riavvio del threadService
                             rebuildService(player, room_list, db_connection);
-                            if(this_room->player_num < 3){
 
-                            }
                             if( current_player == player ){
                                 current_player = current_player->next;
-
                             }
                             if( suzerain == player ){
                                 next_turn = 1;
@@ -354,8 +351,6 @@ void* thrRoom(void* arg) {
                         }
                         nfds--;
 
-                        getRoomInfo(suzerain,this_room->player_num,words[selectedWord],outgoing);
-
                         /* check to see if the room is empty*/
                         if ( nfds == 1 ){
                             //room is empty
@@ -367,6 +362,10 @@ void* thrRoom(void* arg) {
                         if( nfds == 2){
                             next_turn = 1;
                         }
+
+                        getRoomInfo(suzerain,this_room->player_num,words[selectedWord],outgoing);
+
+
                         for(i = 1; i < nfds; i++){
                                 writeToClient(fds[i].fd, S_PLAYERUPDATE, outgoing);
                         }

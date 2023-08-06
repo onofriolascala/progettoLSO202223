@@ -60,7 +60,7 @@ struct player_node* addPlayerToPlayerList(struct player_node* playerlist_head, s
  * Restituisce la testa della lista qualora essa coincida col nodo da rimuovere.
  * Non presenta criticità che richiedano un mutex. */
 struct player_node* removePlayerNode( struct player_node** playerhead_pointer, int target_socket ) {
-    struct player_node *tmp, *target, *playerlist_head;
+    struct player_node *tmp,*prev, *target, *playerlist_head;
 
     target = NULL;
     playerlist_head = (*playerhead_pointer);
@@ -68,19 +68,31 @@ struct player_node* removePlayerNode( struct player_node** playerhead_pointer, i
     if (playerlist_head != NULL) {
         if (playerlist_head->player_socket == target_socket) {
             target = playerlist_head;
-            (*playerhead_pointer) = playerlist_head->next;
-            if(target == *playerhead_pointer) // caso di una lista di un singolo elemento
+            prev = playerlist_head;
+            //cerco il nodo che punta al target e cambio il suo next con il next del target
+            while(prev->next != target){
+                prev = prev->next;
+            }
+            prev->next = target->next;
+
+            //modifico la testa della lista
+            (*playerhead_pointer) = target->next;
+            // caso di una lista di un singolo elemento
+            if(target == *playerhead_pointer)
                 *playerhead_pointer = NULL;
+            // distacco il nodo dalla lista
             target->next = NULL;
         } else {
-            tmp = playerlist_head;
-            while (tmp->next->player_socket != target_socket && tmp != playerlist_head) {
+            tmp = playerlist_head->next;
+            prev = playerlist_head;
+            while (tmp->player_socket != target_socket && tmp != playerlist_head) {
                 tmp = tmp->next;
+                prev = prev->next;
             }
             // target trovato
             if (tmp != playerlist_head) {
-                target = tmp->next;
-                tmp->next = tmp->next->next;
+                target = tmp;
+                prev->next = target->next;
                 target->next = NULL;
             }
         }
@@ -368,7 +380,7 @@ struct room_node* getRoomList( struct room_node* room_list, char outgoing[], int
         else{
             if(tmp->next != NULL){
                 *control_flag = 1;
-                strcat(outgoing, "#-;");
+                strcat(outgoing, "#;");
             }
             else{
                 strcat(outgoing, ";");
