@@ -21,13 +21,14 @@ struct player_node* createNewPlayerNode( int player_socket, char username[] ){
         new->player_socket = player_socket;
         strcpy( new->username, username);
         new->next = NULL;
+        pthread_mutex_init(&new->playernode_mutex, NULL);
     }
     return new;
 }
 
 /* La funzione riceve una lista circolare di giocatori ed un nodo da aggiungervi. Restituisce la testa della lista
  * qualora essa fosse stata vuota e quindi riempita dal nodo aggiunto.
- * La funzione può essere soggetta a race-condition e per tanto va sincronizzata con un mutex. */
+ * */
 struct player_node* addPlayerToPlayerList(struct player_node* playerlist_head, struct player_node* newPlayer){
     //printf("DEBUG_addPtoPlist:started\n");
     struct player_node* tmp;
@@ -37,7 +38,7 @@ struct player_node* addPlayerToPlayerList(struct player_node* playerlist_head, s
             //printf("\tDEBUG_addPtoPlist:1.3\n");
             tmp = playerlist_head;
             //scorre tutta la lista fino a quando non arriva all'elemento prima della testa
-            while(tmp->next->player_socket != playerlist_head->player_socket ){
+            while(tmp->next != playerlist_head ){
                 //printf("\tDEBUG_addPtoPlist:1.4\n");
                 tmp = tmp->next;
             }
