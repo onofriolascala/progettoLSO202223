@@ -254,6 +254,8 @@ void* thrRoom(void* arg) {
                             }
                             if( current_player == player ){
                                 movePlayerTurn(&current_player,suzerain,&addHintFlag);
+                                usleep(REFRESHCONSTANT);
+                                writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
                             this_room->player_num--;
@@ -357,7 +359,9 @@ void* thrRoom(void* arg) {
                             rebuildService(player, room_list, db_connection);
 
                             if( current_player == player ){
-                                movePlayerTurn(&player,suzerain,&addHintFlag);
+                                movePlayerTurn(&current_player,suzerain,&addHintFlag);
+                                usleep(REFRESHCONSTANT);
+                                writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
                             if( suzerain == player ){
                                 next_turn = 1;
@@ -410,6 +414,7 @@ void* thrRoom(void* arg) {
 
             end_t = clock();
             total_t += (double) (end_t - start_t) / CLOCKS_PER_SEC;
+
             //::IMPORTANTE:: Da dividere turntimeout per 10000 per riportarlo a secondi
             if(total_t > (TURNTIMEOUT)){ //1 minute round timeout + 30 seconds for server-side delays
                 //round timeout routine
@@ -611,16 +616,20 @@ void getRoomInfo(struct player_node* suzerain,int room_num, int player_num, char
 }
 
 void moveSuzerainTurn(struct player_node** curr_suzerain, struct player_node* new_suzerain){
-    if((*curr_suzerain)->next == new_suzerain)
-        *curr_suzerain = NULL;
-    else
-        *curr_suzerain = new_suzerain;
+    if(*curr_suzerain != NULL){
+        if((*curr_suzerain) == (*curr_suzerain)->next)
+            *curr_suzerain = NULL;
+        else
+            *curr_suzerain = new_suzerain;
+    }
 }
 
 void movePlayerTurn(struct player_node** curr_player,struct player_node* suzerain, int* addHintFlag){
-    *curr_player = (*curr_player)->next;
-    if((*curr_player) == suzerain){
-        *addHintFlag = 1;
+    if(*curr_player != NULL){
         *curr_player = (*curr_player)->next;
+        if((*curr_player) == suzerain){
+            *addHintFlag = 1;
+            *curr_player = (*curr_player)->next;
+        }
     }
 }
