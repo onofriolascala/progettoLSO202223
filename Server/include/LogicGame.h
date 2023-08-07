@@ -26,7 +26,8 @@ void randomSCT(int [], int, int);
 void generateRandomWords(char words[3][MAXWORDLENGTH]);
 void pick(char[], int);
 void addLetter(char [],char [],int );
-
+void generateUnveilingSequence(int sequence[], int wordLength);
+void addHint(int unveiling_sequence[],int* current_unveil, char hidden_word[], char chosen_word[], int word_len);
 void playedWord(char []);
 int parserChosenWord(char incoming[]);
 

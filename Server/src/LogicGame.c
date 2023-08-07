@@ -18,7 +18,19 @@ int parserChosenWord(char incoming[]){
     }
     return return_value;
 }
-
+/*
+ * Questa funzione prende in ingresso la sequenza di suggerimenti della parola nascosta, lo stato di smascheramento attuale della parola
+ * codificato con un intero nella variabile current_unveil, la parola nascosta in gioco al momento, la parola da indovinare e la sua lunghezza.
+ * La funzione dunque aggiunge il prossimo suggerimento alla parola nascosta, modificandola e modificando anche il suo stato di smascheramento
+ * attuale, questo avviene solo nel caso in cui *current_unveil < word_len-1 negli altri casi non farà nulla.
+ * NB: la lunghezza dalla parola nascosta e quello della sequenza di suggerimenti deve essere la stessa
+ * */
+void addHint(int unveiling_sequence[],int* current_unveil, char hidden_word[], char chosen_word[], int word_len){
+    if(*current_unveil < (word_len-1)){
+        hidden_word[unveiling_sequence[*current_unveil]] = chosen_word[unveiling_sequence[*current_unveil]];
+        *current_unveil++;
+    }
+}
 /*
 Funzione che genera una sequenza di interi che codificano l'ordine in cui i suggerimenti di una parola
  verranno mostrati, la sequenza in output verrà inserità nell'array sequence, l'array passato
