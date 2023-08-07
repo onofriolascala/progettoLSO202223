@@ -390,15 +390,14 @@ void updateVictory(void) {
     else {
         vertical_offset = 24 + (MAXPLAYERS/2);
     }
-
-    saveCursor();
     clearLine();
     gotoxyCursor(vertical_offset, 0);
     clearLine();
     carriageReturn();
-    printf(BLD YLW "****** HAI INDOVINATO! VITTORIA! ******\n"
-                   "Resta in attesa per diventare il nuovo Suzerain e scegliere la parola.\n\n" DFT);
-    loadCursor();
+    printf(BLD YLW "****** HAI INDOVINATO! VITTORIA! ******");
+    down(1);
+    carriageReturn();
+    printf("Resta in attesa per diventare il nuovo Suzerain e scegliere la parola." DFT);
     fflush(stdout);
 }
 void updateDefeat(void) {
@@ -409,15 +408,14 @@ void updateDefeat(void) {
     else {
         vertical_offset = 24 + (MAXPLAYERS/2);
     }
-
-    saveCursor();
     clearLine();
     gotoxyCursor(vertical_offset, 0);
     clearLine();
     carriageReturn();
-    printf(BLD RED "------ QUALCUN ALTRO HA INDOVINATO. SCONFITTA! ------\n"
-           "Resta in attesa della parola scelta dal nuovo Surain.\n\n" DFT);
-    loadCursor();
+    printf(BLD RED "------ QUALCUN ALTRO HA INDOVINATO. SCONFITTA! ------");
+    down(1);
+    carriageReturn();
+    printf("Resta in attesa della parola scelta dal nuovo Surain.\n\n" DFT);
     fflush(stdout);
 }
 void tryGuess(void) {

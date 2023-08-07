@@ -118,6 +118,9 @@ int printErrorNoNumber(struct prompt_thread *prompt, char error_out[], char erro
 
 int printWarning(struct prompt_thread *prompt, char input_buf[]) {
     int result;
+    char temp_buffer[MAXLOGBUFFER];
+
+    memset(temp_buffer, '\0', sizeof(temp_buffer));
 
     result = 0;
 
@@ -128,11 +131,12 @@ int printWarning(struct prompt_thread *prompt, char input_buf[]) {
         pthread_mutex_unlock(&prompt->mutex);
     }
     else {
-        printf("\n%s(Premi invio per continuare)", input_buf);
+        printf("\n%s (Premi invio per continuare)", input_buf);
         fflush(stdout);
     }
     defaultFormat();
-    if(writeToLog(*prompt->log, input_buf) < 0) result = -1;
+    sprintf(temp_buffer, "<Warning>: %s", input_buf);
+    if(writeToLog(*prompt->log, temp_buffer) < 0) result = -1;
     return result;
 }
 

@@ -141,7 +141,6 @@ void* thrPrompt(void* arg) {
                 outgoing[strcspn(outgoing, "\n")] = '\0';
                 writeToServer(main_socket, signal_num, outgoing);
         }
-        sleep(1);
         prompt_mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
     } while (prompt_mode != 0);
 
@@ -435,19 +434,22 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 //if ((result = promptString(prompt, temp_buffer, MAXWORDLENGTH)) < 0) return result;
 
                 if(temp_buffer[0] == 0) {
+                    down(1);
                     clearLine();
                     carriageReturn();
-                    printWarning(prompt, "Inserire un valore.\n");
+                    printWarning(prompt, "Inserire un valore.");
                     memset(temp_buffer, '\0', sizeof(temp_buffer));
                     end_loop = 0;
                     result = 0;
+                    resetCursor();
                 }
                 else {
                     result = strtol(temp_buffer, &endp, 10);
                     if (temp_buffer == endp || *endp != '\0') {
+                        down(1);
                         clearLine();
                         carriageReturn();
-                        printWarning(prompt, "Inserire un valore numerico.\n");
+                        printWarning(prompt, "Inserire un valore numerico.");
                         end_loop = 0;
                         result = 0;
                     } else {
@@ -591,11 +593,11 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *
         result = 1;
     }
     else if (room->turn_flag == 1) {
-        strcpy(buffer, temp_buffer);
+        strncpy(buffer, temp_buffer, MAXWORDLENGTH-1);
         result = 2;
     }
     else if (room->turn_flag == 2) {
-        strcpy(buffer, temp_buffer);
+        strncpy(buffer, temp_buffer, MAXWORDLENGTH-1);
         result = 3;
     }
 

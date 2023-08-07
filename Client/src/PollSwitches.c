@@ -232,14 +232,14 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             room->turn_flag = 2;
 
             contacted_sd = *prompt->sd;
-            signal_num = C_PAUSE;
-            strcpy(incoming, "C_PAUSE");
+            signal_num = C_GUESSSKIP;
+            strcpy(incoming, "C_GUESSSKIP");
 
             break;
         case S_NEWGAME:
             // Il server comunica l'avvio di una nuova partita.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <NewGame> %d:%s\n", signal_num, incoming);
-            if( !same_signal ) renderRoom(server, room);
+            renderRoom(server, room);
             //if(strcmp(incoming, S_ROOMOK_MSG) != 0) printf("\n\t%s\n\n", incoming);
 
             parserRoomJoin(room, incoming);
@@ -257,6 +257,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             slideMessages(room);
 
             exitMessage();
+            resetCursor();
 
             contacted_sd = *prompt->sd;
             signal_num = C_GUESSSKIP;
