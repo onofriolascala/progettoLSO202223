@@ -18,7 +18,19 @@ int parserChosenWord(char incoming[]){
     }
     return return_value;
 }
-
+/*
+ * Questa funzione prende in ingresso la sequenza di suggerimenti della parola nascosta, lo stato di smascheramento attuale della parola
+ * codificato con un intero nella variabile current_unveil, la parola nascosta in gioco al momento, la parola da indovinare e la sua lunghezza.
+ * La funzione dunque aggiunge il prossimo suggerimento alla parola nascosta, modificandola e modificando anche il suo stato di smascheramento
+ * attuale, questo avviene solo nel caso in cui *current_unveil < word_len-1 negli altri casi non farà nulla.
+ * NB: la lunghezza dalla parola nascosta e quello della sequenza di suggerimenti deve essere la stessa
+ * */
+void addHint(int unveiling_sequence[],int* current_unveil, char hidden_word[], char chosen_word[], int word_len){
+    if(*current_unveil < (word_len-1)){
+        hidden_word[unveiling_sequence[*current_unveil]] = chosen_word[unveiling_sequence[*current_unveil]];
+        *current_unveil++;
+    }
+}
 /*
 Funzione che genera una sequenza di interi che codificano l'ordine in cui i suggerimenti di una parola
  verranno mostrati, la sequenza in output verrà inserità nell'array sequence, l'array passato
@@ -31,7 +43,7 @@ void generateUnveilingSequence(int sequence[], int wordLength){
 //::DEBUG::
 void playedWord(char word[]){
     int len;
-    char blank[]="___________________";
+    char blank[]="___________________________________________-";
     len=strlen(word);
     blank[len]='\0';
     printf("%s \n", blank);
@@ -80,29 +92,16 @@ void randomSCT(int array[], int j, int range){
 Questa funzione si occupa della generazione di tre parole selezionate in modo randomico dal file words.txt, genera tre valori random nel range del numero delle parole presenti nel file words.txt tramite la funzione randomSCT e li estrae dal file tramite la funzione pick.
 Infine li inserisce nelle due variabili di output words e outgoing
 */
-void randomWords(char words[3][MAXWORDLENGTH], char outgoing[]){
+void generateRandomWords(char words[3][MAXWORDLENGTH]){
     int i=0;
     int array[3]={0};
-    randomSCT(array, 3, MAXWORDS);
-    char word[300];
-    strcat(outgoing, "1)");
-    while (i<3){
-        strcpy(word, "");
+    randomSCT(array, 3, MAXWORDSINFILE);
+    char word[MAXWORDLENGTH];
+    for(i=0;i < 3;i++){
+        memset(word,'\0',sizeof(word));
         pick(word, array[i]);
         strcpy(words[i],word);
-        strcat(outgoing, word);
-        i++;
-        if(i<3){
-            if(i == 1)
-                strcat(outgoing, " 2)");
-            else if(i == 2)
-                strcat(outgoing, " 3)");
-        }
-        else{
-            strcat(outgoing, "\0");
-        }
     }
-    return;
 }
 /*
 Questa funzione si occupa di estrarre la parola n-esima dal file delle parole words.txt, per farlo la funzione prende in input la parola
@@ -114,7 +113,7 @@ void pick(char buff[],int n){
     char* newline="\n";
     fflush(stdout);
     //char buff[BUFFSIZE]="";
-    if((fd = open("../media/words.txt", O_RDONLY, NULL))<0) {
+    if((fd = open(WORDSFILEPATH, O_RDONLY, NULL))<0) {
         perror(":OPEN ERROR:");
     }
     while(n>=0){

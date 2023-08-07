@@ -23,7 +23,6 @@
 // Costanti per le strutture.
 #define MAXPLAYERS 8
 #define MAXWORDLENGTH 32
-#define MAXWORDS 100
 
 // Costanti per le dimensioni dell'ip e delle porte
 #define MAXPORT 4
@@ -40,6 +39,10 @@
 // Costanti per la Game Logic
 #define WORDLENGTH 30
 #define TURNTIMEOUT 10*60*1000
+
+// Costanti per il file delle parole
+#define MAXWORDSINFILE 100
+#define WORDSFILEPATH "../media/words.txt"
 
 // Numero di refresh massimi consentiti
 #define MAXREFRESHCONSTANT 100
