@@ -430,7 +430,6 @@ void* thrRoom(void* arg) {
 
                         getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
 
-
                         for(i = 1; i < nfds; i++){
                                 writeToClient(fds[i].fd, S_PLAYERUPDATE, outgoing);
                         }
