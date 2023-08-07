@@ -36,7 +36,7 @@ void* thrService(void* arg) {
 
     // La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
     (*(struct service_arg*)arg).flag = 1;
-    printf("\t\tSERVICE_SD%d: initialized with socket value of \"%d\", and player value of \"%s\".\n", sd, sd, ":Sostituire con stringa giocatore:");
+    printf("\t\tSERVICE_SD%d: initialized with socket value of \"%d\", and player value of \"%s\".\n", sd, sd, username);
     fflush(stdout);
 
     if (username[0] == '\0') {
