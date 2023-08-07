@@ -245,11 +245,6 @@ void* thrRoom(void* arg) {
                             break;
                         case S_DISCONNECT_ABRUPT:
                             printf("\t\t\t\tDEBUG_STANZAID_%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
-                            /* game logic */
-                            //if the player was the current player and disconnects we need to assign a new player
-
-                            destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
-                            this_room->player_num--;
                             close_conn = 1;
                             break;
                         case S_DISCONNECT:
@@ -337,7 +332,6 @@ void* thrRoom(void* arg) {
                                     for (i = 1; i < nfds; i++) {
                                         writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
                                     }
-                                    sleep(1);
                                     movePlayerTurn(&current_player,suzerain,&add_hint_flag);
                                     if(add_hint_flag){
                                         addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
@@ -346,6 +340,7 @@ void* thrRoom(void* arg) {
                                             writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
                                         }
                                     }
+                                    sleep(REFRESHCONSTANT);
                                     writeToClient(current_player->player_socket,S_YOURTURN,S_YOURTURN_MSG);
                                     printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with %d socket.\n", ID, current_player->username, current_player->player_socket);
                                 }
@@ -372,14 +367,9 @@ void* thrRoom(void* arg) {
 
                             // Riavvio del threadService
                             rebuildService(player, room_list, db_connection);
-
-
                             writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
 
-                            destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
-                            this_room->player_num--;
                             close_conn = 1;
-
                             break;
                         default:
                             printf("\t\t\t\tDEBUG_STANZAID_%d: <ERRORE> %d: Codice di comunicazione non riconosciuto.\n", ID, signal_num);
@@ -426,14 +416,17 @@ void* thrRoom(void* arg) {
                                 usleep(REFRESHCONSTANT);
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
-                        }
 
+
+                        }
                         getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
 
                         for(i = 1; i < nfds; i++){
                                 writeToClient(fds[i].fd, S_PLAYERUPDATE, outgoing);
                         }
 
+                        destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
+                        this_room->player_num--;
                     }
                 }
             }
