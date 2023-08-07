@@ -558,6 +558,7 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             // Il prompt comunica l'intenzione di voler uscire dalla stanza
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Exit Room> %d:%s.\n", signal_num, incoming);
             room->turn_flag = -1;
+            emptyMessageList(room);
             contacted_sd = *server->sd;
             break;
         case C_GUESSSKIP:

@@ -408,8 +408,19 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
 
         result = promptExitKey(prompt, room, temp_buffer);
 
+        if(room->turn_flag == 2) {
+            prePromptChooseWord();
+        }
+        else if (room->turn_flag == 1){
+            prePromptTryGuess();
+        }
+        else {
+            prePromptExit();
+        }
+
         gotoxyCursor(V_OFFSET_PROMPT+1, 0);
         clearLine();
+        resetCursor();
 
         switch (result) {
             case -1:
@@ -465,7 +476,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 break;
             default:
                 end_loop = 0;
-                result = -1;
+                break;
         }
         memset(temp_buffer, '\0', sizeof(temp_buffer));
     } while ( !end_loop );
