@@ -419,17 +419,17 @@ void* thrRoom(void* arg) {
                                 usleep(REFRESHCONSTANT);
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
-
-
                         }
+
+                        destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
+                        this_room->player_num--;
+
                         getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
 
                         for(i = 1; i < nfds; i++){
                                 writeToClient(fds[i].fd, S_PLAYERUPDATE, outgoing);
                         }
 
-                        destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
-                        this_room->player_num--;
                     }
                 }
             }
