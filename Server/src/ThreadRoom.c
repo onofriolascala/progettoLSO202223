@@ -282,7 +282,7 @@ void* thrRoom(void* arg) {
                             break;
                         case C_SELECTWORD:
                             printf("\t\t\t\tDEBUG_STANZAID_%d: <Seleziona Parola> %d:%s\n", ID, signal_num, incoming);
-                            if(player == suzerain){
+                            if(suzerain == player){
                                 //selectedWord = parserWord();
                                 word_is_selected = 1;
 
