@@ -337,10 +337,11 @@ void* thrRoom(void* arg) {
                                         addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
                                         add_hint_flag = 0;
                                         for(i = 1; i < nfds; i++){
+                                            usleep(REFRESHCONSTANT);
                                             writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
                                         }
                                     }
-                                    sleep(REFRESHCONSTANT);
+                                    sleep(1);
                                     writeToClient(current_player->player_socket,S_YOURTURN,S_YOURTURN_MSG);
                                     printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with %d socket.\n", ID, current_player->username, current_player->player_socket);
                                 }
@@ -350,15 +351,17 @@ void* thrRoom(void* arg) {
                                 for (i = 1; i < nfds; i++) {
                                     writeToClient(fds[i].fd, S_MISSEDGUESS, outgoing);
                                 }
-                                sleep(1);
+                                usleep(REFRESHCONSTANT);
                                 movePlayerTurn(&current_player, suzerain, &add_hint_flag);
                                 if(add_hint_flag){
                                     addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
                                     add_hint_flag = 0;
                                     for(i = 1; i < nfds; i++){
+                                        usleep(REFRESHCONSTANT);
                                         writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
                                     }
                                 }
+                                usleep(REFRESHCONSTANT);
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
                             break;
