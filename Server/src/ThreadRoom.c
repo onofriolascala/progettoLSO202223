@@ -341,7 +341,7 @@ void* thrRoom(void* arg) {
                                             writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
                                         }
                                     }
-                                    sleep(1);
+                                    sleep(5);
                                     writeToClient(current_player->player_socket,S_YOURTURN,S_YOURTURN_MSG);
                                     printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with %d socket.\n", ID, current_player->username, current_player->player_socket);
                                 }
@@ -361,7 +361,7 @@ void* thrRoom(void* arg) {
                                         writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
                                     }
                                 }
-                                usleep(REFRESHCONSTANT);
+                                sleep(5);
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
                             break;

@@ -167,7 +167,7 @@ struct room_struct {
     int turn_flag;
     char suzerain[USERNAMELENGTH + 1];
     char players[MAXPLAYERS][USERNAMELENGTH+1];
-    char secret_word[MAXWORDLENGTH+1];
+    char secret_word[MAXWORDLENGTH*3];
     char saved_messages[MAXSAVEDMESSAGES][MAXCOMMBUFFER+(MAXCOMMBUFFER/2)];
 };
 

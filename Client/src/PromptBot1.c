@@ -404,6 +404,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
         else {
             prePromptExit();
         }
+        usleep(2000);
         resetCursor();
 
         result = promptExitKey(prompt, room, temp_buffer);
@@ -418,9 +419,9 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
             prePromptExit();
         }
 
-        gotoxyCursor(V_OFFSET_PROMPT+1, 0);
-        clearLine();
-        resetCursor();
+        //gotoxyCursor(V_OFFSET_PROMPT+1, 0);
+        //clearLine();
+        //resetCursor();
 
         switch (result) {
             case -1:
@@ -437,6 +438,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 if (promptConfirmation(prompt)) {
                     result = 0;
                     end_loop = 1;
+                    continue;
                 } else {
                     end_loop = 0;
                     resetCursor();
@@ -604,3 +606,4 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *
 
     return result;
 }
+

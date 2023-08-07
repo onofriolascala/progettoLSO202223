@@ -400,6 +400,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
         else {
             prePromptExit();
         }
+        usleep(2000);
         resetCursor();
 
         result = promptExitKey(prompt, room, temp_buffer);
@@ -414,9 +415,9 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
             prePromptExit();
         }
 
-        gotoxyCursor(V_OFFSET_PROMPT+1, 0);
-        clearLine();
-        resetCursor();
+        //gotoxyCursor(V_OFFSET_PROMPT+1, 0);
+        //clearLine();
+        //resetCursor();
 
         switch (result) {
             case -1:
@@ -433,6 +434,7 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
                 if (promptConfirmation(prompt)) {
                     result = 0;
                     end_loop = 1;
+                    continue;
                 } else {
                     end_loop = 0;
                     resetCursor();
@@ -586,12 +588,15 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
-    if(temp_buffer[0] == 33 && temp_buffer[1] == '\0') {
+    if (temp_buffer[0] == 33 && temp_buffer[1] == '\0') {
         result = 0;
     }
     else if (room->turn_flag == 1) {
         strncpy(buffer, temp_buffer, MAXWORDLENGTH-1);
         result = 1;
+        if((strcmp(temp_buffer, "")) == 0) {
+            strcpy(temp_buffer, "User has passed.");
+        }
     }
     else if (room->turn_flag == 2) {
         strncpy(buffer, temp_buffer, MAXWORDLENGTH-1);

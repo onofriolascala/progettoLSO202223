@@ -264,6 +264,8 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
         updatePlayer(room, i);
     }
 
+    gotoxyCursor(V_OFFSET_PROMPT, 2);
+    printf("> ");
     slideMessages(room);
 }
 

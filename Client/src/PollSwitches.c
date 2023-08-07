@@ -206,8 +206,6 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // aggiornato di conseguenza.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Your Turn> %d:%s\n", signal_num, incoming);
 
-            prePromptTryGuess();
-
             room->turn_flag = 1;
 
             contacted_sd = *prompt->sd;
@@ -218,7 +216,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // Il server chiede al client di restituirgli il numero di una delle parole indicate.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Choose Word> %d:%s\n", signal_num, incoming);
 
-            strncpy(room->secret_word, incoming, MAXWORDLENGTH);
+            strncpy(room->secret_word, incoming, MAXWORDLENGTH*3);
 
             prePromptChooseWord();
             updateWord(room);
@@ -234,7 +232,10 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <NewGame> %d:%s\n", signal_num, incoming);
 
             parserRoomJoin(room, incoming);
+
+            saveCursor();
             renderRoom(server, room);
+            loadCursor();
 
             sprintf(temp_buffer, " > Inizio Nuova Partita.");
             addMessage(room, temp_buffer);
@@ -280,12 +281,11 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
 
             if(incoming != NULL) {
                 strncpy(room->secret_word, incoming, sizeof(room->secret_word));
-                room->secret_word[MAXWORDLENGTH] = '\0';
+                room->secret_word[(MAXWORDLENGTH*3)-1] = '\0';
                 updateWord(room);
             }
-
             sprintf(temp_buffer, GRN " > Giro concluso. Nuova lettera rivelata." DFT);
-            addMessage(room, incoming);
+            addMessage(room, temp_buffer);
             slideMessages(room);
 
             contacted_sd = *prompt->sd;
