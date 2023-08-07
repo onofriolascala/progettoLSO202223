@@ -133,6 +133,9 @@ void* thrRoom(void* arg) {
                 if(add_hint_flag){
                     addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
                     add_hint_flag = 0;
+                    for(i = 1; i < nfds; i++){
+                            writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                    }
                 }
 
                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
@@ -244,26 +247,7 @@ void* thrRoom(void* arg) {
                             printf("\t\t\t\tDEBUG_STANZAID_%d: <Disconnessione> %d:%s\n", ID, signal_num, incoming);
                             /* game logic */
                             //if the player was the current player and disconnects we need to assign a new player
-                            if( suzerain == player ){
-                                next_turn = 1;
-                                moveSuzerainTurn(&suzerain,suzerain->next);
-                                //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
-                                //gameOver?
-                            }
-                            if( current_player == player ){
-                                movePlayerTurn(&current_player,suzerain,&add_hint_flag);
-                                if(add_hint_flag){
-                                    addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
-                                    add_hint_flag = 0;
-                                }
-                                if(current_player == player){   //caso in cui ci sono 2 giocatori nella stanza
-                                    current_player = NULL;
-                                }
-                                else {
-                                    usleep(REFRESHCONSTANT);
-                                    writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
-                                }
-                            }
+
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
                             this_room->player_num--;
                             close_conn = 1;
@@ -358,6 +342,9 @@ void* thrRoom(void* arg) {
                                     if(add_hint_flag){
                                         addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
                                         add_hint_flag = 0;
+                                        for(i = 1; i < nfds; i++){
+                                            writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                                        }
                                     }
                                     writeToClient(current_player->player_socket,S_YOURTURN,S_YOURTURN_MSG);
                                     printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with %d socket.\n", ID, current_player->username, current_player->player_socket);
@@ -373,6 +360,9 @@ void* thrRoom(void* arg) {
                                 if(add_hint_flag){
                                     addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
                                     add_hint_flag = 0;
+                                    for(i = 1; i < nfds; i++){
+                                        writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                                    }
                                 }
                                 writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                             }
@@ -383,26 +373,6 @@ void* thrRoom(void* arg) {
                             // Riavvio del threadService
                             rebuildService(player, room_list, db_connection);
 
-                            if( current_player == player ){
-                                movePlayerTurn(&current_player,suzerain,&add_hint_flag);
-                                if(add_hint_flag){
-                                    addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
-                                    add_hint_flag = 0;
-                                }
-                                if(current_player == player){   //caso in cui ci sono 2 giocatori nella stanza
-                                    current_player = NULL;
-                                }
-                                else {
-                                    usleep(REFRESHCONSTANT);
-                                    writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
-                                }
-                            }
-                            if( suzerain == player ){
-                                next_turn = 1;
-                                moveSuzerainTurn(&suzerain,suzerain->next);
-                                //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
-                                //gameOver?
-                            }
 
                             writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
 
@@ -432,6 +402,30 @@ void* thrRoom(void* arg) {
                         }
                         if( nfds == 2){
                             next_turn = 1;
+                        }
+
+                        if( suzerain == player ){
+                            next_turn = 1;
+                            moveSuzerainTurn(&suzerain,suzerain->next);
+                            //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
+                            //gameOver?
+                        }
+                        if( current_player == player ){
+                            movePlayerTurn(&current_player,suzerain,&add_hint_flag);
+                            if(add_hint_flag){
+                                addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
+                                add_hint_flag = 0;
+                                for(i = 1; i < nfds; i++){
+                                    writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                                }
+                            }
+                            if(current_player == player){   //caso in cui ci sono 2 giocatori nella stanza
+                                current_player = NULL;
+                            }
+                            else {
+                                usleep(REFRESHCONSTANT);
+                                writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
+                            }
                         }
 
                         getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
