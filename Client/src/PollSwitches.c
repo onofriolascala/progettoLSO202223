@@ -215,8 +215,8 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             room->turn_flag = 1;
 
             contacted_sd = *prompt->sd;
-            signal_num = C_PAUSE;
-            strcpy(incoming, "C_PAUSE");
+            signal_num = C_GUESSSKIP;
+            strcpy(incoming, "Your turn");
 
             break;
         case S_CHOOSEWORD:

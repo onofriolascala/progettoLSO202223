@@ -152,6 +152,7 @@ int main() {
         memset(prompt->log_str, '\0', sizeof(prompt->log_str));
 
         rc = poll(fds, num_fds, timeout);
+        //usleep(REFRESHCONSTANT);
 
         // Errore del poll
         if( rc < 0 ) {

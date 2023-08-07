@@ -141,6 +141,7 @@ void* thrPrompt(void* arg) {
                 outgoing[strcspn(outgoing, "\n")] = '\0';
                 writeToServer(main_socket, signal_num, outgoing);
         }
+        sleep(1);
         prompt_mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
     } while (prompt_mode != 0);
 
@@ -390,26 +391,26 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
     do {
         end_loop = 1;
 
-        usleep(REFRESHCONSTANT);
+        //usleep(REFRESHCONSTANT);
 
         result = promptExitKey(prompt, room, temp_buffer);
 
-        resetCursor();
         clearLine();
         carriageReturn();
+        resetCursor();
 
         usleep(REFRESHCONSTANT);
 
         switch (result) {
             // Exit Room
             case 1:
-                up(1);
                 clearLine();
                 carriageReturn();
                 printf(" ");
                 inputComfirmation();
                 if (promptConfirmation(prompt)) {
                     result = 0;
+                    end_loop = 1;
                 } else {
                     end_loop = 0;
                     clearLine();
