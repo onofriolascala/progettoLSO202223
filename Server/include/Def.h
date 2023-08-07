@@ -42,7 +42,7 @@
 
 // Costanti per il file delle parole
 #define MAXWORDSINFILE 100
-#define WORDSFILEPATH "../media/words.txt"
+#define WORDSFILEPATH "../Server/media/words.txt"
 
 // Numero di refresh massimi consentiti
 #define MAXREFRESHCONSTANT 100

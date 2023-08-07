@@ -84,7 +84,7 @@ void* thrRoom(void* arg) {
 
     while( !close_room ){
         /* inizio di un nuovo turno*/
-
+        memset(hidden_word,'\0',sizeof(hidden_word));
         start_t = clock();
         total_t = 0;
         next_turn = 0;
@@ -205,7 +205,7 @@ void* thrRoom(void* arg) {
                             printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with socket %d.\n", ID, new_player->username, new_player_fd);
                         }
 
-                        getRoomInfo(suzerain, this_room->id, this_room->player_num, words[selected_word], outgoing);
+                        getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
 
                         writeToClient(new_local_sd, S_OK, S_OK_MSG);
                         writeToClient(new_player_fd, S_ROOMOK, outgoing);
@@ -312,7 +312,7 @@ void* thrRoom(void* arg) {
                                 generateUnveilingSequence(unveiling_sequence,selected_word_len);
                                 addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
 
-                                getRoomInfo(suzerain, this_room->id, this_room->player_num, words[selected_word], outgoing);
+                                getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
 
                                 for(z = 1; z < nfds; z++) {
                                     writeToClient(fds[z].fd, S_NEWGAME, outgoing );
@@ -434,7 +434,7 @@ void* thrRoom(void* arg) {
                             next_turn = 1;
                         }
 
-                        getRoomInfo(suzerain, this_room->id, this_room->player_num, words[selected_word], outgoing);
+                        getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
 
 
                         for(i = 1; i < nfds; i++){
