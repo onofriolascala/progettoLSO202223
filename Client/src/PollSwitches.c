@@ -206,11 +206,13 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // aggiornato di conseguenza.
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <Your Turn> %d:%s\n", signal_num, incoming);
 
+            prePromptTryGuess();
+
             room->turn_flag = 1;
 
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
             break;
         case S_CHOOSEWORD:
             // Il server chiede al client di restituirgli il numero di una delle parole indicate.
@@ -224,8 +226,8 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             room->turn_flag = 2;
 
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
             break;
         case S_NEWGAME:
             // Il server comunica l'avvio di una nuova partita.
@@ -244,8 +246,8 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             prePromptExit();
 
             contacted_sd = *prompt->sd;
-            signal_num = C_GUESSSKIP;
-            strcpy(incoming, "C_GUESSSKIP");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
             break;
         case S_PLAYERUPDATE:
             // Il server comunica un aggiornamento relativo ai giocatori in partita

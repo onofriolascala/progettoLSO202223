@@ -119,10 +119,12 @@ void* thrPrompt(void* arg) {
                     // GUESSSKIP
                 else if(result == 1) {
                     writeToServer(main_socket, C_GUESSSKIP, outgoing);
+                    continue;
                 }
                     // SELECTWORD
                 else if(result == 2) {
                     writeToServer(main_socket, C_SELECTWORD, outgoing);
+                    continue;
                 }
                     // Errore
                 else {
@@ -391,18 +393,6 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
     do {
         end_loop = 1;
 
-        if(room->turn_flag == 2) {
-            prePromptChooseWord();
-        }
-        else if (room->turn_flag == 1){
-            prePromptTryGuess();
-        }
-        else {
-            prePromptExit();
-        }
-        usleep(2000);
-        resetCursor();
-
         result = promptExitKey(prompt, room, temp_buffer);
 
         if(room->turn_flag == 2) {
@@ -415,9 +405,9 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
             prePromptExit();
         }
 
-        //gotoxyCursor(V_OFFSET_PROMPT+1, 0);
-        //clearLine();
-        //resetCursor();
+        gotoxyCursor(V_OFFSET_PROMPT+1, 0);
+        clearLine();
+        resetCursor();
 
         switch (result) {
             case -1:
