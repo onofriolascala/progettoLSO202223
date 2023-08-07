@@ -118,7 +118,7 @@ void* thrRoom(void* arg) {
 
             rc = poll(fds, nfds, timeout);
 
-            //memset(incoming,'\0',sizeof (incoming));
+            memset(incoming,'\0',sizeof (incoming));
 
             if( rc < 0 ){
                 //poll fallita, errore critico quindi chiudo stanza
