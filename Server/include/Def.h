@@ -95,6 +95,9 @@
 #define S_PLAYERUPDATE 67
 #define S_PLAYERUPDATE_MSG
 
+#define S_NEWHINT 68
+#define S_NEWHINT_MSG "Viene dispensato un indizio sulla parola"
+
 #define S_FULLROOM 70       // La stanza è piena
 #define S_FULLROOM_MSG "La stanza è piena."
 
