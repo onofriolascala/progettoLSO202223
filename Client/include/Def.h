@@ -44,7 +44,7 @@
 // Costanti per le strutture.
 #define MAXPLAYERS 8
 #define MAXWORDLENGTH 32
-#define MAXWORDS 100
+#define MAXWORDSINFILE 100
 
 // Numero di microsecondi degli usleep().
 #define REFRESHCONSTANT 30000

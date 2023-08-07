@@ -31,7 +31,7 @@ void generateUnveilingSequence(int sequence[], int wordLength){
 //::DEBUG::
 void playedWord(char word[]){
     int len;
-    char blank[]="___________________";
+    char blank[]="___________________________________________-";
     len=strlen(word);
     blank[len]='\0';
     printf("%s \n", blank);
@@ -80,29 +80,16 @@ void randomSCT(int array[], int j, int range){
 Questa funzione si occupa della generazione di tre parole selezionate in modo randomico dal file words.txt, genera tre valori random nel range del numero delle parole presenti nel file words.txt tramite la funzione randomSCT e li estrae dal file tramite la funzione pick.
 Infine li inserisce nelle due variabili di output words e outgoing
 */
-void randomWords(char words[3][MAXWORDLENGTH], char outgoing[]){
+void generateRandomWords(char words[3][MAXWORDLENGTH]){
     int i=0;
     int array[3]={0};
-    randomSCT(array, 3, MAXWORDS);
-    char word[300];
-    strcat(outgoing, "1)");
-    while (i<3){
-        strcpy(word, "");
+    randomSCT(array, 3, MAXWORDSINFILE);
+    char word[MAXWORDLENGTH];
+    for(i=0;i < 3;i++){
+        memset(word,'\0',sizeof(word));
         pick(word, array[i]);
         strcpy(words[i],word);
-        strcat(outgoing, word);
-        i++;
-        if(i<3){
-            if(i == 1)
-                strcat(outgoing, " 2)");
-            else if(i == 2)
-                strcat(outgoing, " 3)");
-        }
-        else{
-            strcat(outgoing, "\0");
-        }
     }
-    return;
 }
 /*
 Questa funzione si occupa di estrarre la parola n-esima dal file delle parole words.txt, per farlo la funzione prende in input la parola
@@ -114,7 +101,7 @@ void pick(char buff[],int n){
     char* newline="\n";
     fflush(stdout);
     //char buff[BUFFSIZE]="";
-    if((fd = open("../media/words.txt", O_RDONLY, NULL))<0) {
+    if((fd = open(WORDSFILEPATH, O_RDONLY, NULL))<0) {
         perror(":OPEN ERROR:");
     }
     while(n>=0){
