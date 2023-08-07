@@ -118,6 +118,8 @@ void* thrRoom(void* arg) {
 
             rc = poll(fds, nfds, timeout);
 
+            //memset(incoming,'\0',sizeof (incoming));
+
             if( rc < 0 ){
                 //poll fallita, errore critico quindi chiudo stanza
                 perror("poll failed");
@@ -228,12 +230,15 @@ void* thrRoom(void* arg) {
                     player = getPlayer(this_room->player_list, fds[i].fd);
                     switch (signal_num) {
                         case -1:
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: <SIGNAL_NUM A -1> \n", ID);
                             //EWOULDBLOCK ERROR
                             break;
                         case -2:
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: <SIGNAL_NUM A -2> \n", ID);
                             close_conn = 1;
                             break;
                         case -3:
+                            printf("\t\t\t\tDEBUG_STANZAID_%d: <SIGNAL_NUM A -3> \n", ID);
                             //ERROR DIFFERENT FROM EWOULDBLOCK
                             close_conn = 1;
                             break;
@@ -360,11 +365,13 @@ void* thrRoom(void* arg) {
                                 //for(i = 0; i< nfds; i++) writeToClient(fds[i].fd, S_NEW_GAME, S_NEW_GAME_MESSAGE);
                                 //gameOver?
                             }
+
+                            writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
+
                             destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
                             this_room->player_num--;
                             close_conn = 1;
 
-                            writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
                             break;
                         default:
                             printf("\t\t\t\tDEBUG_STANZAID_%d: <ERRORE> %d: Codice di comunicazione non riconosciuto.\n", ID, signal_num);

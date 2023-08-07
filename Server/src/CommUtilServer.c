@@ -44,7 +44,8 @@ int writeToClient(int sd, int signal_num, char outgoing[]) {
             return_value = -2;
         }
     }
-    //printf("\t\tDEBUG_SD%d: writing end %s\n", sd, finalmessage);
+    printf("\t\tDEBUG_SD%d: writing end %s\n", sd, finalmessage);
+    fflush(stdout);
     return return_value;
 }
 
@@ -104,6 +105,7 @@ int readFromClient(int sd, char incoming[], int max_len){
         fprintf(stderr, ":READ ERROR: null signal or message arguments detected.\n");
     }
 
-    //printf("\t\tDEBUG_SD%d: reading endvalue %d %s\n", sd, signal_num, incoming);
+    printf("\t\tDEBUG_SD%d: reading endvalue %d %s\n", sd, signal_num, incoming);
+    fflush(stdout);
     return signal_num;
 }
