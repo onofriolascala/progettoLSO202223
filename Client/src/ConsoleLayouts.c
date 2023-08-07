@@ -300,7 +300,7 @@ void slideMessages(struct room_struct *room) {
     gotoxyCursor(V_OFFSET_SAVEDMSG + i, 0);
     clearLine();
     if(room != NULL) {
-        printf(BLK "%s" DFT, room->saved_messages[++i]);
+        printf(BLK "%s" DFT, room->saved_messages[i]);
     }
     i++;
     gotoxyCursor(V_OFFSET_SAVEDMSG + i, 0);
