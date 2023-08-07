@@ -37,9 +37,9 @@
 
 #define MAXCOMMBUFFER 1024
 #define MAXSIGNALBUF 2
-#define MAXSAVEDMESSAGES 5
+#define MAXSAVEDMESSAGES 6
 
-#define EXITKEY 27
+#define EXITKEY 33
 
 // Costanti per le strutture.
 #define MAXPLAYERS 8

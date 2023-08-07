@@ -289,18 +289,12 @@ void renderRoom(struct server_connection *server, struct room_struct *room) {
 void slideMessages(struct room_struct *room) {
     int i;
     saveCursor();
-    for(i = 0; i < MAXSAVEDMESSAGES - 1; i++)  {
+    for(i = 0; i < MAXSAVEDMESSAGES; i++)  {
         gotoxyCursor(V_OFFSET_SAVEDMSG+i, 0);
         clearLine();
         if(room != NULL) {
             printf("%s", room->saved_messages[i]);
         }
-    }
-    i++;
-    gotoxyCursor(V_OFFSET_SAVEDMSG + i, 0);
-    clearLine();
-    if(room != NULL) {
-        printf(BLK "%s" DFT, room->saved_messages[i]);
     }
     i++;
     gotoxyCursor(V_OFFSET_SAVEDMSG + i, 0);

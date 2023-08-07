@@ -393,6 +393,16 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
     do {
         end_loop = 1;
 
+        if(room->turn_flag == 2) {
+            prePromptChooseWord();
+        }
+        else if (room->turn_flag == 1){
+            prePromptTryGuess();
+        }
+        else {
+            prePromptExit();
+        }
+
         result = promptExitKey(prompt, room, temp_buffer);
 
         if(room->turn_flag == 2) {
@@ -578,7 +588,7 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
-    if (temp_buffer[0] == 33 && temp_buffer[1] == '\0') {
+    if (temp_buffer[0] == EXITKEY && temp_buffer[1] == '\0') {
         result = 0;
     }
     else if (room->turn_flag == 1) {
