@@ -397,6 +397,9 @@ void* thrRoom(void* arg) {
                             next_turn = 1;
                         }
 
+                        destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
+                        this_room->player_num--;
+
                         if( suzerain == player ){
                             next_turn = 1;
                             moveSuzerainTurn(&suzerain,suzerain->next);
@@ -421,8 +424,6 @@ void* thrRoom(void* arg) {
                             }
                         }
 
-                        destroyPlayerNode(removePlayerNode(&this_room->player_list, player->player_socket));
-                        this_room->player_num--;
 
                         getRoomInfo(suzerain, this_room->id, this_room->player_num, hidden_word, outgoing);
 
