@@ -60,20 +60,38 @@
 #define SCR "\033[2J"
 #define LIN "\033[2K"
 
-#define MAXLINEWIDTH 100
-#define SIDEOFFSET 5
+// Costanti della console
+#define MAXCOLUMNHEIGHT    (27+(MAXPLAYERS/2)+MAXSAVEDMESSAGES)
+#define MAXLINEWIDTH       100
+#define SIDEOFFSET         5
+
+#define V_OFFSET_LOGO      0
+#define V_OFFSET_HEADER    12
+#define V_OFFSET_IP        14
+#define V_OFFSET_USERNAME  15
+#define V_OFFSET_SUZERAIN  17
+#define V_OFFSET_PLAYERS   18
+#define V_OFFSET_WORD      (20+(MAXPLAYERS/2))
+#define V_OFFSET_PROMPT    (24+(MAXPLAYERS/2))  // -1 per PRE-PROMPT, +1 per POST-PROMPT
+#define V_OFFSET_SAVEDMSG  (26+(MAXPLAYERS/2))  // Continua fino a +MAXSAVEDMESSAGES, +MAXSAVEDMESSAGES+1 E' la chiusura
+
+#define H_OFFSET_SUZERAIN  23
+#define H_OFFSET_PLAYERNUM 17
+#define H_OFFSET_PLAYEREVN 23
+#define H_OFFSET_PLAYERODD 56
+#define H_OFFSET_WORD  7
 
 // Funzione di pulizia della console. Da usare solo al passaggio da una schermata all'altra.
 void emptyConsole(void);
 
 // Funzioni di stampa dei vari input.
-void inputGeneric(int input);
-void inputAddress(void);
-void inputPort(void);
-void inputUsername(void);
-void inputPassword(void);
-void inputRoom(void);
-void inputComfirmation(void);
+void promptGenericChoiceMSG(int input);
+void promptIPAddressMSG(void);
+void promptPortMSG(void);
+void promptUsernameMSG(void);
+void promptPasswordMSG(void);
+void promptRoomIDMSG(void);
+void promptConfirmationMSG(void);
 
 // Funzioni di stampa formattata delle singole righe
 void centerText(char *text, int fieldwidth);
@@ -91,16 +109,16 @@ void renderRoom(struct server_connection *server, struct room_struct *room);
 
 // Funzioni di aggiornamento dei singoli campi della stanza
 void slideMessages(struct room_struct *room);
-void clearMessages(void);
+void clearMessages(struct room_struct *room);
 void updatePlayer(struct room_struct *room, int position);
 void updatePlayerNumber(struct room_struct *room);
 void updateWord(struct room_struct *room);
 void updateSuzerain(struct room_struct *room);
 void updateVictory(void);
 void updateDefeat(void);
-void tryGuess(void);
-void exitMessage(void);
-void selectWord(void);
+void prePromptTryGuess(void);
+void prePromptExit(void);
+void prePromptChooseWord(void);
 void resetCursor(void);
 
 #endif //PROGETTOLSO202223_CONSOLELAYOUTS_H

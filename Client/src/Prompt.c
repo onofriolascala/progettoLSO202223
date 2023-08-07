@@ -189,7 +189,7 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
     green();
     printf("Attivare la connessione di debug? (192.168.1.139:5200)\n");
     defaultFormat();
-    inputComfirmation();
+    promptConfirmationMSG();
     if(promptConfirmation(prompt)) {
         printf("Connessione a "
                "192.168.1.139:5200\n");
@@ -208,7 +208,7 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
 
     usleep(REFRESHCONSTANT);
 
-    inputAddress();
+    promptIPAddressMSG();
     if ((result = promptString(prompt, temp_buffer, MAXIP)) < 0) return result;
 
     usleep(REFRESHCONSTANT);
@@ -218,7 +218,7 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
 
-    inputPort();
+    promptPortMSG();
     if ((result = promptString(prompt, temp_buffer, MAXPORT)) < 0) return result;
 
     usleep(REFRESHCONSTANT);
@@ -244,7 +244,7 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
         switch (result) {
             // Disconnessione
             case 0:
-                inputComfirmation();
+                promptConfirmationMSG();
                 if (promptConfirmation(prompt)) {
                     result = 0;
                 } else {
@@ -263,7 +263,7 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                 green();
                 printf("Attivare l'accesso di debug?\n");
                 defaultFormat();
-                inputComfirmation();
+                promptConfirmationMSG();
                 if (promptConfirmation(prompt)) {
                     printf("Accesso come "
                            "\"Utente01\" con password \"password01\".\n");
@@ -279,7 +279,7 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                     fflush(stdout);
                 }
 
-                inputUsername();
+                promptUsernameMSG();
                 if ((result = promptString(prompt, temp_buffer, USERNAMELENGTH)) < 0) return result;
 
                 strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
@@ -287,7 +287,7 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
 
                 memset(temp_buffer, '\0', sizeof(temp_buffer));
 
-                inputPassword();
+                promptPasswordMSG();
                 if ((result = promptString(prompt, temp_buffer, PASSWORDLENGTH)) < 0) return result;
 
                 strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
@@ -298,7 +298,7 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                 // Signin
             case 2:
                 printf("\n");
-                inputUsername();
+                promptUsernameMSG();
                 if ((result = promptString(prompt, temp_buffer, USERNAMELENGTH)) < 0) return result;
 
                 strncat(outgoing, temp_buffer, USERNAMELENGTH + 1);
@@ -306,7 +306,7 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
 
                 memset(temp_buffer, '\0', sizeof(temp_buffer));
 
-                inputPassword();
+                promptPasswordMSG();
                 if ((result = promptString(prompt, temp_buffer, PASSWORDLENGTH)) < 0) return result;
 
                 strncat(outgoing, temp_buffer, PASSWORDLENGTH + 1);
@@ -338,7 +338,7 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
         switch (result) {
             // Logout
             case 0:
-                inputComfirmation();
+                promptConfirmationMSG();
                 if (promptConfirmation(prompt)) {
                     result = 0;
                 } else {
@@ -358,7 +358,7 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
             case 2:
                 printf("\n");
 
-                inputRoom();
+                promptRoomIDMSG();
                 result = promptInteger(prompt);
                 if (result == 0) {
                     end_loop = 0;
@@ -382,6 +382,7 @@ int promptHomepage(struct prompt_thread *prompt, char outgoing[]) {
     return result;
 }
 
+// Restituisce 0 in caso di C_EXIT, 1 in caso di C_TRYGUESS, 2 in caso di C_CHOOSEWORD
 int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outgoing[]) {
     char temp_buffer[USERNAMELENGTH];
     char *endp;
@@ -390,89 +391,73 @@ int promptRoom(struct prompt_thread *prompt, struct room_struct *room, char outg
     do {
         end_loop = 1;
 
-        //usleep(REFRESHCONSTANT);
+        if(room->turn_flag == 2) {
+            prePromptChooseWord();
+        }
+        else if (room->turn_flag == 1){
+            prePromptTryGuess();
+        }
+        else {
+            prePromptExit();
+        }
+        resetCursor();
 
         result = promptExitKey(prompt, room, temp_buffer);
 
+        gotoxyCursor(V_OFFSET_PROMPT+1, 0);
         clearLine();
-        carriageReturn();
         resetCursor();
 
-        usleep(REFRESHCONSTANT);
-
         switch (result) {
-            // Exit Room
-            case 1:
+            case -1:
+                // Wrong key
+                end_loop = 0;
+                break;
+            case 0:
+                // Exit Room
+                gotoxyCursor(V_OFFSET_PROMPT, 0);
                 clearLine();
                 carriageReturn();
                 printf(" ");
-                inputComfirmation();
+                promptConfirmationMSG();
                 if (promptConfirmation(prompt)) {
                     result = 0;
                     end_loop = 1;
                 } else {
                     end_loop = 0;
-                    clearLine();
-                    carriageReturn();
-                    up(1);
-                    clearLine();
-                    carriageReturn();
+                    resetCursor();
                 }
                 break;
-            // Guess Mode
-            case 2:
-                //if ((result = promptString(prompt, temp_buffer, MAXWORDLENGTH)) < 0) return result;
-
+            case 1:
+                // TryGuess mode
                 strncpy(outgoing, temp_buffer, MAXWORDLENGTH + 1);
-                //strncat(outgoing, ";", 2);
-                exitMessage();
-
+                prePromptExit();
                 result = 1;
                 break;
-            // Choose Word Mode
-            case 3:
-                //if ((result = promptString(prompt, temp_buffer, MAXWORDLENGTH)) < 0) return result;
-
+            case 2:
+                // Choose Word Mode
                 if(temp_buffer[0] == 0) {
-                    down(1);
+                    gotoxyCursor(V_OFFSET_PROMPT+1, 0);
                     clearLine();
                     carriageReturn();
-                    printWarning(prompt, "Inserire un valore.");
-                    memset(temp_buffer, '\0', sizeof(temp_buffer));
+                    printWarning(prompt, " Inserire un valore.");
                     end_loop = 0;
-                    result = 0;
                     resetCursor();
                 }
                 else {
                     result = strtol(temp_buffer, &endp, 10);
                     if (temp_buffer == endp || *endp != '\0') {
-                        down(1);
+                        gotoxyCursor(V_OFFSET_PROMPT+1, 0);
                         clearLine();
                         carriageReturn();
-                        printWarning(prompt, "Inserire un valore numerico.");
+                        printWarning(prompt, " Inserire un valore numerico.");
                         end_loop = 0;
-                        result = 0;
                     } else {
                         strncpy(outgoing, temp_buffer, MAXWORDLENGTH + 1);
-                        //strncat(outgoing, ";", 2);
                         result = 2;
-                        exitMessage();
+                        prePromptExit();
                     }
                     resetCursor();
-                    memset(temp_buffer, '\0', sizeof(temp_buffer));
-                }
-                break;
-            // Wrong Key
-            case 0:
-                end_loop = 0;
-                if(room->turn_flag == 2) {
-                    selectWord();
-                }
-                else if (room->turn_flag == 1){
-                    tryGuess();
-                }
-                else {
-                    exitMessage();
                 }
                 break;
             default:
@@ -519,7 +504,7 @@ int promptSelection(struct prompt_thread *prompt, char max_select) {
     char c = 3;
     do {
         memset(temp_buffer, '\0', sizeof(temp_buffer));
-        inputGeneric((max_select - '0') + 1);
+        promptGenericChoiceMSG((max_select - '0') + 1);
         if(promptString(prompt, temp_buffer, USERNAMELENGTH) < 0) return -1;
         if(temp_buffer[0] == 0) {
             printWarning(prompt, "Inserire un valore.\n");
@@ -562,6 +547,8 @@ int promptInteger(struct prompt_thread *prompt) {
     return result;
 }
 
+// La funzione attende una conferma Y/y da parte dell'utente. Restituisce -1 in caso di errore,
+// 1 in caso di conferma, 0 altrimenti.
 int promptConfirmation(struct prompt_thread *prompt) {
     char temp_buffer[MAXCOMMBUFFER];
     int result;
@@ -579,26 +566,26 @@ int promptConfirmation(struct prompt_thread *prompt) {
 
 // La funzione resta in attesa o della hotkey d'uscita o, se la flag del turno è attiva, la
 // conferma richiesta all'attivazione del prompt.
-// Restituisce 0 se la stringa non corrisponde alla chiave d'uscita, 1 se corrisponde,
-// 2 se non corrisponde ma è il turno dell'utente.
+// Restituisce -1 se la stringa non corrisponde alla chiave d'uscita, 0 se corrisponde,
+// 1 se non corrisponde ma è il turno dell'utente, se non corrisponde ma l'utente deve scegliere una parola
 int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *buffer) {
     char temp_buffer[MAXCOMMBUFFER];
     int result;
 
-    result = 0;
+    result = -1;
 
     memset(temp_buffer, '\0', sizeof(temp_buffer));
     if(promptString(prompt, temp_buffer, MAXCOMMBUFFER) < 0) return result;
     if(temp_buffer[0] == 33 && temp_buffer[1] == '\0') {
-        result = 1;
+        result = 0;
     }
     else if (room->turn_flag == 1) {
         strncpy(buffer, temp_buffer, MAXWORDLENGTH-1);
-        result = 2;
+        result = 1;
     }
     else if (room->turn_flag == 2) {
         strncpy(buffer, temp_buffer, MAXWORDLENGTH-1);
-        result = 3;
+        result = 2;
     }
 
     return result;
