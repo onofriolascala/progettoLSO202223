@@ -93,6 +93,9 @@ void* thrRoom(void* arg) {
         add_hint_flag = 0;
         word_is_sent = 0;
         generateRandomWords(words);
+        if(current_player != NULL){
+            writeToClient(current_player->player_socket, S_NOTYOURTURN, S_NOTYOURTURN_MSG);
+        }
 
         do{
             printf("\t\t\t\tDEBUG_STANZAID_%d: Waiting on poll function...\n", ID);
