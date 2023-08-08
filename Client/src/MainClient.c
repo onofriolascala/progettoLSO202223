@@ -45,7 +45,7 @@ int main() {
     char buffer[MAXCOMMBUFFER]; // ????
     int timeout, rc = 0;
     int num_fds, new_local_sd, usr_sd, current_size, i, j, signal_code;
-    int end_loop, close_conn;
+    int end_poll_loop, close_conn;
 
     // Dichiarazione delle strutture che conterranno le informazioni relative alla connessione ed alla stanza.
     struct server_connection server;
@@ -100,7 +100,7 @@ int main() {
     }
 
     // Inizializzazioni poll
-    end_loop = 0;
+    end_poll_loop = 0;
     current_size = 0;
     signal_num = 2;
 
@@ -142,59 +142,63 @@ int main() {
     memset(server.connected_user, '\0', sizeof(server.connected_user));
 
     //              MAIN CLIENT LOOP                //
+    //do {
 
-    do {
-        writeToLog(*prompt->log, "MAIN: Waiting on poll function...\n");
-        fflush(stdout);
+        //                  POLL LOOP                   //
 
-        memset(incoming, '\0', sizeof(incoming));
-        memset(outgoing, '\0', sizeof(outgoing));
-        memset(prompt->log_str, '\0', sizeof(prompt->log_str));
+        do {
+            writeToLog(*prompt->log, "MAIN: Waiting on poll function...\n");
+            fflush(stdout);
 
-        rc = poll(fds, num_fds, timeout);
-        //usleep(REFRESHCONSTANT);
+            memset(incoming, '\0', sizeof(incoming));
+            memset(outgoing, '\0', sizeof(outgoing));
+            memset(prompt->log_str, '\0', sizeof(prompt->log_str));
 
-        // Errore del poll
-        if( rc < 0 ) {
-            printError(prompt, ECRITICALCLIENT, ":POLL ERROR", errno);
-            break;
-        }
-        // Timeout
-        if( rc == 0 ) {
-            printWarning(prompt, "\n!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio.\n");
-            // RIAVVIO CONNESSIONE
-            switchServer(&server, &room, prompt, S_DISCONNECT, "C_DISCONNECT");
-            continue;
-        }
-        for(i = 0; i < num_fds; i++){
-            // Socket dormiente
-            if(fds[i].revents == 0){
-                writeToLog(*prompt->log, "MAIN: poll continued.\n");
-                continue;
-            }
-            // Valore non atteso.
-            if(fds[i].revents != POLLIN){
-                sprintf(prompt->log_str, ":REVENTS ERROR: fds[%d].revents = %d\n", i, fds[i].revents);
-                printError(prompt, ECRITICALCLIENT, prompt->log_str, errno);
-                end_loop = 1;
+            rc = poll(fds, num_fds, timeout);
+            //usleep(REFRESHCONSTANT);
+
+            // Errore del poll
+            if (rc < 0) {
+                printError(prompt, ECRITICALCLIENT, ":POLL ERROR", errno);
                 break;
             }
-            // Socket del prompt
-            if(fds[i].fd == *prompt->sd) {
-                signal_num = readFromServer(*prompt->sd, incoming, MAXCOMMBUFFER);
-                sprintf(prompt->log_str, "MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
-                writeToLog(*prompt->log, prompt->log_str);
-                end_loop = switchPrompt(&server, &room, prompt, signal_num, incoming);
+            // Timeout
+            if (rc == 0) {
+                printWarning(prompt, "\n!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio.\n");
+                // RIAVVIO CONNESSIONE
+                switchServer(&server, &room, prompt, S_DISCONNECT, "C_DISCONNECT");
+                continue;
             }
-            // Socket del server
-            else {
-                signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
-                sprintf(prompt->log_str, "MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);
-                writeToLog(*prompt->log, prompt->log_str);
-                end_loop = switchServer(&server, &room, prompt, signal_num, incoming);
+            for (i = 0; i < num_fds; i++) {
+                // Socket dormiente
+                if (fds[i].revents == 0) {
+                    writeToLog(*prompt->log, "MAIN: poll continued.\n");
+                    continue;
+                }
+                // Valore non atteso.
+                if (fds[i].revents != POLLIN) {
+                    sprintf(prompt->log_str, ":REVENTS ERROR: fds[%d].revents = %d\n", i, fds[i].revents);
+                    printError(prompt, ECRITICALCLIENT, prompt->log_str, errno);
+                    end_poll_loop = 1;
+                    break;
+                }
+                // Socket del prompt
+                if (fds[i].fd == *prompt->sd) {
+                    signal_num = readFromServer(*prompt->sd, incoming, MAXCOMMBUFFER);
+                    sprintf(prompt->log_str, "MAIN: <Prompt> \"%d\" \"%s\".\n", signal_num, incoming);
+                    writeToLog(*prompt->log, prompt->log_str);
+                    end_poll_loop = switchPrompt(&server, &room, prompt, signal_num, incoming);
+                }
+                    // Socket del server
+                else {
+                    signal_num = readFromServer(fds[1].fd, incoming, MAXCOMMBUFFER);
+                    sprintf(prompt->log_str, "MAIN: <Server> \"%d\" \"%s\".\n", signal_num, incoming);
+                    writeToLog(*prompt->log, prompt->log_str);
+                    end_poll_loop = switchServer(&server, &room, prompt, signal_num, incoming);
+                }
             }
-        }
-    } while( !end_loop );
+        } while (!end_poll_loop);
+    //} while (!end_main_loop);
 
     writeToLog(*prompt->log, "Terminazione processo client.\n\n\t\t\t END CLIENT.\n");
     deleteLocalSocket(prompt);

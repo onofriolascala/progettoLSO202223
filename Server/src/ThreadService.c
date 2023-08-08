@@ -36,17 +36,18 @@ void* thrService(void* arg) {
 
     // La flag, condivisa da main e service appena creato, opera come un single-use mutex legato alla risorsa.
     (*(struct service_arg*)arg).flag = 1;
-    printf("\t\tSERVICE_SD%d: initialized with socket value of \"%d\", and player value of \"%s\".\n", sd, sd, username);
+    printf("SERVICE_SD%d: initialized with socket value of \"%d\", and player value of \"%s\".\n", sd, sd, username);
     fflush(stdout);
 
     if (username[0] == '\0') {
         signal_num = 2;
         writeToClient(sd, S_LOGINOK, S_LOGINOK_MSG);
-        //printf("\t\tDEBUG_SD%d: mode new thread.\n", sd);
+        printf("SERVICE_SD%d: new thread.\n", sd);
     }
     else {
         signal_num = S_HOMEPAGEOK;
-        //printf("\t\tDEBUG_SD%d: mode rebuilt thread.\n", sd);
+        writeToClient(sd, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
+        printf("SERVICE_SD%d: rebuilt thread.\n", sd);
     }
 
     while(signal_num > 1) {
@@ -192,7 +193,15 @@ void* thrService(void* arg) {
                     printf("\t\tDEBUG_SD%d: <Logout successful. New player username is \"%s\">\n", sd, username);
                     writeToClient(sd, signal_num, "Nuovo Login");
                     break;
-                case C_SELECTWORD: case C_GUESSSKIP: case C_EXITROOM:
+                case C_EXITROOM:
+                    //printf("\t\tDEBUG_SD%d: <Logout>\n", sd);
+                    strcpy(username, "\0");
+                    signal_num = S_LOGINOK;
+                    printf("\t\tDEBUG_SD%d: <Stuck player detected> \"%s\" is blocked inside a room. Sending exit signal.\n", sd, username);
+                    writeToClient(sd, signal_num, "Exit Permitted");
+                    break;
+                    break;
+                case C_SELECTWORD: case C_GUESSSKIP:
                     writeToClient(sd, S_NOPERMISSION, S_NOPERMISSION_MSG);
                     break;
                 default:
@@ -210,7 +219,7 @@ void* thrService(void* arg) {
      * il nodo giocatore e chiudere la socket. */
 
     close(sd);
-    printf("\t\tSERVICE_SD%d: service thread has been closed.\n", sd);
+    printf("SERVICE_SD%d: service thread has ended.\n", sd);
     fflush(stdout);
     return 0;
 }

@@ -5,7 +5,7 @@
 #include "../include/Prompt.h"
 
 void* thrPrompt(void* arg) {
-    int main_socket, signal_num, prompt_mode, last_mode, result;
+    int main_socket, signal_num, prompt_mode, last_mode, result, sock_status;
     char incoming[MAXCOMMBUFFER], outgoing[MAXCOMMBUFFER], tempbuffer[MAXCOMMBUFFER];
 
     struct prompt_thread *prompt;
@@ -123,10 +123,22 @@ void* thrPrompt(void* arg) {
                 }
                 break;
             case C_GUESSSKIP: case C_SELECTWORD:
+                // E' necessario rendere la socket non bloccante per poterla svuotare al momento dell'uscita in caso
+                // di messaggi svuggiti al controllo.
+
+
+
                 last_mode = prompt_mode;
                 result = promptRoom(prompt, room, outgoing);
                 // EXIT
                 if(result == 0) {
+                    sock_status = O_NONBLOCK;
+                    fcntl(main_socket, F_SETFL, sock_status);
+                    do {
+                        result = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
+                    } while ( result > 0 && result != 99);
+                    sock_status &= ~O_NONBLOCK;
+                    fcntl(main_socket, F_SETFL, sock_status);
                     writeToServer(main_socket, C_EXITROOM, "C_EXITROOM");
                 }
                     // GUESSSKIP
