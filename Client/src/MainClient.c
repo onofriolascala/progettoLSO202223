@@ -142,7 +142,7 @@ int main() {
     memset(server.connected_user, '\0', sizeof(server.connected_user));
 
     //              MAIN CLIENT LOOP                //
-    do {
+    //do {
 
         //                  POLL LOOP                   //
 
@@ -198,7 +198,7 @@ int main() {
                 }
             }
         } while (!end_poll_loop);
-    } while (!end_main_loop);
+    //} while (!end_main_loop);
 
     writeToLog(*prompt->log, "Terminazione processo client.\n\n\t\t\t END CLIENT.\n");
     deleteLocalSocket(prompt);
