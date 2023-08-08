@@ -38,7 +38,7 @@
 
 // Costanti per la Game Logic
 #define WORDLENGTH 30
-#define TURNTIMEOUT 10*60*1000
+#define TURNTIMEOUT 1*60*1000
 
 // Costanti per il file delle parole
 #define MAXWORDSINFILE 100
