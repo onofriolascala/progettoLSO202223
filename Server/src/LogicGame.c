@@ -27,7 +27,7 @@ int parserChosenWord(char incoming[]){
  * */
 void addHint(int unveiling_sequence[],int* current_unveil, char hidden_word[], char chosen_word[], int word_len){
     if(*current_unveil < (word_len-1)){
-        hidden_word[unveiling_sequence[*current_unveil]] = chosen_word[unveiling_sequence[*current_unveil]];
+        hidden_word[unveiling_sequence[*current_unveil]*2] = chosen_word[unveiling_sequence[*current_unveil]];
         *current_unveil = *current_unveil+1;
     }
 }

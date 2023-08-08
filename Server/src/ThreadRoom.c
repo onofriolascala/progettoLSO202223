@@ -289,7 +289,7 @@ void* thrRoom(void* arg) {
                                 selected_word_len = strlen(words[selected_word]);
 
                                 memset(hidden_word,'\0',sizeof(hidden_word));
-                                strncpy(hidden_word, "______________________________", selected_word_len);
+                                strncpy(hidden_word, "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ", selected_word_len*2);
                                 generateUnveilingSequence(unveiling_sequence,selected_word_len);
                                 addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
 

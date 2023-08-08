@@ -444,4 +444,3 @@ void resetCursor(void) {
     printf(" > ");
     fflush(stdout);
 }
-

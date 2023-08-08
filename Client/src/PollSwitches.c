@@ -323,11 +323,12 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <S_TURNTIMEOUT> %d:%s\n", signal_num, incoming);
             saveCursor();
             gotoxyCursor(V_OFFSET_PROMPT+1, 0);
-            printWarning(prompt, " Tempo scaduto. Prossimo turno.\n");
+            printWarning(prompt, BLD YLW " Tempo scaduto. Prossimo turno." DFT);
             loadCursor();
+            room->turn_flag = 0;
             contacted_sd = *prompt->sd;
-            signal_num = C_RETRY;
-            strcpy(incoming, "C_RETRY");
+            signal_num = C_PAUSE;
+            strcpy(incoming, "C_PAUSE");
             break;
         case S_NOTYOURTURN:
             // L'utente prova a comunicare col server quando non è il suo turno.
@@ -336,6 +337,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             gotoxyCursor(V_OFFSET_PROMPT+1, 0);
             printWarning(prompt, "Attendere il proprio turno.\n");
             loadCursor();
+            room->turn_flag = 0;
             contacted_sd = *prompt->sd;
             signal_num = C_PAUSE;
             strcpy(incoming, "C_PAUSE");
