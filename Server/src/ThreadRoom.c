@@ -84,6 +84,7 @@ void* thrRoom(void* arg) {
     while( !close_room ){
         /* inizio di un nuovo turno*/
         memset(hidden_word,'\0',sizeof(hidden_word));
+        strcpy(hidden_word, "In attesa della parola...");
         start_t = clock();
         total_t = 0;
         next_turn = 0;
@@ -314,7 +315,12 @@ void* thrRoom(void* arg) {
                             sleep(1);
 
                             if(signal_num == S_OK){
-                                sprintf(outgoing, "%s prova \"%s\" ", player->username, guess);
+                                if (strcmp(guess, "User has passed.") == 0){
+                                    sprintf(outgoing, "%s ha passato.", player->username);
+                                }
+                                else {
+                                    sprintf(outgoing, "%s prova \"%s\" ", player->username, guess);
+                                }
                                 if (strcmp(guess, words[selected_word]) == 0) {
                                     for (i = 1; i < nfds; i++) {
                                         if (fds[i].fd != player->player_socket) {
@@ -326,7 +332,7 @@ void* thrRoom(void* arg) {
 
                                         }
                                     }
-                                    sleep(5);
+                                    sleep(2);
                                     suzerain = player;
                                     next_turn = 1;
                                 }
@@ -343,7 +349,7 @@ void* thrRoom(void* arg) {
                                             writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
                                         }
                                     }
-                                    sleep(5);
+                                    sleep(2);
                                     writeToClient(current_player->player_socket,S_YOURTURN,S_YOURTURN_MSG);
                                     printf("\t\t\t\tDEBUG_STANZAID_%d: current turn %s with %d socket.\n", ID, current_player->username, current_player->player_socket);
                                 }
@@ -372,7 +378,7 @@ void* thrRoom(void* arg) {
 
                             // Riavvio del threadService
                             rebuildService(player, room_list, db_connection);
-                            writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
+                            //writeToClient(player->player_socket, S_HOMEPAGEOK, S_HOMEPAGEOK_MSG);
 
                             close_conn = 1;
                             break;
