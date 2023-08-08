@@ -594,8 +594,8 @@ int promptExitKey(struct prompt_thread *prompt, struct room_struct *room, char *
     else if (room->turn_flag == 1) {
         strncpy(buffer, temp_buffer, MAXWORDLENGTH-1);
         result = 1;
-        if((strcmp(temp_buffer, "")) == 0) {
-            strcpy(temp_buffer, "User has passed.");
+        if((strcmp(buffer, "")) == 0) {
+            strcpy(buffer, "User has passed.");
         }
     }
     else if (room->turn_flag == 2) {
