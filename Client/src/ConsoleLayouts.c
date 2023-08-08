@@ -134,8 +134,10 @@ void renderConnection(void) {
     encaseSideLine("");
     encaseSideLine("Benvenuto nel gioco de \"Guess the Word\". Indovina la parola nascosta prima dei");
     encaseSideLine("tuoi avversari, e selezionane una a tua volta perche' gli altri la scoprano!");
-    encaseSideLine("Per iniziare, inserisci l'indirizzo ip e la porta del server a cui si desidera");
-    encaseSideLine("connettersi.");
+    encaseSideLine("Opzioni disponibili");
+    encaseSideLine("      0) Uscita dall'applicazione");
+    encaseSideLine("      1) Accesso diretto");
+    encaseSideLine("      2) Inserimento ip");
     encaseSideLine("");
     encaseHeaderLine("");
     printf("\n");
@@ -161,6 +163,7 @@ void renderLogin(struct server_connection *server) {
     encaseSideLine("      0) Disconnessione");
     encaseSideLine("      1) Accesso");
     encaseSideLine("      2) Registrazione");
+    encaseSideLine("      3) Esci dall'applicazione");
     encaseSideLine("");
     encaseHeaderLine("");
     printf("\n");

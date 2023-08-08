@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "../include/SocketUtilServer.h"

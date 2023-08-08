@@ -61,8 +61,15 @@ void* thrPrompt(void* arg) {
                 continue;
             case C_CONNECTION:
                 last_mode = prompt_mode;
-                promptConnection(prompt, outgoing);
-                writeToServer(main_socket, C_CONNECTION, outgoing);
+                result = promptConnection(prompt, outgoing);
+                if(result == 0) {
+                    writeToServer(main_socket, C_CONNECTION, outgoing);
+                }
+                else if(result == 1){
+                    writeToServer(main_socket, C_CLOSEAPP, "C_CLOSEAPP");
+                    prompt_mode=0;
+                    continue;
+                }
                 break;
             case C_LOGIN:
                 last_mode = prompt_mode;
@@ -78,6 +85,12 @@ void* thrPrompt(void* arg) {
                     // Signin
                 else if(result == 2) {
                     writeToServer(main_socket, C_SIGNIN, outgoing);
+                }
+                    // Exit from login
+                else if(result ==3){
+                    writeToServer(main_socket, C_CLOSEAPP, "C_CLOSEAPP");
+                    prompt_mode=0;
+                    continue;
                 }
                     // Errore
                 else {
@@ -186,48 +199,80 @@ pthread_t createPrompt(int localsocket, struct prompt_thread *prompt, struct roo
 
 int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
     char temp_buffer[MAXCOMMBUFFER] = "";
-    int result;
+    int result, end_loop;
+    do{
+        end_loop = 1;
 
-    green();
-    printf("Attivare la connessione di debug? (192.168.1.139:5200)\n");
-    defaultFormat();
-    promptConfirmationMSG();
-    if(promptConfirmation(prompt)) {
-        printf("Connessione a "
-               "192.168.1.139:5200\n");
-        strcpy(outgoing, "192.168.1.139-5200;");
-        return 0;
-    }
-    else {
-        up(1);
-        clearLine();
-        carriageReturn();
-        up(1);
-        clearLine();
-        carriageReturn();
-        fflush(stdout);
-    }
+        usleep(REFRESHCONSTANT);
 
-    usleep(REFRESHCONSTANT);
+        result = promptSelection(prompt, '2');
 
-    promptIPAddressMSG();
-    if ((result = promptString(prompt, temp_buffer, MAXIP)) < 0) return result;
+        usleep(REFRESHCONSTANT);
+        switch (result) {
+            case 0:
+                promptConfirmationMSG();
+                if (promptConfirmation(prompt)) {
+                    result = 1;
+                } else {
+                    end_loop = 0;
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                    fflush(stdout);
+                }
+                break;
+            case 1:
+            //green();
+            //printf("Attivare la connessione di debug? (79.19.140.52:5200)\n");
+            //defaultFormat();
+            //promptConfirmationMSG();
+            //if (promptConfirmation(prompt)) {
+                printf("Connessione a "
+                       "79.19.140.52:5200\n");
+                strcpy(outgoing, "79.19.140.52-5200;");
+                result = 0;
+                break;
+            //}
+            case 2:
+                up(1);
+                clearLine();
+                carriageReturn();
+                up(1);
+                clearLine();
+                carriageReturn();
+                fflush(stdout);
+                result = 0;
 
-    usleep(REFRESHCONSTANT);
+                usleep(REFRESHCONSTANT);
 
-    strncat(outgoing, temp_buffer, MAXIP+1);
-    strncat(outgoing, "-", 2);
+                promptIPAddressMSG();
+                if ((result = promptString(prompt, temp_buffer, MAXIP)) < 0) return result;
 
-    memset(temp_buffer, '\0', sizeof(temp_buffer));
+                usleep(REFRESHCONSTANT);
 
-    promptPortMSG();
-    if ((result = promptString(prompt, temp_buffer, MAXPORT)) < 0) return result;
+                strncat(outgoing, temp_buffer, MAXIP+1);
+                strncat(outgoing, "-", 2);
 
-    usleep(REFRESHCONSTANT);
+                memset(temp_buffer, '\0', sizeof(temp_buffer));
 
-    strncat(outgoing, temp_buffer, MAXPORT+1);
-    strncat(outgoing, ";", 2);
-    return 0;
+                promptPortMSG();
+                if ((result = promptString(prompt, temp_buffer, MAXPORT)) < 0) return result;
+
+                usleep(REFRESHCONSTANT);
+
+                strncat(outgoing, temp_buffer, MAXPORT+1);
+                strncat(outgoing, ";", 2);
+            break;
+
+            default:
+                result = -1;
+        }
+
+    } while( !end_loop );
+    return result;
 }
 
 int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
@@ -239,7 +284,7 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
 
         usleep(REFRESHCONSTANT);
 
-        result = promptSelection(prompt, '2');
+        result = promptSelection(prompt, '3');
 
         usleep(REFRESHCONSTANT);
 
@@ -315,6 +360,21 @@ int promptLogin(struct prompt_thread *prompt, char outgoing[]) {
                 strncat(outgoing, ";", 2);
 
                 result = 2;
+                break;
+                // Exit from login
+            case 3:
+                promptConfirmationMSG();
+                if (promptConfirmation(prompt)) {
+                    result = 3;
+                } else {
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                    up(1);
+                    clearLine();
+                    carriageReturn();
+                    fflush(stdout);
+                }
                 break;
             default:
                 result = -1;

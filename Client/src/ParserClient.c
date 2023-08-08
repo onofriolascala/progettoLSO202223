@@ -1,5 +1,4 @@
 #include "../include/ParserClient.h"
-
 int parserIp(char incoming[], struct server_connection *server){
     //Prende incoming come input, restituisce una stringa con il valore dell'ip e 0 in caso di successo, un -1 in caso di dimensioni errate, -2 in caso di caratteri alfanumerici nell'ip
     //Data la tipologia di controlli fatti non è possibile accettare degli alias come ip
