@@ -12,7 +12,7 @@ int parserChosenWord(char incoming[]){
     num_p=strtok(incoming, "\0");
     if(num_p != NULL) {
         return_value = atoi(num_p);
-        if(return_value < 0 || return_value > 3) {
+        if(return_value <= 0 || return_value > 3) {
             return_value = -1;
         }
     }
