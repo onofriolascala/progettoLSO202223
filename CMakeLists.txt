@@ -45,15 +45,6 @@ add_executable(PromptBot1.out Client/src/MainClient.c
         Client/src/ParserClient.c Client/include/ParserClient.h
         Client/src/PollSwitches.c Client/include/PollSwitches.h
         Client/src/LogUtilClient.c Client/include/LogUtilClient.h)
-add_executable(PromptBot2.out Client/src/MainClient.c
-        Client/include/Def.h
-        Client/src/ConsoleLayouts.c Client/include/ConsoleLayouts.h
-        Client/src/SocketUtilClient.c Client/include/SocketUtilClient.h
-        Client/src/CommUtilClient.c Client/include/CommUtilClient.h
-        Client/src/PromptBot2.c Client/include/Prompt.h
-        Client/src/ParserClient.c Client/include/ParserClient.h
-        Client/src/PollSwitches.c Client/include/PollSwitches.h
-        Client/src/LogUtilClient.c Client/include/LogUtilClient.h)
 
 target_include_directories(Server.out PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
 target_link_libraries(Server.out PRIVATE ${LIBMYSQLCLIENT_LIBRARIES})
