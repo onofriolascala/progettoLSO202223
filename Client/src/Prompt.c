@@ -1,6 +1,3 @@
-//
-// Created by Mattia on 03/12/2022.
-//
 
 #include "../include/Prompt.h"
 
