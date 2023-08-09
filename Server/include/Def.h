@@ -11,7 +11,7 @@
 #include <mysql/mysql.h>
 
 // Costanti per la gestione delle socket.
-#define MAXCONNECTIONS 5
+#define MAXCONNECTIONS 10
 #define MAXLOCALCONNECTIONS 5
 #define LOCALSOCKETADDRLENGTH 100
 #define SERVERPORT 5200

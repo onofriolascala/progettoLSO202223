@@ -48,6 +48,7 @@ void acceptLoop(int sd1, struct room_node** room_list, struct mySQLConnection* d
         // Loop di Accettazione
         if((sd2 = accept(sd1, NULL, NULL)) < 0) {
             perror(":ACCEPT ERROR");
+            sleep(15);
             //close(sd1);
         }
         else {
