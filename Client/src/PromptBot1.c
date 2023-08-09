@@ -140,9 +140,9 @@ void* thrPrompt(void* arg) {
                 // E' necessario rendere la socket non bloccante per poterla svuotare al momento dell'uscita in caso
                 // di messaggi svuggiti al controllo.
                 last_mode = prompt_mode;
-                result = promptRoom(prompt, room, outgoing);
+                //result = promptRoom(prompt, room, outgoing);
                 // EXIT
-                if(result == 0) {
+                /*if(result == 0) {
                     sock_status = O_NONBLOCK;
                     fcntl(main_socket, F_SETFL, sock_status);
                     do {
@@ -165,7 +165,7 @@ void* thrPrompt(void* arg) {
                     // Errore
                 else {
                     writeToServer(main_socket, C_RETRY, "C_RETRY");
-                }
+                }*/
                 break;
             default:
                 last_mode = prompt_mode;
