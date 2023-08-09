@@ -5,23 +5,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <pthread.h>
-#include <sys/types.h>
 #include <sys/un.h>
 #include <errno.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <signal.h>
 
 #include <poll.h>
 
 #include "../include/LogUtilClient.h"
-#include "../include/SocketUtilClient.h"
-#include "../include/CommUtilClient.h"
-#include "../include/Prompt.h"
 #include "../include/PollSwitches.h"
 #include "../../Server/include/Def.h"
 

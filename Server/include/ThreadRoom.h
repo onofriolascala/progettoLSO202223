@@ -18,14 +18,12 @@
 #include <arpa/inet.h>
 #include <sys/poll.h>
 
-
 #include "../include/ListHandler.h"
 #include "../include/CommUtilServer.h"
 #include "../include/SocketUtilServer.h"
 #include "../include/Def.h"
 #include "../include/LogUtilServer.h"
 #include "../include/LogicGame.h"
-
 
 struct room_node* addNewRoom(struct room_node* room_list);
 

@@ -5,8 +5,6 @@
 #ifndef PROGETTOLSO202223_LOGUTILSERVER_H
 #define PROGETTOLSO202223_LOGUTILSERVER_H
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

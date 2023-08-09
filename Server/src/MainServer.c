@@ -6,20 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <arpa/inet.h>
+#include <signal.h>
 
 #include "../include/SocketUtilServer.h"
-#include "../include/ThreadService.h"
-#include "../include/Def.h"
-#include "../include/ListHandler.h"
-#include "../include/MySqlUtil.h"
-#include <signal.h>
 
 static void sigHandler(int signum);
 
