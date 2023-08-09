@@ -126,7 +126,7 @@ void* thrRoom(void* arg) {
             if( rc == 0 ){
                 // timeout raggiunto
                 //round timeout routine
-                if(!word_is_selected){
+                if(!word_is_selected && suzerain != NULL){
                     writeToClient(suzerain->player_socket, S_TURNTIMEOUT, S_TURNTIMEOUT_MSG);
                     moveSuzerainTurn(&suzerain,suzerain->next);
                     break;
