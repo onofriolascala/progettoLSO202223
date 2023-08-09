@@ -32,54 +32,23 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             // ERROR DIFFERENT FROM EWOULDBLOCK
             sprintf( prompt->log_str, "\tSERVER_SWITCH: <ERROR CASE 3>.\n");
             printErrorNoNumber(prompt, ECRITICALCLIENT, incoming);
-            end_loop = 1;
+            end_loop = 2;
             break;
         case S_DISCONNECT_ABRUPT:
-            writeToLog( *prompt->log, "\tSERVER_SWITCH: <Abrupt Disconnection>.\n");
             printErrorNoNumber(prompt, "!Attenzione! Il server ha terminato prematuramente la connessione. Riavvio.\n", incoming);
-            switchServer(server, room, prompt, S_DISCONNECT, "S_DISCONNECT");
-            return 0;
+            contacted_sd = *prompt->sd;
+            signal_num = S_DISCONNECT_ABRUPT;
+            strcpy(incoming, "Server has disconnected unexpectedly. Please close prompt_thread for app restart.");
+            end_loop = 1;
+            break;
         case S_DISCONNECT:
             // Il server comunica di aver recepito l'intento di disconnessione. Il client provvederà a chiudere
             // la connessione, e riportare la console alla schermata di connessione.
-            do {
-                if(pthread_mutex_trylock(&prompt->mutex) == 0) {
-
-                    if(writeToServer(*prompt->sd, S_DISCONNECT_ABRUPT, "S_DISCONNECT_ABRUPT") < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
-                    usleep(REFRESHCONSTANT);
-
-                    pthread_cancel(prompt->id);
-
-                    bold();
-                    yellow();
-                    printf("\nRiavvio in corso...\n");
-                    defaultFormat();
-                    fflush(stdout);
-
-                    sprintf( prompt->log_str, "\tSERVER_SWITCH: <Disconnection> %d:%s\n", signal_num, incoming);
-                    writeToLog(*prompt->log, prompt->log_str);
-
-                    close(*server->sd);
-                    *server->sd = -1;
-
-
-                    //deleteLocalSocket(prompt);
-                    close(*prompt->sd);
-
-                    prompt->id = createPrompt(*server->localsocket, prompt, NULL);
-
-                    sleep(3);
-                    emptyConsole();
-                    renderConnection();
-                    pthread_mutex_unlock(&prompt->mutex);
-
-                    if(writeToServer(*prompt->sd, C_CONNECTION, "C_CONNECTION.") < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
-                    return 0;
-                }
-                else {
-                    usleep(REFRESHCONSTANT);
-                }
-            } while(1);
+            sprintf( prompt->log_str, "\tSERVER_SWITCH: <Connection> %d:%s\n", signal_num, incoming);
+            contacted_sd = *prompt->sd;
+            signal_num = S_DISCONNECT;
+            strcpy(incoming, "Please close prompt_thread for app restart.");
+            end_loop = 1;
             break;
         case S_LOGINOK:
             // Il server comunica il via libera alla schermata di login. Il client provvederà ad attivare
@@ -393,7 +362,7 @@ int switchServer(struct server_connection *server, struct room_struct *room, str
             return 0;
     }
     writeToLog(*prompt->log, prompt->log_str);
-    if (signal_num > 0 && signal_num != C_PAUSE) {
+    if (signal_num >= 0 && signal_num != C_PAUSE) {
         if(writeToServer(contacted_sd, signal_num, incoming) < 0) printErrorNoNumber(prompt, "\tErrore in scrittura rilevato.\n", incoming);
     }
     return end_loop;
@@ -425,13 +394,22 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
             // La socket del prompt si è chiusa inaspettatamente. Comportamento non definito, si procede a chiudere il
             // processo.
             printErrorNoNumber(prompt, ECRITICALCLIENT, incoming);
-            end_loop = 1;
+            signal_num = -1;
+            end_loop = 2;
             break;
         case S_DISCONNECT:
             // Il prompt ha inviato un segnale di disconnessione dal server a cui il client è connesso in quel
             // momento. Il client provvederà a trasferirlo al server.
             sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Disconnection> %d:%s\n", signal_num, incoming);
-            contacted_sd = *server->sd;
+            signal_num = -1;
+            end_loop = 1;
+            close(*prompt->sd);
+            break;
+        case C_CLOSEAPP:
+            sprintf( prompt->log_str, "\tPROMPT_SWITCH: <Close App> %d:%s\n", signal_num, incoming);
+            signal_num = -1;
+            end_loop = 2;
+            close(*prompt->sd);
             break;
         case C_CONNECTION:
             // Il prompt desidera connettersi al processo server identificato da indirizzo IPv4 e porta forniti.

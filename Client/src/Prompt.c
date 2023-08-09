@@ -53,8 +53,9 @@ void* thrPrompt(void* arg) {
             case -3:
                 // ERROR DIFFERENT FROM EWOULDBLOCK
                 break;
-            case 0:
+            case S_DISCONNECT_ABRUPT: case S_DISCONNECT:
                 // Il MainThread ha richiesto la chiusura del prompt.
+                prompt_mode = 0;
                 break;
             case C_RETRY:
                 prompt_mode = last_mode;
@@ -62,13 +63,19 @@ void* thrPrompt(void* arg) {
             case C_CONNECTION:
                 last_mode = prompt_mode;
                 result = promptConnection(prompt, outgoing);
+                // Chiusura
                 if(result == 0) {
+                    signal_num = C_CLOSEAPP;
+                    prompt_mode = 0;
+                    continue;
+                }
+                // Connessione
+                else if(result == 1){
                     writeToServer(main_socket, C_CONNECTION, outgoing);
                 }
-                else if(result == 1){
-                    writeToServer(main_socket, C_CLOSEAPP, "C_CLOSEAPP");
-                    prompt_mode=0;
-                    continue;
+                // Errore
+                else {
+                    writeToServer(main_socket, C_RETRY, "C_RETRY");
                 }
                 break;
             case C_LOGIN:
@@ -76,7 +83,9 @@ void* thrPrompt(void* arg) {
                 result = promptLogin(prompt, outgoing);
                 // Disconnessione
                 if(result == 0) {
-                    writeToServer(main_socket, S_DISCONNECT, S_DISCONNECT_MSG);
+                    signal_num = S_DISCONNECT;
+                    prompt_mode = 0;
+                    continue;
                 }
                     // Login
                 else if(result == 1) {
@@ -87,9 +96,9 @@ void* thrPrompt(void* arg) {
                     writeToServer(main_socket, C_SIGNIN, outgoing);
                 }
                     // Exit from login
-                else if(result ==3){
-                    writeToServer(main_socket, C_CLOSEAPP, "C_CLOSEAPP");
-                    prompt_mode=0;
+                else if(result == 3){
+                    signal_num = C_CLOSEAPP;
+                    prompt_mode = 0;
                     continue;
                 }
                     // Errore
@@ -125,9 +134,6 @@ void* thrPrompt(void* arg) {
             case C_GUESSSKIP: case C_SELECTWORD:
                 // E' necessario rendere la socket non bloccante per poterla svuotare al momento dell'uscita in caso
                 // di messaggi svuggiti al controllo.
-
-
-
                 last_mode = prompt_mode;
                 result = promptRoom(prompt, room, outgoing);
                 // EXIT
@@ -158,7 +164,7 @@ void* thrPrompt(void* arg) {
                 break;
             default:
                 last_mode = prompt_mode;
-                printf("PROMPT_THREAD: <DEBUG> signal number not recognized. Manual response enabled.\n");
+                printf("<DEBUG> segnale di comunicazione non riconosciuto. Formulazione manuale del messaggio attivata.\n");
                 printf("Signal Number: ");
                 fgets(outgoing, MAXCOMMBUFFER, stdin);
                 outgoing[strcspn(outgoing, "\n")] = '\0';
@@ -170,6 +176,10 @@ void* thrPrompt(void* arg) {
         }
         prompt_mode = readFromServer(main_socket, incoming, MAXCOMMBUFFER);
     } while (prompt_mode != 0);
+
+    writeToServer(main_socket, signal_num, "Closing prompt_thread for app restart or closure.");
+
+    usleep(REFRESHCONSTANT*6);
 
     close(main_socket);
 
@@ -221,10 +231,11 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
 
         usleep(REFRESHCONSTANT);
         switch (result) {
+            // App closure
             case 0:
                 promptConfirmationMSG();
                 if (promptConfirmation(prompt)) {
-                    result = 1;
+                    result = 0;
                 } else {
                     end_loop = 0;
                     up(1);
@@ -236,6 +247,7 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
                     fflush(stdout);
                 }
                 break;
+            // Autoconnection
             case 1:
             //green();
             //printf("Attivare la connessione di debug? (79.19.140.52:5200)\n");
@@ -245,18 +257,15 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
                 printf("Connessione a "
                        "79.19.140.52:5200\n");
                 strcpy(outgoing, "79.19.140.52-5200;");
-                result = 0;
+                result = 1;
                 break;
             //}
+            // Manual Connection
             case 2:
                 up(1);
                 clearLine();
                 carriageReturn();
-                up(1);
-                clearLine();
-                carriageReturn();
                 fflush(stdout);
-                result = 0;
 
                 usleep(REFRESHCONSTANT);
 
@@ -277,13 +286,14 @@ int promptConnection(struct prompt_thread *prompt, char outgoing[]) {
 
                 strncat(outgoing, temp_buffer, MAXPORT+1);
                 strncat(outgoing, ";", 2);
-            break;
 
+                result = 1;
+                break;
             default:
                 result = -1;
         }
-
     } while( !end_loop );
+
     return result;
 }
 

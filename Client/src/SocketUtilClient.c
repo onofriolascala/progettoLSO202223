@@ -82,11 +82,6 @@ int localSocketInit(struct sockaddr_un *localsocket_addr, socklen_t *len, struct
 // Elimina in sicurezza la socket locale al momento della chiusura del main thread. Riceve una socket ed un
 // indirizzo di memoria su cui effettuare il CLOSE() e l'UNLINK().
 void deleteLocalSocket(struct prompt_thread *prompt) {
-    //if(!(strcmp(localsocket_path, ""))) {
     close(*prompt->sd);
     unlink(prompt->localsocket_path);
-    //}
-    //else {
-    //    fprintf(stderr, ":DELETE LOCALSOCKET: input string must be not be empty.\n");
-    //}
 }
