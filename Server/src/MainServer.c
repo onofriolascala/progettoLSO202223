@@ -44,9 +44,6 @@ int main() {
     if(signal(SIGTERM, sigHandler) == SIG_ERR){
         printf("Errore nella creazione del sigHandler, impossibile intercettare SIGTERM\n");
     }
-    if(signal(SIGKILL, sigHandler) == SIG_ERR){
-        printf("Errore nella creazione del sigHandler, impossibile intercettare SIGKILL\n");
-    }
 
     // Inizializzazione della socket primaria d'ascolto: socket, bind e listen.
     sd1 = socketInit(&server_addr, &len);
@@ -63,7 +60,7 @@ int main() {
 }
 
 static void sigHandler(int signum){
-    if(signum == SIGINT || signum == SIGTERM || signum == SIGKILL){
+    if(signum == SIGINT || signum == SIGTERM ){
         //closing routine
         system("rm /tmp/thrRoom_socket_local_*");
         exit(1);
