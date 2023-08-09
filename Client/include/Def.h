@@ -135,7 +135,7 @@
 
 // Segnali di comunicazione lato Client.
 #define C_CONNECTION   2 // Client si connette a server
-#define C_CLOSEAPP     3 // Client si connette a server
+#define C_CLOSEAPP     3 // Chiusura dell'app
 #define C_LOGIN       10 // Login
 #define C_SIGNIN      11 // Registrazione
 #define C_CREATEROOM  20 // Creazione di una stanza
