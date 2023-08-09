@@ -132,16 +132,18 @@ void* thrRoom(void* arg) {
                     break;
                 }
                 else{
-                    writeToClient(current_player->player_socket, S_TURNTIMEOUT, S_TURNTIMEOUT_MSG);
-                    movePlayerTurn(&current_player,suzerain,&add_hint_flag);
-                    if(add_hint_flag){
-                        addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
-                        add_hint_flag = 0;
-                        for(i = 1; i < nfds; i++){
-                            writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                    if(current_player != NULL){
+                        writeToClient(current_player->player_socket, S_TURNTIMEOUT, S_TURNTIMEOUT_MSG);
+                        movePlayerTurn(&current_player,suzerain,&add_hint_flag);
+                        if(add_hint_flag){
+                            addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
+                            add_hint_flag = 0;
+                            for(i = 1; i < nfds; i++){
+                                writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                            }
                         }
+                        writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                     }
-                    writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                 }
                 continue;
             }
@@ -450,22 +452,24 @@ void* thrRoom(void* arg) {
             //::IMPORTANTE:: Da dividere turntimeout per 1000 per riportarlo a secondi
             if(total_t > ((TURNTIMEOUT/1000) + 30)){ //1 minute round timeout + 30 seconds for server-side delays
                 //round timeout routine
-                if(!word_is_selected){
+                if(!word_is_selected && suzerain != NULL){
                     writeToClient(suzerain->player_socket, S_TURNTIMEOUT, S_TURNTIMEOUT_MSG);
                     moveSuzerainTurn(&suzerain,suzerain->next);
                     next_turn = 1;
                 }
                 else{
-                    writeToClient(current_player->player_socket, S_TURNTIMEOUT, S_TURNTIMEOUT_MSG);
-                    movePlayerTurn(&current_player,suzerain,&add_hint_flag);
-                    if(add_hint_flag){
-                        addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
-                        add_hint_flag = 0;
-                        for(i = 1; i < nfds; i++){
-                            writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                    if(current_player != NULL){
+                        writeToClient(current_player->player_socket, S_TURNTIMEOUT, S_TURNTIMEOUT_MSG);
+                        movePlayerTurn(&current_player,suzerain,&add_hint_flag);
+                        if(add_hint_flag){
+                            addHint(unveiling_sequence,&current_unveil,hidden_word,words[selected_word],selected_word_len);
+                            add_hint_flag = 0;
+                            for(i = 1; i < nfds; i++){
+                                writeToClient(fds[i].fd, S_NEWHINT, hidden_word);
+                            }
                         }
+                        writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                     }
-                    writeToClient(current_player->player_socket, S_YOURTURN, S_YOURTURN_MSG);
                 }
             }
 
