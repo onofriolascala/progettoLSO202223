@@ -1,6 +1,3 @@
-//
-// Created by osboxes on 12/23/22.
-//
 
 #include "../include/PollSwitches.h"
 
@@ -601,13 +598,4 @@ void emptyMessageList(struct room_struct *room) {
         memset(room->saved_messages[i], '\0', string_size);
     }
     clearMessages(NULL);
-}
-void changePlayers(struct room_struct *room) {
-    if (room == NULL) {
-        return;
-    }
-    for(int i = 0; i < MAXPLAYERS; i++)
-    {
-        updatePlayer(room, i);
-    }
 }

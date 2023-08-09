@@ -31,7 +31,5 @@ int switchPrompt(struct server_connection *server, struct room_struct *room, str
 
 void addMessage(struct room_struct *room, char *incoming);
 void emptyMessageList(struct room_struct *room);
-void changePlayers(struct room_struct *room);
-void changeSuzerain(struct room_struct *room, char *incoming);
 
 #endif // POLLSWITCHES_H

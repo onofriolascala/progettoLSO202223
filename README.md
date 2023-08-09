@@ -36,9 +36,6 @@ Quando un numero sufficente di utenti si unisce alla stessa stanza inizia il gio
 ### Server
 Per avviare il Server, eseguire il file "Server.out" da linea di comando. L'applicazione è pensata per funzionare automaticamente e richiedere quanti meno input da parte di un operatore, necessari solo all'avvio del programma. All'avvio sarà infatti richiesta come prima cosa di connettersi al database MySQL necessario alle operazioni di identificazione degli utenti. Inserire l'indirizzo IP e la porta a cui si desidera connettersi.[^1][^3]
 
-## Testing
-
-
-[^1]: Né il Client né il Server accettano ALIAS. E' sempre necessario inserire un indirizzo IP completo.
+[^1]: Né il Client né il Server accettano ALIAS. È sempre necessario inserire un indirizzo IP completo.
 [^2]: La porta che viene aperta di default per il server è la '5200'.
 [^3]: La porta che viene aperta di default per il database è la '3306'.

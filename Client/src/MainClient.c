@@ -5,23 +5,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <pthread.h>
-#include <sys/types.h>
 #include <sys/un.h>
 #include <errno.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <signal.h>
 
 #include <poll.h>
 
 #include "../include/LogUtilClient.h"
-#include "../include/SocketUtilClient.h"
-#include "../include/CommUtilClient.h"
-#include "../include/Prompt.h"
 #include "../include/PollSwitches.h"
 #include "../../Server/include/Def.h"
 
@@ -117,7 +109,7 @@ int main() {
         fds[1].events = POLLIN;                         // Inizialmente settata a -1 per essere ignorata.
         num_fds = 2;
 
-        timeout = ( 10 * 60 * 1000 );
+        timeout = ( 15 * 60 * 1000 );
 
         // Inizializzazione della socket locale e del thread per il PROMPT
         if((localsocket = localSocketInit(&localsocket_addr, &local_len, prompt)) < 0) {
@@ -169,7 +161,7 @@ int main() {
             if (rc == 0) {
                 printWarning(prompt, "\n!ATTENZIONE! Nessuna risposta dal server o dall'utente. Riavvio.\n");
                 // RIAVVIO CONNESSIONE
-                switchServer(&server, &room, prompt, S_DISCONNECT, "C_DISCONNECT");
+                switchServer(&server, &room, prompt, S_DISCONNECT, incoming);
                 continue;
             }
             for (i = 0; i < num_fds; i++) {
@@ -224,7 +216,7 @@ int main() {
                 break;
             }
             else {
-                usleep(REFRESHCONSTANT*3);
+                usleep(REFRESHCONSTANT);
             }
         } while(1);
         pthread_mutex_unlock(&prompt->mutex);
